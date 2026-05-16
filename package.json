@@ -1,0 +1,12 @@
+{
+  "name": "atrium-math",
+  "version": "1.0.0",
+  "description": "Atrium Math — interactive math + English tutoring app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

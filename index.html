@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Atrium Math · A calm place to learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <div class="logo">
+      <div class="logo-dot">∑</div>
+      Atrium Math
+    </div>
+    <button class="study-nav-btn" id="studyFab" title="Study methods & timers">
+      <span class="fab-icon">📚</span>
+      <span class="fab-label">Study Methods</span>
+    </button>
+    <div class="pomo-chip hidden" id="pomoChip" title="Pomodoro timer (click to open)">
+      <span class="pomo-chip-dot"></span>
+      <span class="pomo-chip-phase" id="pomoChipPhase">FOCUS</span>
+      <span class="pomo-chip-time" id="pomoChipTime">25:00</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="greeting hidden" id="greeting" title="Update profile"></button>
+    <div class="progress-pill" id="progressPill">0/0 quizzes passed · 0%</div>
+  </div>
+</nav>
+
+<div id="onboard" class="onboard hidden"></div>
+
+<!-- Course picker (first home screen) -->
+<div id="courses-home">
+  <header class="hero">
+    <div class="hero-badges">
+      <span class="badge">📚 6 Courses</span>
+      <span class="badge">✨ AI-Graded</span>
+      <span class="badge">🧙 AI Tutor</span>
+      <span class="badge">💬 Ask Anything</span>
+    </div>
+    <h1>A calm place to learn <em>math</em>.</h1>
+    <p>Interactive, auto-graded quizzes with a built-in AI tutor who checks your work, walks you through your mistakes, and answers any question.</p>
+  </header>
+  <div id="recBox"></div>
+  <div class="section-heading">
+    <h2>📖 Your Courses</h2>
+    <div class="sub">Pick a course to begin</div>
+  </div>
+  <div class="subject-toggle" id="subjectToggle"></div>
+  <div class="courses-grid" id="coursesGrid"></div>
+</div>
+
+<!-- Course-specific book grid (shown after picking a course) -->
+<div id="home" class="hidden">
+  <div class="course-header" id="courseHeader"></div>
+  <div class="books" id="books"></div>
+</div>
+
+<div id="detail" class="detail hidden"></div>
+
+<!-- Floating Ask button -->
+<button class="ask-fab" id="askFab" title="Ask Max">
+  <span class="fab-icon">🧙</span>
+  <span class="fab-label">Ask Max</span>
+</button>
+
+<!-- Study methods panel -->
+<aside class="study-panel" id="studyPanel">
+  <header class="study-header">
+    <div class="study-title">
+      <div class="study-avatar">📚</div>
+      <div>
+        <div class="study-name">Study Methods</div>
+        <div class="study-sub">Proven techniques + built-in timers</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="studyClose" title="Close">✕</button>
+  </header>
+  <div class="study-body" id="studyBody"></div>
+</aside>
+
+<!-- Chat panel -->
+<aside class="chat-panel" id="chat">
+  <header class="chat-header">
+    <div class="chat-title">
+      <div class="chat-avatar big">🧙</div>
+      <div>
+        <div class="chat-name">Max</div>
+        <div class="chat-sub">Your AI math & English tutor</div>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="icon-btn" id="chatClear" title="Clear">↺</button>
+      <button class="icon-btn" id="chatClose" title="Close">✕</button>
+    </div>
+  </header>
+  <div class="chat-log" id="chatLog"></div>
+  <form class="chat-form" id="chatForm">
+    <textarea id="chatInput" rows="1" placeholder="Ask anything… (Enter to send)"></textarea>
+    <button type="submit" class="chat-send" title="Send">➤</button>
+  </form>
+</aside>
+
+<div id="modalBackdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
+<div id="modal" class="modal hidden"></div>
+
+<footer>
+  Interactive Algebra 2 quizzes with an AI tutor · Progress saved locally in your browser.
+</footer>
+
+<script src="prealgebra-data.js"></script>
+<script src="algebra-data.js"></script>
+<script src="algebra2-data.js"></script>
+<script src="geometry-data.js"></script>
+<script src="precalc-data.js"></script>
+<script src="calculus-data.js"></script>
+<script src="english-data.js"></script>
+<script src="english-hs-data.js"></script>
+<script src="courses.js"></script>
+<script src="extras.js"></script>
+<script src="english-extras.js"></script>
+<script src="expansions.js"></script>
+<script src="ai.js"></script>
+<script src="app.js"></script>
+<script src="study.js"></script>
+</body>
+</html>
