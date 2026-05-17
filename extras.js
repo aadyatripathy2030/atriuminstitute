@@ -687,6 +687,93 @@ _addQ('precalc', 'pc4', 2, [
   W("If \\(\\tan\\theta = \\tfrac{1}{2}\\), find \\(\\tan(2\\theta)\\).", "\\(\\dfrac{4}{3}\\).", "\\(\\dfrac{2(1/2)}{1 - 1/4} = \\dfrac{1}{3/4}\\).")
 ]);
 
+/* ============ TRIGONOMETRY tr4 — hand-written top-up (expand tool kept failing) ============ */
+
+// tr4 sec[0]: Pythagorean & Reciprocal Identities (+15)
+_addQ('trigonometry', 'tr4', 0, [
+  R("Simplify \\(1 - \\cos^2\\theta\\).", "\\(\\sin^2\\theta\\).", "Pythagorean."),
+  R("Simplify \\(\\csc^2\\theta - \\cot^2\\theta\\).", "1.", "Pythagorean."),
+  R("Simplify \\(\\cot\\theta\\sin\\theta\\).", "\\(\\cos\\theta\\).", "\\(\\tfrac{\\cos}{\\sin}\\cdot\\sin\\)."),
+  R("If \\(\\cos\\theta = \\tfrac{4}{5}\\) in QI, find \\(\\sin\\theta\\).", "\\(\\tfrac{3}{5}\\).", "Pythagorean."),
+  R("If \\(\\tan\\theta = \\tfrac{3}{4}\\) in QI, find \\(\\sec\\theta\\).", "\\(\\tfrac{5}{4}\\).", "\\(\\sec^2 = 1 + 9/16\\)."),
+  R("Simplify \\(\\dfrac{\\sin\\theta}{\\cos\\theta}\\).", "\\(\\tan\\theta\\).", "Definition."),
+  R("Simplify \\(\\cos\\theta\\sec\\theta\\).", "1.", "Reciprocals."),
+  R("Simplify \\(\\sin\\theta\\cot\\theta\\).", "\\(\\cos\\theta\\).", "\\(\\sin\\cdot\\tfrac{\\cos}{\\sin}\\)."),
+  R("If \\(\\sin\\theta = -\\tfrac{1}{2}\\) in QIII, find \\(\\cos\\theta\\).", "\\(-\\tfrac{\\sqrt{3}}{2}\\).", "Pythagorean; QIII negative."),
+  R("Simplify \\(1 + \\cot^2\\theta\\).", "\\(\\csc^2\\theta\\).", "Pythagorean."),
+  R("Simplify \\(\\sec\\theta - \\sec\\theta\\sin^2\\theta\\).", "\\(\\cos\\theta\\).", "Factor \\(\\sec(1-\\sin^2) = \\sec\\cos^2 = \\cos\\)."),
+  W("Show \\(\\tan\\theta\\cos\\theta = \\sin\\theta\\).", "True.", "\\(\\tan = \\sin/\\cos\\)."),
+  W("If \\(\\sec\\theta = 2\\), find \\(\\cos\\theta\\).", "\\(\\tfrac{1}{2}\\).", "Reciprocal."),
+  W("Simplify \\(\\dfrac{1 - \\cos^2 x}{\\sin x}\\).", "\\(\\sin x\\).", "Numerator = \\(\\sin^2 x\\); cancel one."),
+  W("If \\(\\sin\\theta = \\tfrac{7}{25}\\) (QI), find \\(\\cos\\theta\\).", "\\(\\tfrac{24}{25}\\).", "Pythagorean.")
+]);
+
+// tr4 sec[1]: Sum & Difference Formulas (+15)
+_addQ('trigonometry', 'tr4', 1, [
+  R("\\(\\sin(A - B) = ?\\)", "\\(\\sin A\\cos B - \\cos A\\sin B\\).", "Standard."),
+  R("\\(\\cos(A + B) = ?\\)", "\\(\\cos A\\cos B - \\sin A\\sin B\\).", "Standard."),
+  R("\\(\\tan(A+B) = ?\\)", "\\(\\dfrac{\\tan A + \\tan B}{1 - \\tan A\\tan B}\\).", "Standard."),
+  R("Find \\(\\cos 75°\\) using \\(45° + 30°\\).", "\\(\\dfrac{\\sqrt{6} - \\sqrt{2}}{4}\\).", "Apply sum formula."),
+  R("Find \\(\\sin 15°\\) using \\(45° - 30°\\).", "\\(\\dfrac{\\sqrt{6} - \\sqrt{2}}{4}\\).", "Apply difference formula."),
+  R("Simplify \\(\\sin(x + 2\\pi)\\).", "\\(\\sin x\\).", "Periodic."),
+  R("Simplify \\(\\cos(\\pi - x)\\).", "\\(-\\cos x\\).", "Difference formula."),
+  R("\\(\\sin(\\pi/2 - x) = ?\\)", "\\(\\cos x\\).", "Co-function identity."),
+  R("\\(\\cos(\\pi/2 - x) = ?\\)", "\\(\\sin x\\).", "Co-function identity."),
+  R("Find \\(\\tan 75°\\) using \\(45° + 30°\\).", "\\(2 + \\sqrt{3}\\).", "Tan sum formula."),
+  R("Find \\(\\tan 15°\\) using \\(45° - 30°\\).", "\\(2 - \\sqrt{3}\\).", "Tan difference formula."),
+  W("If \\(\\sin A = \\tfrac{3}{5}\\) (QI), \\(\\cos B = \\tfrac{12}{13}\\) (QI), find \\(\\sin(A+B)\\).", "\\(\\tfrac{63}{65}\\).", "\\(\\sin A\\cos B + \\cos A\\sin B\\)."),
+  W("Find \\(\\sin 105°\\) using \\(60° + 45°\\).", "\\(\\dfrac{\\sqrt{6}+\\sqrt{2}}{4}\\).", "Sum formula."),
+  W("Verify \\(\\sin(180° - x) = \\sin x\\).", "True.", "Difference formula."),
+  W("Express \\(\\cos(x + 60°)\\) using \\(\\sin x\\) and \\(\\cos x\\).", "\\(\\tfrac{1}{2}\\cos x - \\tfrac{\\sqrt{3}}{2}\\sin x\\).", "Sum formula.")
+]);
+
+// tr4 sec[2]: Double & Half Angle Formulas (+15)
+_addQ('trigonometry', 'tr4', 2, [
+  R("If \\(\\sin\\theta = \\tfrac{4}{5}\\) (QI), find \\(\\sin 2\\theta\\).", "\\(\\tfrac{24}{25}\\).", "\\(2 \\cdot \\tfrac{4}{5} \\cdot \\tfrac{3}{5}\\)."),
+  R("If \\(\\cos\\theta = \\tfrac{3}{5}\\) (QI), find \\(\\cos 2\\theta\\).", "\\(-\\tfrac{7}{25}\\).", "\\(2(9/25) - 1\\)."),
+  R("Simplify \\(2\\sin x\\cos x\\).", "\\(\\sin 2x\\).", "Double-angle."),
+  R("Simplify \\(2\\cos^2 x - 1\\).", "\\(\\cos 2x\\).", "Double-angle form."),
+  R("Simplify \\(1 - 2\\sin^2 x\\).", "\\(\\cos 2x\\).", "Double-angle form."),
+  R("\\(\\tan(2\\theta) = ?\\)", "\\(\\dfrac{2\\tan\\theta}{1 - \\tan^2\\theta}\\).", "Standard."),
+  R("Find \\(\\sin 120°\\) using \\(\\sin(2\\cdot 60°)\\).", "\\(\\tfrac{\\sqrt{3}}{2}\\).", "\\(2\\sin 60\\cos 60\\)."),
+  R("Find \\(\\cos 120°\\) using double-angle.", "\\(-\\tfrac{1}{2}\\).", "\\(2(1/4) - 1\\)."),
+  R("If \\(\\tan\\theta = 1\\), find \\(\\tan 2\\theta\\).", "Undefined.", "Denominator 0."),
+  R("If \\(\\tan\\theta = \\tfrac{1}{2}\\), find \\(\\tan 2\\theta\\).", "\\(\\tfrac{4}{3}\\).", "\\(\\tfrac{1}{3/4}\\)."),
+  R("Half-angle: \\(\\sin(\\theta/2) = ?\\)", "\\(\\pm\\sqrt{(1-\\cos\\theta)/2}\\).", "Standard."),
+  W("Solve \\(\\sin 2x = 0\\) for \\(0 \\le x < 2\\pi\\).", "\\(x = 0, \\pi/2, \\pi, 3\\pi/2\\).", "\\(2x = k\\pi\\)."),
+  W("Solve \\(\\cos 2x = 1\\) for \\(0 \\le x < 2\\pi\\).", "\\(x = 0, \\pi\\).", "\\(2x = 0, 2\\pi\\)."),
+  W("If \\(\\sin\\theta = \\tfrac{12}{13}\\) (QII), find \\(\\sin 2\\theta\\).", "\\(-\\tfrac{120}{169}\\).", "\\(\\cos = -5/13\\); product negative."),
+  W("Express \\(\\sin 4x\\) using double-angle.", "\\(2\\sin 2x\\cos 2x\\).", "Apply to \\(2(2x)\\).")
+]);
+
+// tr4 cum: Trig Identities cumulative test (+24)
+_addCumQ('trigonometry', 'tr4', [
+  R("Simplify \\(\\sin^2\\theta + \\cos^2\\theta\\).", "1.", "Pythagorean."),
+  R("Simplify \\(1 + \\tan^2\\theta\\).", "\\(\\sec^2\\theta\\).", "Pythagorean."),
+  R("Simplify \\(1 + \\cot^2\\theta\\).", "\\(\\csc^2\\theta\\).", "Pythagorean."),
+  R("\\(\\sin(A + B) = ?\\)", "\\(\\sin A\\cos B + \\cos A\\sin B\\).", "Sum formula."),
+  R("\\(\\cos(A - B) = ?\\)", "\\(\\cos A\\cos B + \\sin A\\sin B\\).", "Difference formula."),
+  R("\\(\\sin 2\\theta = ?\\)", "\\(2\\sin\\theta\\cos\\theta\\).", "Double-angle."),
+  R("\\(\\cos 2\\theta\\) (one form)?", "\\(\\cos^2\\theta - \\sin^2\\theta\\).", "Double-angle."),
+  R("\\(\\tan 2\\theta = ?\\)", "\\(\\dfrac{2\\tan\\theta}{1 - \\tan^2\\theta}\\).", "Standard."),
+  R("Simplify \\(\\tan\\theta\\cos\\theta\\).", "\\(\\sin\\theta\\).", "Definition of tangent."),
+  R("Simplify \\(\\sec\\theta\\cos\\theta\\).", "1.", "Reciprocals."),
+  R("Simplify \\(\\csc\\theta\\sin\\theta\\).", "1.", "Reciprocals."),
+  R("Find \\(\\sin 75°\\) using sum formula with \\(45° + 30°\\).", "\\(\\dfrac{\\sqrt{6}+\\sqrt{2}}{4}\\).", "Apply sum formula."),
+  R("Find \\(\\cos 15°\\) using \\(45° - 30°\\).", "\\(\\dfrac{\\sqrt{6}+\\sqrt{2}}{4}\\).", "Difference formula."),
+  R("If \\(\\sin\\theta = \\tfrac{3}{5}\\) (QI), find \\(\\sin 2\\theta\\).", "\\(\\tfrac{24}{25}\\).", "Double-angle."),
+  R("If \\(\\cos\\theta = \\tfrac{1}{2}\\) (QI), find \\(\\cos 2\\theta\\).", "\\(-\\tfrac{1}{2}\\).", "\\(2(1/4) - 1\\)."),
+  R("Co-function: \\(\\sin(\\pi/2 - x) = ?\\)", "\\(\\cos x\\).", "Standard."),
+  R("Simplify \\(\\sin(x + 2\\pi)\\).", "\\(\\sin x\\).", "Periodicity."),
+  W("Verify \\(\\sin\\theta\\csc\\theta = 1\\).", "True.", "Reciprocals."),
+  W("If \\(\\cos\\theta = -\\tfrac{1}{2}\\) (QII), find \\(\\sin\\theta\\).", "\\(\\tfrac{\\sqrt{3}}{2}\\).", "Pythagorean; QII positive."),
+  W("Simplify \\(2\\sin 45°\\cos 45°\\).", "1.", "\\(= \\sin 90° = 1\\)."),
+  W("If \\(\\tan\\theta = \\tfrac{1}{3}\\), find \\(\\tan 2\\theta\\).", "\\(\\tfrac{3}{4}\\).", "\\(\\tfrac{2/3}{1 - 1/9} = \\tfrac{2/3}{8/9}\\)."),
+  W("Find \\(\\tan(45° + 30°)\\) using sum formula.", "\\(2 + \\sqrt{3}\\).", "Tan sum."),
+  W("Solve \\(\\sin 2x = 1\\) for \\(0 \\le x < 2\\pi\\).", "\\(x = \\pi/4, 5\\pi/4\\).", "\\(2x = \\pi/2 + 2k\\pi\\)."),
+  W("Express \\(\\cos(x + \\pi)\\) in terms of \\(\\cos x\\).", "\\(-\\cos x\\).", "Sum formula.")
+]);
+
 /* ============ PREALGEBRA — hand-written top-ups ============ */
 
 // Round out p3, p4, p7 cumulative tests to 30 questions.
