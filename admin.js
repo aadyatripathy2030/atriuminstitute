@@ -164,34 +164,38 @@
     if (back) back.addEventListener('click', goBack);
   }
 
-  // Hash-based URL routing: visiting /#admin opens the page when the user
-  // is logged in and is_admin. We respond both to initial load and to
-  // later hash changes (e.g. paste #admin into an open tab's URL bar).
-  function checkHash() {
-    if (window.location.hash === '#admin') {
-      const u = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
-      if (u && u.is_admin) openAdmin();
-    }
+  // URL-based routing. Visiting either /admin (clean path served by the
+  // server's SPA fallthrough) or /#admin opens the page when the user is
+  // signed in and has is_admin = true. We respond to initial load AND to
+  // later hash / pathname changes so paste-in-the-URL-bar works.
+  function isAdminRoute() {
+    return window.location.pathname === '/admin' || window.location.hash === '#admin';
+  }
+  function checkRoute() {
+    if (!isAdminRoute()) return;
+    const u = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
+    if (u && u.is_admin) openAdmin();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { wireOnce(); checkHash(); });
+    document.addEventListener('DOMContentLoaded', () => { wireOnce(); checkRoute(); });
   } else {
     wireOnce();
-    checkHash();
+    checkRoute();
   }
-  window.addEventListener('hashchange', checkHash);
+  window.addEventListener('hashchange', checkRoute);
+  window.addEventListener('popstate', checkRoute);
 
-  // Polled retry: if the page loads with #admin and the session check
-  // hasn't populated currentUser yet, retry briefly so we don't fail
-  // silently the first time.
+  // Polled retry: if the page loads on the admin route and the session
+  // check hasn't populated currentUser yet, retry briefly so we don't
+  // silently land back on the home page.
   let retries = 0;
-  const retryHash = setInterval(() => {
+  const retryRoute = setInterval(() => {
     retries++;
-    if (window.location.hash !== '#admin' || retries > 20) { clearInterval(retryHash); return; }
+    if (!isAdminRoute() || retries > 20) { clearInterval(retryRoute); return; }
     const u = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
     if (u) {
-      clearInterval(retryHash);
+      clearInterval(retryRoute);
       if (u.is_admin && el('adminPage') && el('adminPage').classList.contains('hidden')) {
         openAdmin();
       }

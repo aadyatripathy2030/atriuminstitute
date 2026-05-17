@@ -642,6 +642,14 @@
     const user = await checkSession();
     if (user) {
       setNavSignedIn(user);
+      // Special case: if the URL is the admin route AND the user is an
+      // admin, let admin.js handle routing into the admin view rather
+      // than yanking them to courses-home first.
+      const onAdminRoute = window.location.pathname === '/admin' || window.location.hash === '#admin';
+      if (onAdminRoute && user.is_admin) {
+        // admin.js's checkRoute / retry loop will open the admin page.
+        return;
+      }
       // Signed-in users get routed straight to their app home rather than
       // staring at a marketing landing. Role-aware: parents → dashboard,
       // gated minors → consent gate, everyone else → courses home (or

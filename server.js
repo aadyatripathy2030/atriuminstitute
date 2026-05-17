@@ -1142,9 +1142,16 @@ async function proxyClaude(req, res) {
 }
 
 // ---------- Static ----------
+// Paths that are handled by the SPA's client-side router. Visiting one
+// of these in a fresh tab should serve index.html so the client can
+// inspect window.location and route into the right view.
+const SPA_ROUTES = new Set(['/admin']);
+
 function serveStatic(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') urlPath = '/index.html';
+  // SPA route fallthrough: serve index.html for known client-side routes.
+  if (SPA_ROUTES.has(urlPath)) urlPath = '/index.html';
   const filePath = path.join(ROOT, urlPath);
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('403'); }
   const base = path.basename(filePath);
