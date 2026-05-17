@@ -33,8 +33,12 @@ function loadCourses() {
   const sandbox = { console, Object, Array };
   vm.createContext(sandbox);
   for (const f of [
+    'arithmetic-data.js',
     'prealgebra-data.js','algebra-data.js','algebra2-data.js','geometry-data.js',
-    'precalc-data.js','calculus-data.js','english-data.js','english-hs-data.js',
+    'trigonometry-data.js','precalc-data.js','calculus-data.js',
+    'statistics-data.js','finitemath-data.js','linearalg-data.js',
+    'diffeq-data.js','abstractalg-data.js','realanalysis-data.js',
+    'english-data.js','english-hs-data.js',
     'courses.js','extras.js'
   ]) {
     let src = fs.readFileSync(path.join(ROOT, f), 'utf8');
