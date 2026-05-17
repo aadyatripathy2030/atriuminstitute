@@ -678,6 +678,54 @@ async function clearCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'se
   save();
 }
 
+// ---------- Admin: cross-user summaries ----------
+async function adminListUsers(opts = {}) {
+  load();
+  const limit = Math.min(parseInt(opts.limit, 10) || 200, 1000);
+  return state.users.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, limit).map(u => ({
+    id: u.id, email: u.email, role: u.role, verified: u.verified,
+    created_at: new Date(u.createdAt || Date.now()).toISOString(),
+    age: u.age || null, country: u.country || u.state || null,
+    consent_required: !!u.consent_required, consent_granted_at: u.consent_granted_at || null,
+    is_admin: !!u.is_admin,
+    quiz_attempts: state.quizAttempts.filter(a => a.user_id === u.id).length,
+    quiz_passed: state.quizAttempts.filter(a => a.user_id === u.id && a.passed).length,
+    activity_count: state.activity.filter(a => a.user_id === u.id).length,
+    cost_usd: state.aiUsage.filter(a => a.user_id === u.id).reduce((s, a) => s + (a.cost_usd || 0), 0),
+  }));
+}
+async function adminStats() {
+  load();
+  const now = Date.now();
+  const last24 = now - 24 * 60 * 60 * 1000;
+  const last30 = now - 30 * 24 * 60 * 60 * 1000;
+  return {
+    users_total: state.users.length,
+    students_total: state.users.filter(u => u.role === 'student').length,
+    parents_total: state.users.filter(u => u.role === 'parent').length,
+    users_verified: state.users.filter(u => u.verified).length,
+    students_consent_required: state.users.filter(u => u.consent_required).length,
+    students_consent_granted: state.users.filter(u => u.consent_required && u.consent_granted_at).length,
+    links_total: state.links.length,
+    quiz_attempts_total: state.quizAttempts.length,
+    quiz_attempts_passed: state.quizAttempts.filter(a => a.passed).length,
+    active_sessions: state.sessions.filter(s => s.expiresAt > now).length,
+    cached_lessons_total: Object.keys(state.cachedLessons).length,
+    study_plans_total: Object.keys(state.studyPlans).length,
+    cost_all_time: state.aiUsage.reduce((s, a) => s + (a.cost_usd || 0), 0),
+    cost_24h: state.aiUsage.filter(a => new Date(a.created_at).getTime() >= last24).reduce((s, a) => s + (a.cost_usd || 0), 0),
+    cost_30d: state.aiUsage.filter(a => new Date(a.created_at).getTime() >= last30).reduce((s, a) => s + (a.cost_usd || 0), 0),
+  };
+}
+async function adminRecentActivity(limit = 50) {
+  load();
+  const lim = Math.min(parseInt(limit, 10) || 50, 500);
+  return state.activity.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, lim).map(a => {
+    const u = state.users.find(x => x.id === a.user_id);
+    return { id: a.id, user_id: a.user_id, email: u ? u.email : null, kind: a.kind, meta: a.meta, created_at: a.created_at };
+  });
+}
+
 // ---------- Study plan ----------
 async function getStudyPlan(userId) {
   load();
@@ -721,6 +769,7 @@ module.exports = {
   recordAiUsage, listAiUsage, summariseAiUsage,
   getCachedLesson, saveCachedLesson, clearCachedLesson,
   getStudyPlan, upsertStudyPlan, deleteStudyPlan,
+  adminListUsers, adminStats, adminRecentActivity,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

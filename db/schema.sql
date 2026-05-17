@@ -68,6 +68,9 @@ update users set country = state where country is null and state is not null;
 alter table users drop column if exists state;
 alter table users add column if not exists consent_required boolean not null default false;
 alter table users add column if not exists consent_granted_at timestamptz;
+-- Admin flag. Set manually from psql by an operator. The /admin page only
+-- renders for users where this is true.
+alter table users add column if not exists is_admin boolean not null default false;
 
 create unique index if not exists idx_users_link_code on users (link_code) where link_code is not null;
 

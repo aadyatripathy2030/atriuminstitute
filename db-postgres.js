@@ -40,7 +40,7 @@ function normalizeRole(r) {
   return r === 'parent' ? 'parent' : 'student';
 }
 
-const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, consent_required, consent_granted_at';
+const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, consent_required, consent_granted_at, is_admin';
 
 // 8-character link code from an unambiguous alphabet (no 0/O, 1/I/L).
 // Formatted as XXXX-XXXX for display; stored without the dash.
@@ -674,6 +674,57 @@ async function deleteStudyPlan(userId) {
   await q('delete from study_plans where user_id = $1', [userId]);
 }
 
+// ---------- Admin: cross-user summaries ----------
+
+async function adminListUsers(opts = {}) {
+  const limit = Math.min(parseInt(opts.limit, 10) || 200, 1000);
+  return q(
+    `select u.id, u.email, u.role, u.verified, u.created_at, u.age, u.country,
+            u.consent_required, u.consent_granted_at, u.is_admin,
+            (select count(*) from quiz_attempts qa where qa.user_id = u.id) as quiz_attempts,
+            (select count(*) from quiz_attempts qa where qa.user_id = u.id and qa.passed) as quiz_passed,
+            (select count(*) from activity_log a where a.user_id = u.id) as activity_count,
+            (select coalesce(sum(au.cost_usd), 0) from ai_usage au where au.user_id = u.id) as cost_usd
+     from users u
+     order by u.created_at desc
+     limit $1`,
+    [limit],
+  );
+}
+
+async function adminStats() {
+  const rows = await q(
+    `select
+       (select count(*) from users) as users_total,
+       (select count(*) from users where role = 'student') as students_total,
+       (select count(*) from users where role = 'parent') as parents_total,
+       (select count(*) from users where verified) as users_verified,
+       (select count(*) from users where consent_required) as students_consent_required,
+       (select count(*) from users where consent_required and consent_granted_at is not null) as students_consent_granted,
+       (select count(*) from parent_student_links) as links_total,
+       (select count(*) from quiz_attempts) as quiz_attempts_total,
+       (select count(*) from quiz_attempts where passed) as quiz_attempts_passed,
+       (select count(*) from sessions where expires_at > now()) as active_sessions,
+       (select count(*) from cached_lessons) as cached_lessons_total,
+       (select count(*) from study_plans) as study_plans_total,
+       (select coalesce(sum(cost_usd), 0) from ai_usage) as cost_all_time,
+       (select coalesce(sum(cost_usd), 0) from ai_usage where created_at >= now() - interval '24 hours') as cost_24h,
+       (select coalesce(sum(cost_usd), 0) from ai_usage where created_at >= now() - interval '30 days') as cost_30d`,
+  );
+  return rows[0] || {};
+}
+
+async function adminRecentActivity(limit = 50) {
+  return q(
+    `select a.id, a.user_id, u.email, a.kind, a.meta, a.created_at
+     from activity_log a
+     left join users u on u.id = a.user_id
+     order by a.created_at desc
+     limit $1`,
+    [Math.min(parseInt(limit, 10) || 50, 500)],
+  );
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -696,6 +747,7 @@ module.exports = {
   recordAiUsage, listAiUsage, summariseAiUsage,
   getCachedLesson, saveCachedLesson, clearCachedLesson,
   getStudyPlan, upsertStudyPlan, deleteStudyPlan,
+  adminListUsers, adminStats, adminRecentActivity,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,
