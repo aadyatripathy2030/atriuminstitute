@@ -11,7 +11,7 @@ Render Postgres is provisioned independently of the web service, and you'll need
 1. Sign in to https://render.com.
 2. Click **New +** → **PostgreSQL**.
 3. Fill in:
-   - **Name:** `atrium-db`
+   - **Name:** `atrium`
    - **Region:** pick the one you'll also use for the web service (low latency between them matters)
    - **PostgreSQL version:** latest (16+)
    - **Plan:** `Free` to start (~90-day expiry on the free tier; upgrade later to keep it).
@@ -61,7 +61,7 @@ The `.gitignore` already excludes secrets (`.env`, `.apikey`, `data.json`). Doub
    - `EMAIL_FROM` — verified From address, e.g. `Atrium Institute <hello@atriuminstitute.com>`
    - `RATE_LIMIT_PER_HOUR` — `30`
    - `DAILY_REQUEST_CAP` — `1000`
-   - `DATABASE_URL` — **don't paste manually**. Click the dropdown, pick **Add from Database**, select `atrium-db`, then choose **Internal Database URL**. Render keeps this link so password rotations don't break the wiring.
+   - `DATABASE_URL` — **don't paste manually**. Click the dropdown, pick **Add from Database**, select `atrium`, then choose **Internal Database URL**. Render keeps this link so password rotations don't break the wiring.
 5. Click **Create Web Service**.
 
 Render builds, installs dependencies, and deploys. After ~2 minutes you'll get a URL like `https://atrium-math.onrender.com`. Sign in with email → 6-digit code arrives in your inbox → you're in.
