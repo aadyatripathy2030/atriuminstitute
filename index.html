@@ -37,7 +37,8 @@
   <div class="nav-right">
     <button class="nav-link" id="aboutLink" onclick="showAbout()">About</button>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
-    <div class="progress-pill" id="progressPill">0/0 quizzes passed · 0%</div>
+    <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
+    <button class="nav-cta hidden" id="navSignInBtn" type="button">Sign in</button>
     <span class="nav-user hidden" id="navUser" title="Sign out">
       <span id="navUserEmail"></span>
       <button class="nav-link" id="signOutBtn" type="button">Sign out</button>
@@ -66,6 +67,109 @@
 
     <div id="authError" class="auth-error hidden"></div>
   </div>
+</div>
+
+<!-- Public landing page (shown when not signed in) -->
+<div id="landing" class="landing hidden">
+  <section class="landing-hero">
+    <div class="landing-eyebrow">📚 Interactive math &amp; English · grades 6–12</div>
+    <h1 class="landing-h1">Learn math and English<br><em>like you mean it.</em></h1>
+    <p class="landing-lede">A calm, focused place to study — without streaks, ads, or noise. 113 topics, nearly 10,000 questions, and an AI tutor named Max who actually teaches.</p>
+    <div class="landing-cta-row">
+      <button class="cta-primary" onclick="openAuth()">Start free — 3-day trial</button>
+      <button class="cta-secondary" onclick="openAuth()">Sign in</button>
+    </div>
+    <div class="landing-cta-sub">$10/month after trial · cancel anytime · no credit card to start</div>
+  </section>
+
+  <section class="landing-stats">
+    <div class="stat"><div class="stat-num">13</div><div class="stat-label">courses</div></div>
+    <div class="stat"><div class="stat-num">113</div><div class="stat-label">topics</div></div>
+    <div class="stat"><div class="stat-num">10K+</div><div class="stat-label">practice questions</div></div>
+    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">AI tutor</div></div>
+  </section>
+
+  <section class="landing-features">
+    <h2 class="landing-h2">Why students stick with it</h2>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">🧙</div>
+        <h3>An AI tutor that actually teaches</h3>
+        <p>Max isn't a chatbot bolted onto a quiz site. He explains concepts in plain language, walks through your mistakes, and drills you with practice questions tailored to whichever section you're studying.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📐</div>
+        <h3>Complete curriculum</h3>
+        <p>Six math courses from Pre-Algebra through Calculus and seven grades of English Language Arts. Every topic has practice quizzes, cumulative tests, and a course-wide final exam.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⏱</div>
+        <h3>Real study tools</h3>
+        <p>A customizable Pomodoro timer, a spaced-repetition planner, an active-recall coach, and eight more research-backed techniques — built into the app, not bolted on later.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">✓</div>
+        <h3>Auto-graded with real feedback</h3>
+        <p>Every quiz grades itself instantly. Get a question wrong? Max explains why, walks through the correct approach, and offers to drill you on similar problems.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">☁️</div>
+        <h3>Progress that follows you</h3>
+        <p>Sign in with email — no passwords. Your scores, profile, and where you left off sync across every device you use.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🌿</div>
+        <h3>Calm by design</h3>
+        <p>No streak shaming, no leaderboards, no notifications begging you to "open the app for 30 seconds." Just the work, presented clearly.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-how">
+    <h2 class="landing-h2">How it works</h2>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <h3>Sign in with email</h3>
+        <p>Enter your email, get a 6-digit code, you're in. No passwords to remember.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <h3>Pick a course, start a quiz</h3>
+        <p>Choose from 13 courses. Each one has dozens of topics broken into bite-sized practice sets.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <h3>Get feedback, ask Max anything</h3>
+        <p>Quizzes auto-grade. Stuck on something? Open Max's chat — he's available 24/7.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-pricing">
+    <div class="pricing-card">
+      <div class="pricing-badge">Simple pricing</div>
+      <div class="pricing-amount">$10<span>/month</span></div>
+      <div class="pricing-trial">3-day free trial · cancel anytime</div>
+      <ul class="pricing-list">
+        <li>✓ All 13 courses + every quiz, test, and final exam</li>
+        <li>✓ Unlimited access to Max, the AI tutor</li>
+        <li>✓ All study tools (Pomodoro, spaced rep, recall timer, and more)</li>
+        <li>✓ Progress synced across all your devices</li>
+        <li>✓ No ads, no streaks, no upsells</li>
+      </ul>
+      <button class="cta-primary cta-full" onclick="openAuth()">Start your free trial</button>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <div class="landing-foot-mark">∑ Atrium Institute</div>
+    <div class="landing-foot-links">
+      <a href="#" onclick="showAbout(); return false;">About</a>
+      <a href="mailto:hello@atriuminstitute.com">Contact</a>
+    </div>
+    <div class="landing-foot-copy">© 2026 Atrium Institute. A calm place to learn.</div>
+  </footer>
 </div>
 
 <div id="onboard" class="onboard hidden"></div>

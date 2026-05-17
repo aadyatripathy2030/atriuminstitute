@@ -111,6 +111,31 @@
     pullProgress
   };
 
+  function showLanding() {
+    document.getElementById('landing').classList.remove('hidden');
+    document.getElementById('courses-home').classList.add('hidden');
+    document.getElementById('home').classList.add('hidden');
+    document.getElementById('detail').classList.add('hidden');
+    document.getElementById('about').classList.add('hidden');
+    document.getElementById('navSignInBtn').classList.remove('hidden');
+    document.getElementById('progressPill').classList.add('hidden');
+  }
+
+  function hideLanding() {
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('navSignInBtn').classList.add('hidden');
+    document.getElementById('progressPill').classList.remove('hidden');
+  }
+
+  // Expose so onclick handlers in the landing HTML can open the modal.
+  window.openAuth = function() {
+    document.getElementById('authGate').classList.remove('hidden');
+    document.getElementById('authEmailForm').classList.remove('hidden');
+    document.getElementById('authCodeForm').classList.add('hidden');
+    hideError();
+    setTimeout(() => document.getElementById('authEmail').focus(), 50);
+  };
+
   // ---------- Flow ----------
   async function checkSession() {
     const { ok, data } = await api('/api/auth/me');
@@ -120,13 +145,15 @@
       showSignedInChip(data.user.email);
       await pullProgress();
       hideGate();
-      // Tell the app to re-render now that progress is loaded.
+      hideLanding();
+      // Show the courses screen now that we're signed in.
+      document.getElementById('courses-home').classList.remove('hidden');
       if (typeof renderCourses === 'function') renderCourses();
       if (typeof renderProgressPill === 'function') renderProgressPill();
     } else {
       window.__atriumSignedIn = false;
       hideSignedInChip();
-      showGate();
+      showLanding();
     }
   }
 
@@ -160,6 +187,8 @@
     showSignedInChip(data.user.email);
     await pullProgress();
     hideGate();
+    hideLanding();
+    document.getElementById('courses-home').classList.remove('hidden');
     if (typeof renderCourses === 'function') renderCourses();
     if (typeof renderProgressPill === 'function') renderProgressPill();
   }
@@ -179,6 +208,11 @@
     document.getElementById('authCodeForm').addEventListener('submit', handleCodeSubmit);
     document.getElementById('authResend').addEventListener('click', showEmailStep);
     document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
+    document.getElementById('navSignInBtn').addEventListener('click', () => window.openAuth());
+    // Close the modal if the user clicks outside the card.
+    document.getElementById('authGate').addEventListener('click', (e) => {
+      if (e.target.id === 'authGate') document.getElementById('authGate').classList.add('hidden');
+    });
     checkSession();
   }
 
