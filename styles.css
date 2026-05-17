@@ -3047,3 +3047,134 @@ button.logo:focus-visible {
 }
 .lesson-feynman-feedback.err { background: #fdecec; color: #b00020; }
 .lesson-feynman-feedback.hidden { display: none; }
+
+/* Hint ladder inside quiz cards. */
+.quiz-hint-box {
+  margin: 12px 0;
+  padding: 14px 18px;
+  background: #fff9e6;
+  border: 1px solid #f5d99a;
+  border-radius: 10px;
+  color: #5a4500;
+}
+.quiz-hint-box.hidden { display: none; }
+.hint-head {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #6b4d00;
+}
+.hint-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text, #1e2238);
+}
+.hint-body p { margin: 4px 0; }
+.hint-btn {
+  background: #fff;
+  border: 1px solid #f5d99a;
+  color: #6b4d00;
+}
+.hint-btn:hover { background: #fff9e6; }
+
+/* Stuck callout after a 2nd consecutive fail. */
+.stuck-callout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 20px;
+  margin: 16px 0;
+  border: 1px solid #f5c97a;
+  background: #fff9e6;
+  border-radius: 14px;
+}
+.stuck-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.stuck-body { flex: 1; }
+.stuck-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text, #1e2238);
+  margin-bottom: 4px;
+}
+.stuck-sub {
+  font-size: 13px;
+  color: #6b4d00;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+.stuck-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.stuck-open-lesson {
+  background: #1e2238;
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.stuck-dismiss {
+  background: transparent;
+  border: 1px solid var(--border, #e6e2d7);
+  color: var(--text, #1e2238);
+  padding: 9px 16px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Spaced-repetition widget on the courses home page. */
+.review-queue {
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 0 0 18px;
+}
+.review-queue-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.review-queue-icon {
+  font-size: 22px;
+}
+.review-queue-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+.review-queue-sub {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+}
+.review-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.review-queue-row {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.review-queue-row:hover { background: rgba(0, 0, 0, 0.04); }
+.review-queue-row-title { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+.review-queue-row-sub { font-size: 12px; color: var(--muted, #6b7280); }
+.review-queue-row-cta { font-size: 13px; color: var(--accent, #4a6fa5); white-space: nowrap; }

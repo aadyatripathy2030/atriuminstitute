@@ -445,7 +445,7 @@ async function handleLogQuizAttempt(req, res) {
 // quiz_pass, etc.) are not accepted here.
 const CLIENT_ACTIVITY_KINDS = new Set([
   'lesson_started', 'study_started', 'chat_topic_started',
-  'quiz_started', 'quiz_question_answered',
+  'quiz_started', 'quiz_question_answered', 'hint_used',
 ]);
 
 async function handleLogClientActivity(req, res) {
@@ -460,7 +460,7 @@ async function handleLogClientActivity(req, res) {
   // with arbitrary nested JSON. Strings + numbers are cap-truncated; the
   // `correct` key is the only allowed boolean.
   const safeMeta = {};
-  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'topic', 'questionNumber', 'questionTotal']) {
+  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'topic', 'questionNumber', 'questionTotal', 'hintLevel']) {
     if (k in meta && (typeof meta[k] === 'string' || typeof meta[k] === 'number')) {
       const v = meta[k];
       safeMeta[k] = typeof v === 'string' ? v.slice(0, 200) : v;
@@ -490,6 +490,49 @@ async function handleGetMyWeakSections(req, res) {
   if (!u) return json(res, 401, { error: 'Not signed in.' });
   const sections = await db.listWeakSections(u.id);
   json(res, 200, { sections });
+}
+
+// Spaced-repetition: pick a few past-failed sections that are "due" for
+// review. Simple algorithm — a failed attempt becomes due 24 hours later
+// and stays due until the student passes that section again. Returns at
+// most 3 entries so the home-page widget stays calm.
+async function handleGetReviewQueue(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const attempts = await db.listQuizAttempts(u.id, { limit: 300 });
+
+  // Walk recent → older. For each (course, book, section) note the most
+  // recent attempt and whether it was a fail. If the most recent attempt
+  // is a fail and is at least 24h old, queue it.
+  const seen = new Map();
+  for (const a of attempts) {
+    const k = `${a.course_id}|${a.book_id}|${a.section_idx}|${a.section_kind}`;
+    if (seen.has(k)) continue;
+    seen.set(k, a);
+  }
+  const now = Date.now();
+  const ONE_DAY = 24 * 60 * 60 * 1000;
+  const FOURTEEN_DAYS = 14 * ONE_DAY;
+  const due = [];
+  for (const [, a] of seen) {
+    if (a.passed) continue;
+    const last = new Date(a.completed_at).getTime();
+    const age = now - last;
+    if (age < ONE_DAY) continue; // too recent — let it cool
+    if (age > FOURTEEN_DAYS) continue; // too stale — already forgotten, focus elsewhere
+    due.push({
+      course_id: a.course_id,
+      book_id: a.book_id,
+      section_idx: a.section_idx,
+      section_kind: a.section_kind,
+      last_attempted_at: a.completed_at,
+      last_score: a.score,
+      last_total: a.total,
+    });
+  }
+  // Sort newest-failed first so the widget shows what's freshest in their mind.
+  due.sort((a, b) => new Date(b.last_attempted_at) - new Date(a.last_attempted_at));
+  json(res, 200, { items: due.slice(0, 3) });
 }
 
 // ---------- Parent dashboard ----------
@@ -1030,6 +1073,7 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/activity' && req.method === 'POST') return handleLogClientActivity(req, res);
     if (url === '/api/me/activity' && req.method === 'GET') return handleGetMyActivity(req, res);
     if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
+    if (url === '/api/me/review-queue' && req.method === 'GET') return handleGetReviewQueue(req, res);
     if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
     if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
     // Cached lessons: POST returns the cached lesson or generates+caches it; DELETE busts the cache.

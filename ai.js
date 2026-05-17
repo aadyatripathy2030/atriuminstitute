@@ -311,6 +311,22 @@ Return ONLY the JSON array.`;
     });
   },
 
+  // Hint ladder for a stuck quiz question. level is 1 / 2 / 3 — see the
+  // 'hint' intent in prompts.js for the per-level behaviour.
+  streamHint(question, userAnswer, correctAnswer, level) {
+    const user = `Question: ${question}
+Student's current attempt: ${userAnswer || '(blank)'}
+Correct answer (do NOT reveal at level 1 or 2): ${correctAnswer}
+Hint level: ${level}`;
+    return this._stream({
+      intent: 'hint',
+      model: MODEL_FAST,
+      messages: [{ role: 'user', content: user }],
+      max_tokens: 700,
+      temperature: 0.3,
+    });
+  },
+
   streamRecommendation(profile, courseTitles) {
     const user = `Student profile:
 Name: ${profile.name || 'unknown'}

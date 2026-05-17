@@ -253,6 +253,64 @@ function renderCourses() {
 
   // Render AI recommendation card (non-blocking, only once per visit)
   maybeRenderRecommendation();
+  // Spaced-repetition: surface previously-failed sections that are due
+  // for another look. Also non-blocking, also once per visit.
+  maybeRenderReviewQueue();
+}
+
+let _reviewShown = false;
+async function maybeRenderReviewQueue() {
+  if (_reviewShown) return;
+  _reviewShown = true;
+  const grid = document.getElementById('coursesGrid');
+  if (!grid) return;
+  let items = [];
+  try {
+    const res = await fetch('/api/me/review-queue', { credentials: 'same-origin' });
+    if (!res.ok) return;
+    const data = await res.json();
+    items = data.items || [];
+  } catch (_) { return; }
+  if (!items.length) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'review-queue';
+  wrap.innerHTML = `
+    <div class="review-queue-head">
+      <span class="review-queue-icon">🔁</span>
+      <div>
+        <div class="review-queue-title">From earlier — worth another look</div>
+        <div class="review-queue-sub">You missed these last time. A second pass right now usually locks them in.</div>
+      </div>
+    </div>
+    <div class="review-queue-list"></div>
+  `;
+  const list = wrap.querySelector('.review-queue-list');
+  for (const item of items) {
+    const course = COURSES[item.course_id];
+    if (!course) continue;
+    const book = (course.books || []).find(b => b.id === item.book_id);
+    const section = book && book.sections && book.sections[item.section_idx];
+    if (!book || !section) continue;
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'review-queue-row';
+    row.innerHTML = `
+      <div class="review-queue-row-main">
+        <div class="review-queue-row-title">${escapeHtml(section.title)}</div>
+        <div class="review-queue-row-sub">${escapeHtml(course.title)} → ${escapeHtml(book.title)} · last attempt ${item.last_score}/${item.last_total}</div>
+      </div>
+      <div class="review-queue-row-cta">Retry →</div>
+    `;
+    row.addEventListener('click', async () => {
+      if (typeof openCourse === 'function') await openCourse(item.course_id);
+      if (typeof openBook === 'function') openBook(item.book_id);
+      setTimeout(() => startQuiz(item.book_id, item.section_idx), 150);
+    });
+    list.appendChild(row);
+  }
+  // Insert above the courses grid.
+  grid.parentNode.insertBefore(wrap, grid);
 }
 
 let _recShown = false;
@@ -1190,8 +1248,10 @@ function renderQuizQuestion() {
         <label class="quiz-label">Your answer</label>
         <textarea class="quiz-input" id="qInput" rows="2" placeholder="Type your answer here…">${answers[idx].user || ''}</textarea>
         <div id="revealBox"></div>
+        <div id="hintBox" class="quiz-hint-box hidden"></div>
         <div class="quiz-actions" id="quizActions">
           <button class="cta submit-btn" id="submitBtn">Submit Answer</button>
+          <button class="q-btn hint-btn" id="hintBtn" title="Get a hint without revealing the answer">💡 I'm stuck</button>
           <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Max</button>
         </div>
       </div>
@@ -1199,6 +1259,9 @@ function renderQuizQuestion() {
   `;
 
   document.getElementById('submitBtn').onclick = submitAnswer;
+  const hintBtn = document.getElementById('hintBtn');
+  if (hintBtn) hintBtn.onclick = requestNextHint;
+  QUIZ.hintLevel = 0;
   const input = document.getElementById('qInput');
   input.focus();
   input.addEventListener('keydown', e => {
@@ -1206,6 +1269,59 @@ function renderQuizQuestion() {
   });
 
   if (window.MathJax) MathJax.typesetPromise([detail]);
+}
+
+// Three-tier hint ladder. Each click escalates: gentle nudge → scaffold
+// → full walkthrough. Uses MODEL_FAST so it's cheap.
+async function requestNextHint() {
+  if (!QUIZ) return;
+  const { book, section, sIdx, idx, answers } = QUIZ;
+  const q = section.questions[idx];
+  if (!q) return;
+  QUIZ.hintLevel = Math.min(3, (QUIZ.hintLevel || 0) + 1);
+  const level = QUIZ.hintLevel;
+
+  const hintBox = document.getElementById('hintBox');
+  const hintBtn = document.getElementById('hintBtn');
+  if (!hintBox) return;
+  hintBox.classList.remove('hidden');
+  const labels = ['', 'Gentle nudge', 'Scaffolded hint', 'Full walkthrough'];
+  hintBox.innerHTML = `
+    <div class="hint-head">💡 ${labels[level]} (level ${level} of 3)</div>
+    <div class="hint-body"><div class="typing"><span></span><span></span><span></span></div></div>
+  `;
+  const bodyEl = hintBox.querySelector('.hint-body');
+  if (hintBtn) hintBtn.disabled = true;
+
+  // Log so parents / dashboards can see how often the student is asking.
+  logUserActivity('hint_used', {
+    courseId: COURSE.id,
+    bookId: book.id,
+    sectionIdx: typeof sIdx === 'number' ? sIdx : 0,
+    sectionTitle: section.title,
+    questionNumber: idx + 1,
+    hintLevel: level,
+  });
+
+  let buf = '';
+  try {
+    const userAns = (answers[idx] && answers[idx].user) || '';
+    for await (const chunk of AI.streamHint(q.q, userAns, q.answer, level)) {
+      buf += chunk;
+      bodyEl.innerHTML = mdToHtml(buf);
+      if (window.MathJax) MathJax.typesetPromise([bodyEl]);
+    }
+  } catch (e) {
+    bodyEl.innerHTML = `<div class="ai-err">Couldn't fetch a hint: ${escapeHtml(e.message)}</div>`;
+  }
+
+  if (hintBtn) {
+    hintBtn.disabled = false;
+    hintBtn.textContent = level < 3
+      ? (level === 1 ? '💡 More specific hint' : '💡 Show me the walkthrough')
+      : '💡 Done — no more hints';
+    if (level >= 3) hintBtn.disabled = true;
+  }
 }
 
 async function submitAnswer() {
@@ -1365,6 +1481,71 @@ function finishQuiz() {
     document.getElementById('helpBtn').onclick = () => openHelpPopup(missedIdx);
     setTimeout(() => openHelpPopup(missedIdx), 600);
   }
+
+  // Stuck detection: if this is at least the 2nd consecutive failure on
+  // this section, surface a gentle nudge to open the lesson before
+  // retrying. Best-effort — fail silently.
+  if (!passed) {
+    checkStuckAndPrompt(book, section, sIdx).catch(() => { /* ignore */ });
+  }
+}
+
+async function checkStuckAndPrompt(book, section, sIdx) {
+  let attempts;
+  try {
+    const res = await fetch('/api/me/quiz-attempts', { credentials: 'same-origin' });
+    if (!res.ok) return;
+    const data = await res.json();
+    attempts = data.attempts || [];
+  } catch (_) { return; }
+  // Filter to attempts on this specific section, newest first.
+  const same = attempts.filter(a =>
+    a.course_id === COURSE.id && a.book_id === book.id &&
+    a.section_idx === (typeof sIdx === 'number' ? sIdx : 0) &&
+    (a.section_kind || 'section') === 'section'
+  );
+  // We already wrote the latest attempt server-side just now, so we need
+  // to see at least two failures (including this one).
+  const consecutiveFails = (() => {
+    let n = 0;
+    for (const a of same) {
+      if (!a.passed) n++;
+      else break;
+    }
+    return n;
+  })();
+  if (consecutiveFails < 2) return;
+
+  const detail = document.getElementById('detail');
+  if (!detail) return;
+  const callout = document.createElement('div');
+  callout.className = 'stuck-callout';
+  callout.innerHTML = `
+    <div class="stuck-icon">🙋</div>
+    <div class="stuck-body">
+      <div class="stuck-title">Stuck on ${escapeHtml(section.title)} — that's two in a row.</div>
+      <div class="stuck-sub">Let's slow down. Want to walk through Max's lesson before another attempt? It's about 3 minutes and it'll likely save you time on the next try.</div>
+      <div class="stuck-actions">
+        <button class="cta stuck-open-lesson">📖 Open the lesson</button>
+        <button class="q-btn stuck-dismiss">Thanks, I'll retry</button>
+      </div>
+    </div>
+  `;
+  detail.prepend(callout);
+  callout.querySelector('.stuck-open-lesson').addEventListener('click', () => {
+    openBook(book.id);
+    // Open the matching section's Learn panel after the book renders.
+    setTimeout(() => {
+      const cards = document.querySelectorAll('.section-card');
+      const target = cards[sIdx];
+      if (target) {
+        const learn = target.querySelector('.learn-btn');
+        if (learn) learn.click();
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  });
+  callout.querySelector('.stuck-dismiss').addEventListener('click', () => callout.remove());
 }
 
 // ================= HELP POPUP =================

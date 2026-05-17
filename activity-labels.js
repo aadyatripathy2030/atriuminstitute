@@ -146,6 +146,19 @@
           when,
         };
 
+      case 'hint_used': {
+        const levelLabel = meta.hintLevel === 1 ? 'a gentle nudge'
+                          : meta.hintLevel === 2 ? 'a scaffolded hint'
+                          : meta.hintLevel === 3 ? 'a full walkthrough'
+                          : 'a hint';
+        return {
+          icon: '💡',
+          title: `Asked Max for ${levelLabel}${meta.sectionTitle ? ` on ${meta.sectionTitle}` : ''}`,
+          detail: meta.questionNumber ? `Question ${meta.questionNumber}` : '',
+          when,
+        };
+      }
+
       case 'quiz_started': {
         const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
         return {
