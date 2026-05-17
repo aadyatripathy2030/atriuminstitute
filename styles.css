@@ -87,11 +87,28 @@ body::before {
 .nav {
   position: sticky; top: 0; z-index: 20;
   backdrop-filter: blur(10px);
-  background: rgba(247, 245, 240, 0.88);
+  background: var(--nav-bg, rgba(247, 245, 240, 0.88));
   border-bottom: 1px solid var(--border);
   padding: 14px 32px;
   display: flex; align-items: center; justify-content: space-between;
+  color: var(--text);
 }
+/* Dark mode: deeper nav background so the light text actually reads. */
+:root[data-theme="dark"] .nav {
+  background: rgba(10, 14, 22, 0.92);
+}
+:root[data-theme="dark"] .nav,
+:root[data-theme="dark"] .nav .logo,
+:root[data-theme="dark"] .nav .nav-link,
+:root[data-theme="dark"] .nav .nav-search,
+:root[data-theme="dark"] .nav .progress-pill,
+:root[data-theme="dark"] .nav #navUserEmail {
+  color: #f1f4fa;
+}
+:root[data-theme="dark"] .nav .nav-link:hover { color: #ffffff; background: rgba(255,255,255,.08); }
+:root[data-theme="dark"] .theme-toggle { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); color: #f1f4fa; }
+:root[data-theme="dark"] .nav-search { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); }
+:root[data-theme="dark"] .nav-search::placeholder { color: #aab4c5; }
 .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -.2px; color: var(--text); font-family: var(--serif); }
 .logo-dot {
   width: 30px; height: 30px; border-radius: 8px;
@@ -2082,13 +2099,25 @@ footer {
 .auth-field input,
 .auth-field select {
   font: inherit;
-  font-size: 15px;
-  padding: 10px 12px;
+  font-size: 16px;
+  padding: 12px 14px;
   border: 1px solid var(--border, #e6e2d7);
   border-radius: 10px;
   background: var(--paper, #fff);
   color: var(--text, #1e2238);
+  min-height: 46px;
 }
+/* The age number input feels cramped at the default width — give it more
+   room and consistent text size. */
+#authAge {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  padding: 14px 16px;
+  text-align: left;
+}
+#authAge::-webkit-outer-spin-button,
+#authAge::-webkit-inner-spin-button { margin-left: 6px; }
 .auth-linkcode-wrap {
   margin-top: 12px;
   text-align: left;
