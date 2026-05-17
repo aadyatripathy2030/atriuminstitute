@@ -168,6 +168,19 @@ function courseStats(courseId, scores) {
 
 let SUBJECT_FILTER = null; // 'math' | 'english' | 'all'
 
+// Fire-and-forget logger for client-side activity events (Max lessons,
+// study sessions, etc.). The server enforces an allow-list of kinds.
+function logUserActivity(kind, meta) {
+  try {
+    fetch('/api/me/activity', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, meta: meta || {} }),
+    }).catch(() => { /* ignore */ });
+  } catch (_) { /* ignore */ }
+}
+
 // Per-course expansion files (~100-220 KB each) are loaded on demand the
 // first time a user opens a course, instead of shipping all 2 MB on page
 // load. The promise is cached so repeat opens are instant.
@@ -638,6 +651,10 @@ async function toggleLesson(card, book, section) {
   if (panel.dataset.loaded) return;
   panel.dataset.loaded = '1';
 
+  logUserActivity('lesson_started', {
+    courseId: COURSE.id, bookId: book.id, sectionTitle: section.title,
+  });
+
   const prewritten = section.lesson ? `<div class="lesson-written">${mdToHtml(section.lesson)}</div>` : '';
   panel.innerHTML = `
     ${prewritten}
@@ -691,6 +708,10 @@ function sampleStudyQs(section, n) {
 async function studyWithMax(book, section) {
   const studyEl = document.getElementById('study');
   if (!studyEl) return;
+
+  logUserActivity('study_started', {
+    courseId: COURSE.id, bookId: book.id, sectionTitle: section.title,
+  });
 
   // Hide other screens, show the study page.
   document.getElementById('courses-home').classList.add('hidden');
@@ -844,7 +865,8 @@ function startQuiz(bookId, sIdx) {
   QUIZ = {
     book, sIdx, section,
     idx: 0,
-    answers: section.questions.map(() => ({ user: '', correct: null, aiNote: '' }))
+    answers: section.questions.map(() => ({ user: '', correct: null, aiNote: '' })),
+    startedAt: new Date().toISOString(),
   };
   renderQuizQuestion();
 }
@@ -983,11 +1005,20 @@ function finishQuiz() {
   const scores = loadScores();
   scores[sKey(book.id, sIdx)] = { correct, total, passed, when: Date.now() };
   saveScores(scores);
-  // Fire-and-forget: log this attempt server-side. Failures here are silent
-  // (the user's localStorage progress is the canonical UX state; the server
-  // record powers parent dashboards and analytics).
+  // Fire-and-forget: log this attempt server-side with per-question detail.
+  // Failures here are silent (the user's localStorage progress is the
+  // canonical UX state; the server record powers parent dashboards and
+  // analytics).
   const sectionKind = (typeof sIdx === 'number') ? 'section' : (sIdx === 'cum' ? 'cumulative' : 'final');
   const sectionIdxNum = (typeof sIdx === 'number') ? sIdx : 0;
+  const detailedAnswers = section.questions.map((q, i) => ({
+    q: q.q,
+    type: q.type === 'word' ? 'word' : 'regular',
+    correctAnswer: q.answer,
+    userAnswer: (answers[i] && answers[i].user) || null,
+    correct: !!(answers[i] && answers[i].correct),
+    note: (answers[i] && answers[i].aiNote) || undefined,
+  }));
   fetch('/api/me/quiz-attempts', {
     method: 'POST',
     credentials: 'same-origin',
@@ -1000,6 +1031,8 @@ function finishQuiz() {
       score: correct,
       total,
       passed,
+      startedAt: QUIZ && QUIZ.startedAt,
+      answers: detailedAnswers,
     }),
   }).catch(() => { /* ignore — best-effort */ });
   const missedIdx = answers.map((a, i) => a.correct ? -1 : i).filter(i => i >= 0);

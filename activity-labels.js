@@ -50,6 +50,22 @@
     return 'quiz';
   }
 
+  function ordinal(n) {
+    if (!n || n < 1) return '';
+    const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
+  function fmtDuration(seconds) {
+    if (!seconds || seconds < 1) return '';
+    if (seconds < 60) return `${seconds} sec`;
+    const min = Math.round(seconds / 60);
+    if (min < 60) return `${min} min`;
+    const hr = Math.floor(min / 60);
+    const rem = min % 60;
+    return rem ? `${hr} hr ${rem} min` : `${hr} hr`;
+  }
+
   function describeActivity(event) {
     const meta = event.meta || {};
     const when = relativeTime(event.created_at);
@@ -71,10 +87,14 @@
         if (pct === 100) phrase = `Perfect ${meta.score}/${meta.total} on the ${k}`;
         else if (pct >= 90) phrase = `Strong pass — ${meta.score}/${meta.total} on the ${k}`;
         else phrase = `Passed the ${k} (${meta.score}/${meta.total})`;
+        const extras = [];
+        if (meta.attemptNumber > 1) extras.push(`${ordinal(meta.attemptNumber)} attempt`);
+        const dur = fmtDuration(meta.durationSeconds);
+        if (dur) extras.push(dur);
         return {
           icon: pct === 100 ? '🏆' : '✅',
           title: `${phrase}: ${section}`,
-          detail: `${course} → ${book}`,
+          detail: `${course} → ${book}${extras.length ? ` · ${extras.join(' · ')}` : ''}`,
           when,
         };
       }
@@ -84,15 +104,47 @@
         const k = kindLabel(meta.sectionKind);
         const pct = (meta.total > 0) ? Math.round(100 * meta.score / meta.total) : 0;
         const close = pct >= 60;
+        const extras = [];
+        if (meta.attemptNumber > 1) extras.push(`${ordinal(meta.attemptNumber)} attempt`);
+        const dur = fmtDuration(meta.durationSeconds);
+        if (dur) extras.push(dur);
         return {
           icon: close ? '🎯' : '🔄',
           title: close
             ? `Close call on the ${k}: ${section} (${meta.score}/${meta.total})`
             : `Didn't pass the ${k} yet: ${section} (${meta.score}/${meta.total})`,
-          detail: `${course} → ${book} · worth a retake`,
+          detail: `${course} → ${book}${extras.length ? ` · ${extras.join(' · ')}` : ''} · worth a retake`,
           when,
         };
       }
+
+      case 'lesson_started': {
+        const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
+        return {
+          icon: '📖',
+          title: `Started a Max lesson on ${meta.sectionTitle || 'a topic'}`,
+          detail: courseTitle && meta.bookId ? `${courseTitle} → ${meta.bookId}` : '',
+          when,
+        };
+      }
+
+      case 'study_started': {
+        const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
+        return {
+          icon: '🧠',
+          title: `Opened a Study with Max session on ${meta.sectionTitle || 'a topic'}`,
+          detail: courseTitle && meta.bookId ? `${courseTitle} → ${meta.bookId}` : '',
+          when,
+        };
+      }
+
+      case 'chat_topic_started':
+        return {
+          icon: '💬',
+          title: meta.topic ? `Asked Max about ${meta.topic}` : 'Opened a chat with Max',
+          detail: '',
+          when,
+        };
 
       case 'link_created':
         return {

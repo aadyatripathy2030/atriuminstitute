@@ -106,6 +106,13 @@ create index if not exists idx_quiz_attempts_user_id on quiz_attempts (user_id);
 create index if not exists idx_quiz_attempts_completed_at on quiz_attempts (completed_at desc);
 create index if not exists idx_quiz_attempts_user_course on quiz_attempts (user_id, course_id);
 
+-- Per-question detail and attempt metadata. JSONB column holds an array of
+-- { q, type, userAnswer, correctAnswer, correct, note? } items so dashboards
+-- can show exactly what was right / wrong on each attempt.
+alter table quiz_attempts add column if not exists answers jsonb not null default '[]'::jsonb;
+alter table quiz_attempts add column if not exists attempt_number integer;
+alter table quiz_attempts add column if not exists duration_seconds integer;
+
 -- ------------------------------------------------------------------
 -- Activity log: append-only event stream. Used for the activity
 -- timeline shown to both the student and their linked parents.

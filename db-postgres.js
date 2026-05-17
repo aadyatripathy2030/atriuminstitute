@@ -317,15 +317,32 @@ async function logQuizAttempt(userId, attempt) {
   const {
     courseId, bookId, sectionIdx, sectionKind = 'section',
     score, total, passed, startedAt = null,
+    answers = [],
   } = attempt;
+  // attempt_number is computed atomically inside the INSERT so concurrent
+  // submissions don't collide on the same number.
+  // duration_seconds is computed if both started_at and now are known.
+  const startedTs = startedAt ? new Date(startedAt) : null;
+  const duration = startedTs ? Math.max(0, Math.round((Date.now() - startedTs.getTime()) / 1000)) : null;
   const rows = await q(
-    `insert into quiz_attempts (user_id, course_id, book_id, section_idx, section_kind, score, total, passed, started_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     returning id, completed_at`,
-    [userId, courseId, bookId, sectionIdx, sectionKind, score, total, passed, startedAt],
+    `insert into quiz_attempts (
+       user_id, course_id, book_id, section_idx, section_kind,
+       score, total, passed, started_at, answers, attempt_number, duration_seconds
+     )
+     values (
+       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb,
+       (select coalesce(max(attempt_number), 0) + 1 from quiz_attempts
+         where user_id = $1 and course_id = $2 and book_id = $3
+           and section_idx = $4 and section_kind = $5),
+       $11
+     )
+     returning id, completed_at, attempt_number, duration_seconds`,
+    [userId, courseId, bookId, sectionIdx, sectionKind, score, total, passed, startedAt, JSON.stringify(answers), duration],
   );
   await logActivity(userId, passed ? 'quiz_pass' : 'quiz_fail', {
     courseId, bookId, sectionIdx, sectionKind, score, total,
+    attemptNumber: rows[0].attempt_number,
+    durationSeconds: rows[0].duration_seconds,
   });
   return rows[0];
 }
@@ -333,7 +350,8 @@ async function logQuizAttempt(userId, attempt) {
 async function listQuizAttempts(userId, opts = {}) {
   const limit = Math.min(parseInt(opts.limit, 10) || 200, 1000);
   return q(
-    `select id, course_id, book_id, section_idx, section_kind, score, total, passed, started_at, completed_at
+    `select id, course_id, book_id, section_idx, section_kind, score, total, passed,
+            started_at, completed_at, attempt_number, duration_seconds, answers
      from quiz_attempts where user_id = $1 order by completed_at desc limit $2`,
     [userId, limit],
   );

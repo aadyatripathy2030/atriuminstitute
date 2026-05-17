@@ -382,8 +382,46 @@ async function handleLogQuizAttempt(req, res) {
     || typeof body.total !== 'number' || typeof body.passed !== 'boolean') {
     return json(res, 400, { error: 'Bad payload.' });
   }
-  const row = await db.logQuizAttempt(u.id, body);
+  // Sanitize the per-question answers array: drop unexpected keys, cap length
+  // and string sizes so a malicious client can't bloat the DB row.
+  let answers = [];
+  if (Array.isArray(body.answers)) {
+    answers = body.answers.slice(0, 100).map(a => ({
+      q: typeof a.q === 'string' ? a.q.slice(0, 4000) : '',
+      type: a.type === 'word' ? 'word' : 'regular',
+      userAnswer: a.userAnswer == null ? null : String(a.userAnswer).slice(0, 2000),
+      correctAnswer: a.correctAnswer == null ? '' : String(a.correctAnswer).slice(0, 2000),
+      correct: !!a.correct,
+      note: a.note ? String(a.note).slice(0, 500) : undefined,
+    }));
+  }
+  const row = await db.logQuizAttempt(u.id, { ...body, answers });
   json(res, 200, { ok: true, attempt: row });
+}
+
+// Whitelisted client-emitted activity kinds. Server-emitted kinds (signin,
+// quiz_pass, etc.) are not accepted here.
+const CLIENT_ACTIVITY_KINDS = new Set(['lesson_started', 'study_started', 'chat_topic_started']);
+
+async function handleLogClientActivity(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.kind !== 'string' || !CLIENT_ACTIVITY_KINDS.has(body.kind)) {
+    return json(res, 400, { error: 'Bad payload.' });
+  }
+  const meta = body.meta && typeof body.meta === 'object' ? body.meta : {};
+  // Restrict meta to a small set of known string keys so the DB doesn't fill
+  // up with arbitrary nested JSON.
+  const safeMeta = {};
+  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'topic']) {
+    if (k in meta && (typeof meta[k] === 'string' || typeof meta[k] === 'number')) {
+      const v = meta[k];
+      safeMeta[k] = typeof v === 'string' ? v.slice(0, 200) : v;
+    }
+  }
+  await db.logActivity(u.id, body.kind, safeMeta);
+  json(res, 200, { ok: true });
 }
 
 async function handleGetMyQuizAttempts(req, res) {
@@ -693,6 +731,7 @@ const server = http.createServer(async (req, res) => {
     // Activity + quiz attempts (own)
     if (url === '/api/me/quiz-attempts' && req.method === 'POST') return handleLogQuizAttempt(req, res);
     if (url === '/api/me/quiz-attempts' && req.method === 'GET') return handleGetMyQuizAttempts(req, res);
+    if (url === '/api/me/activity' && req.method === 'POST') return handleLogClientActivity(req, res);
     if (url === '/api/me/activity' && req.method === 'GET') return handleGetMyActivity(req, res);
     if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
     // Parent dashboard

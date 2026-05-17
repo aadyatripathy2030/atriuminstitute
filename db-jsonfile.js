@@ -326,18 +326,30 @@ async function deleteLink(linkId, requestingUserId) {
 // ---------- Quiz attempts ----------
 async function logQuizAttempt(userId, attempt) {
   load();
+  const sectionKind = attempt.sectionKind || 'section';
+  const priorAttempts = state.quizAttempts.filter(a =>
+    a.user_id === userId && a.course_id === attempt.courseId &&
+    a.book_id === attempt.bookId && a.section_idx === attempt.sectionIdx &&
+    a.section_kind === sectionKind,
+  );
+  const attemptNumber = priorAttempts.length + 1;
+  const startedTs = attempt.startedAt ? new Date(attempt.startedAt).getTime() : null;
+  const durationSeconds = startedTs ? Math.max(0, Math.round((Date.now() - startedTs) / 1000)) : null;
   const row = {
     id: crypto.randomUUID(),
     user_id: userId,
     course_id: attempt.courseId,
     book_id: attempt.bookId,
     section_idx: attempt.sectionIdx,
-    section_kind: attempt.sectionKind || 'section',
+    section_kind: sectionKind,
     score: attempt.score,
     total: attempt.total,
     passed: !!attempt.passed,
     started_at: attempt.startedAt || null,
     completed_at: new Date().toISOString(),
+    attempt_number: attemptNumber,
+    duration_seconds: durationSeconds,
+    answers: Array.isArray(attempt.answers) ? attempt.answers : [],
   };
   state.quizAttempts.push(row);
   save();
@@ -345,11 +357,13 @@ async function logQuizAttempt(userId, attempt) {
     courseId: attempt.courseId,
     bookId: attempt.bookId,
     sectionIdx: attempt.sectionIdx,
-    sectionKind: row.section_kind,
+    sectionKind,
     score: attempt.score,
     total: attempt.total,
+    attemptNumber,
+    durationSeconds,
   });
-  return { id: row.id, completed_at: row.completed_at };
+  return { id: row.id, completed_at: row.completed_at, attempt_number: attemptNumber, duration_seconds: durationSeconds };
 }
 
 async function listQuizAttempts(userId, opts = {}) {
