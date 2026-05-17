@@ -19,8 +19,17 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // The landing CTAs call openAuth() — keep that name working but make it go straight to the app.
-  window.openAuth = showApp;
+  // Landing CTAs call openAuth(). First-time visitors get the onboarding
+  // questionnaire (name, age, grade, etc.); returning users go straight to courses.
+  window.openAuth = function() {
+    const hasProfile = (typeof loadProfile === 'function') && loadProfile();
+    if (!hasProfile && typeof startOnboarding === 'function') {
+      document.getElementById('landing').classList.add('hidden');
+      startOnboarding();
+    } else {
+      showApp();
+    }
+  };
 
   // Hide nav items that no longer apply (sign-in button, user chip).
   function hideAuthChrome() {

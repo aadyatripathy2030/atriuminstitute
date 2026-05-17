@@ -1253,6 +1253,12 @@ function startOnboarding() {
   document.getElementById('home').classList.add('hidden');
   document.getElementById('detail').classList.add('hidden');
   document.getElementById('courses-home').classList.add('hidden');
+  const landingEl = document.getElementById('landing');
+  if (landingEl) landingEl.classList.add('hidden');
+  const studyEl = document.getElementById('study');
+  if (studyEl) studyEl.classList.add('hidden');
+  const aboutEl = document.getElementById('about');
+  if (aboutEl) aboutEl.classList.add('hidden');
   document.getElementById('onboard').classList.remove('hidden');
   document.getElementById('askFab').classList.add('hidden');
   renderOnboardStep();
@@ -1443,11 +1449,9 @@ function renderGreeting() {
 // ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
   const profile = loadProfile();
-  if (!profile) {
-    startOnboarding();
-  } else {
-    renderGreeting();
-  }
+  // Note: onboarding is now triggered by clicking "Start learning" on the landing
+  // (via auth.js's openAuth handler), not auto-run on page load.
+  if (profile) renderGreeting();
 
   renderCourses();
   renderProgressPill();
