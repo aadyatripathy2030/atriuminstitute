@@ -3508,3 +3508,51 @@ body > .site-footer {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Admin prebuild controls */
+.prebuild-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.prebuild-force {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+}
+.prebuild-progress {
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 16px;
+}
+.prebuild-bar {
+  height: 10px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.prebuild-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent, #4a6fa5), #1b6b3a);
+  transition: width 0.3s ease;
+}
+.prebuild-status-line {
+  font-size: 13px;
+  color: var(--text, #1e2238);
+  font-family: 'Courier New', monospace;
+}
+.prebuild-errors {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #b00020;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.prebuild-errors ul { padding-left: 20px; margin: 6px 0; }
+.prebuild-errors li { margin-bottom: 4px; line-height: 1.4; }

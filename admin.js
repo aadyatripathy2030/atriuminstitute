@@ -391,8 +391,95 @@
       const tbody = el('adminLessonsTable').querySelector('tbody');
       tbody.innerHTML = (courses || []).map(c => `
         <tr><td>${esc(c.course_id)}</td><td class="num">${num(c.cached_count)}</td><td>${c.latest_at ? esc(fmtDate(c.latest_at)) : '—'}</td></tr>
-      `).join('') || '<tr><td colspan="3" class="empty">No cached lessons yet — run npm run prebuild-lessons.</td></tr>';
+      `).join('') || '<tr><td colspan="3" class="empty">No cached lessons yet — click "Start prebuild" below.</td></tr>';
+      populatePrebuildCourseSelect();
+      refreshPrebuildStatus();
     } catch (e) { console.error(e); }
+  }
+
+  function populatePrebuildCourseSelect() {
+    const sel = el('prebuildCourse');
+    if (!sel || sel.options.length > 1) return;
+    if (typeof COURSES === 'undefined') return;
+    for (const [id, c] of Object.entries(COURSES)) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = c.title;
+      sel.appendChild(opt);
+    }
+  }
+
+  let _prebuildPoll = null;
+  async function refreshPrebuildStatus() {
+    try {
+      const { state } = await fetchJSON('/api/admin/prebuild-lessons');
+      renderPrebuildState(state);
+      if (state.running) {
+        if (!_prebuildPoll) _prebuildPoll = setInterval(refreshPrebuildStatus, 2000);
+      } else if (_prebuildPoll) {
+        clearInterval(_prebuildPoll); _prebuildPoll = null;
+        // Refresh the cached-lessons count table once it finishes.
+        loadLessons();
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  function renderPrebuildState(state) {
+    const box = el('prebuildProgress');
+    const startBtn = el('prebuildStartBtn');
+    const cancelBtn = el('prebuildCancelBtn');
+    if (!box) return;
+    if (!state || (!state.running && state.total === 0)) {
+      box.classList.add('hidden');
+      startBtn.disabled = false;
+      cancelBtn.disabled = true;
+      return;
+    }
+    box.classList.remove('hidden');
+    const pct = state.total ? Math.round(100 * state.done / state.total) : 0;
+    const fill = el('prebuildBarFill');
+    if (fill) fill.style.width = pct + '%';
+    const lineParts = [
+      state.running ? '⏳ Running…' : (state.cancelled ? '⏹ Cancelled' : '✓ Done'),
+      `${state.done}/${state.total} (${pct}%)`,
+      `${state.generated} generated`,
+      `${state.skipped} skipped`,
+      `${state.failed} failed`,
+    ];
+    if (state.lastSection) lineParts.push(`last: ${state.lastSection}`);
+    if (state.startedByEmail) lineParts.push(`started by ${state.startedByEmail}`);
+    el('prebuildStatusLine').textContent = lineParts.join(' · ');
+    const errBox = el('prebuildErrors');
+    if (state.errors && state.errors.length) {
+      errBox.innerHTML = '<strong>Errors (first 20):</strong><ul>' +
+        state.errors.map(e => `<li><code>${esc(e.section || '?')}</code> · ${esc(e.message)}</li>`).join('') + '</ul>';
+    } else {
+      errBox.innerHTML = '';
+    }
+    startBtn.disabled = !!state.running;
+    cancelBtn.disabled = !state.running;
+  }
+
+  async function startPrebuild() {
+    const onlyCourse = el('prebuildCourse').value || null;
+    const force = el('prebuildForce').checked;
+    if (force && !confirm('Regenerate ALREADY-cached lessons too? This costs more — every previously-cached section will be re-billed.')) return;
+    try {
+      await fetchJSON('/api/admin/prebuild-lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onlyCourse, force, concurrency: 3 }),
+      });
+      refreshPrebuildStatus();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+  async function cancelPrebuild() {
+    try {
+      await fetchJSON('/api/admin/prebuild-lessons/cancel', { method: 'POST' });
+      refreshPrebuildStatus();
+    } catch (e) { alert(e.message); }
   }
 
   // ---------- Page-level ----------
@@ -445,6 +532,10 @@
     if (usf) usf.addEventListener('change', () => { userStatusFilter = usf.value; renderUsers(); });
     const af = el('adminActivityFilter');
     if (af) af.addEventListener('input', () => { activityFilter = af.value.trim(); renderActivity(); });
+    const pbStart = el('prebuildStartBtn');
+    if (pbStart) pbStart.addEventListener('click', startPrebuild);
+    const pbCancel = el('prebuildCancelBtn');
+    if (pbCancel) pbCancel.addEventListener('click', cancelPrebuild);
   }
 
   function isAdminRoute() {

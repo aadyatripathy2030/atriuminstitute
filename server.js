@@ -17,6 +17,7 @@ const path = require('path');
 const db = require('./db');
 const email = require('./email');
 const prompts = require('./prompts');
+const { loadCourses } = require('./curriculum-loader');
 
 // Anthropic pricing per million tokens (USD), as of mid-2026. If a model
 // is not listed we charge using Sonnet rates (conservative). Update when
@@ -919,6 +920,138 @@ async function handleAdminLessons(req, res) {
   json(res, 200, { courses });
 }
 
+// ---------- Server-side bulk prebuild for cached lessons ----------
+//
+// Runs entirely in-process on the Render web service so the operator
+// doesn't have to spin it up from a laptop. State lives in memory; one
+// job at a time. Restarting the service resets state (acceptable —
+// re-running just picks up where it left off because each section is
+// idempotent in the cache).
+
+const prebuildState = {
+  running: false,
+  startedAt: null,
+  finishedAt: null,
+  total: 0,
+  done: 0,
+  skipped: 0,
+  generated: 0,
+  failed: 0,
+  errors: [],
+  lastSection: null,
+  startedByEmail: null,
+  cancelled: false,
+};
+
+function buildJobList(courses, opts) {
+  const jobs = [];
+  for (const [courseId, course] of Object.entries(courses || {})) {
+    if (opts.onlyCourse && courseId !== opts.onlyCourse) continue;
+    for (const book of (course.books || [])) {
+      (book.sections || []).forEach((section, sectionIdx) => {
+        jobs.push({
+          courseId, bookId: book.id, sectionIdx, sectionKind: 'section',
+          courseTitle: course.title, bookTitle: book.title,
+          sectionTitle: section.title || `Section ${sectionIdx + 1}`,
+          sampleQuestions: (section.questions || []).slice(0, 6),
+        });
+      });
+      if (book.cumulativeTest) {
+        jobs.push({
+          courseId, bookId: book.id, sectionIdx: 0, sectionKind: 'cumulative',
+          courseTitle: course.title, bookTitle: book.title,
+          sectionTitle: `${book.title} — Cumulative test`,
+          sampleQuestions: (book.cumulativeTest.questions || []).slice(0, 6),
+        });
+      }
+    }
+  }
+  return jobs;
+}
+
+async function runPrebuildJob(jobs, opts) {
+  const concurrency = Math.min(Math.max(parseInt(opts.concurrency, 10) || 3, 1), 6);
+  let i = 0;
+  async function worker() {
+    while (true) {
+      if (prebuildState.cancelled) return;
+      const idx = i++;
+      if (idx >= jobs.length) return;
+      const job = jobs[idx];
+      prebuildState.lastSection = `${job.courseId} / ${job.bookId} / s${job.sectionIdx} (${job.sectionKind})`;
+      try {
+        if (!opts.force) {
+          const cached = await db.getCachedLesson(job.courseId, job.bookId, job.sectionIdx, job.sectionKind);
+          if (cached) { prebuildState.skipped++; prebuildState.done++; continue; }
+        }
+        const result = await generateLesson({
+          courseTitle: job.courseTitle,
+          bookTitle: job.bookTitle,
+          sectionTitle: job.sectionTitle,
+          sectionKind: job.sectionKind,
+          sampleQuestions: job.sampleQuestions,
+        });
+        const safe = sanitizeLessonContent(result.content);
+        await db.saveCachedLesson(job.courseId, job.bookId, job.sectionIdx, job.sectionKind, safe, result.model);
+        prebuildState.generated++;
+      } catch (e) {
+        prebuildState.failed++;
+        if (prebuildState.errors.length < 20) {
+          prebuildState.errors.push({ section: prebuildState.lastSection, message: e.message });
+        }
+      } finally {
+        prebuildState.done++;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
+}
+
+async function handleAdminPrebuildStart(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  if (prebuildState.running) {
+    return json(res, 409, { error: 'A prebuild is already running. Wait for it to finish or POST /cancel first.' });
+  }
+  const body = await readJSON(req) || {};
+  let courses;
+  try { courses = loadCourses(); }
+  catch (e) { return json(res, 500, { error: 'Could not load curriculum: ' + e.message }); }
+  const opts = {
+    onlyCourse: typeof body.onlyCourse === 'string' ? body.onlyCourse : null,
+    force: body.force === true,
+    concurrency: body.concurrency,
+  };
+  const jobs = buildJobList(courses, opts);
+  if (jobs.length === 0) {
+    return json(res, 400, { error: 'No sections matched. Did you pass a valid onlyCourse?' });
+  }
+  // Reset state and kick off the worker pool.
+  Object.assign(prebuildState, {
+    running: true, startedAt: new Date().toISOString(), finishedAt: null,
+    total: jobs.length, done: 0, skipped: 0, generated: 0, failed: 0,
+    errors: [], lastSection: null, startedByEmail: u.email, cancelled: false,
+  });
+  // Don't await — fire and let the worker run in the background.
+  runPrebuildJob(jobs, opts).catch(err => {
+    prebuildState.errors.push({ section: '(pool)', message: err.message });
+  }).finally(() => {
+    prebuildState.running = false;
+    prebuildState.finishedAt = new Date().toISOString();
+  });
+  json(res, 202, { ok: true, total: jobs.length, startedAt: prebuildState.startedAt });
+}
+
+async function handleAdminPrebuildStatus(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  json(res, 200, { state: prebuildState });
+}
+
+async function handleAdminPrebuildCancel(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  prebuildState.cancelled = true;
+  json(res, 200, { ok: true });
+}
+
 // ---------- Token usage (own) ----------
 async function handleGetMyTokenUsageSummary(req, res) {
   const u = await currentUser(req);
@@ -1275,6 +1408,9 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/admin/sessions' && req.method === 'GET') return handleAdminSessions(req, res);
     if (url === '/api/admin/links' && req.method === 'GET') return handleAdminLinks(req, res);
     if (url === '/api/admin/lessons' && req.method === 'GET') return handleAdminLessons(req, res);
+    if (url === '/api/admin/prebuild-lessons' && req.method === 'POST') return handleAdminPrebuildStart(req, res);
+    if (url === '/api/admin/prebuild-lessons' && req.method === 'GET') return handleAdminPrebuildStatus(req, res);
+    if (url === '/api/admin/prebuild-lessons/cancel' && req.method === 'POST') return handleAdminPrebuildCancel(req, res);
     {
       const mUserDetail = url.match(/^\/api\/admin\/users\/([0-9a-f-]+)$/);
       if (mUserDetail) {

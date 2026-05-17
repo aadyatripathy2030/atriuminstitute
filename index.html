@@ -563,6 +563,22 @@
     <div class="token-table-wrap"><table class="token-table" id="adminLessonsTable"><thead><tr>
       <th>Course</th><th class="num">Cached</th><th>Last updated</th>
     </tr></thead><tbody></tbody></table></div>
+
+    <h2 style="margin-top:32px">Pre-generate lessons</h2>
+    <p class="muted" style="margin-bottom:12px">Server-side bulk run. Idempotent — already-cached sections are skipped unless you tick Regenerate. Cost is roughly $0.01–$0.02 per lesson.</p>
+    <div class="prebuild-controls">
+      <select id="prebuildCourse" class="admin-select">
+        <option value="">All courses</option>
+      </select>
+      <label class="prebuild-force"><input type="checkbox" id="prebuildForce"> Regenerate already-cached</label>
+      <button class="cta" id="prebuildStartBtn">Start prebuild →</button>
+      <button class="q-btn" id="prebuildCancelBtn" disabled>Cancel</button>
+    </div>
+    <div id="prebuildProgress" class="prebuild-progress hidden">
+      <div class="prebuild-bar"><div class="prebuild-bar-fill" id="prebuildBarFill"></div></div>
+      <div id="prebuildStatusLine" class="prebuild-status-line"></div>
+      <div id="prebuildErrors" class="prebuild-errors"></div>
+    </div>
   </section>
 </div>
 
