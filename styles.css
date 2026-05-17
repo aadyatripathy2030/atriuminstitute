@@ -3137,7 +3137,11 @@ button.logo:focus-visible {
   border: 1px solid var(--border, #e6e2d7);
   border-radius: 14px;
   padding: 18px 20px;
-  margin: 0 0 18px;
+  /* Same centered-container pattern as .study-plan-card and .courses-grid. */
+  max-width: 1036px;
+  width: calc(100% - 64px);
+  box-sizing: border-box;
+  margin: 0 auto 18px;
 }
 .review-queue-head {
   display: flex;
@@ -3185,7 +3189,13 @@ button.logo:focus-visible {
   border: 1px solid var(--border, #e6e2d7);
   border-radius: 14px;
   padding: 18px 22px;
-  margin-bottom: 18px;
+  /* Match the centered max-width pattern used by .courses-grid /
+     .section-heading so the card aligns with everything else on the
+     home page instead of stretching edge-to-edge. */
+  max-width: 1036px;
+  width: calc(100% - 64px);
+  box-sizing: border-box;
+  margin: 0 auto 18px;
 }
 .plan-head {
   display: flex;
