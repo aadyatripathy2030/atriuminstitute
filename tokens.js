@@ -49,8 +49,13 @@
   }
 
   function hideAllTopLevel() {
+    if (typeof window.hideAllTopLevel === 'function' && window.hideAllTopLevel !== hideAllTopLevel) {
+      window.hideAllTopLevel();
+      return;
+    }
     ['landing', 'authGate', 'consentGate', 'parentHome', 'parentStudentDetail',
-     'courses-home', 'home', 'detail', 'profilePage', 'activityPage', 'about', 'contact', 'privacy', 'terms'].forEach(id => hide(el(id)));
+     'courses-home', 'home', 'detail', 'profilePage', 'activityPage',
+     'about', 'contact', 'privacy', 'terms'].forEach(id => hide(el(id)));
   }
 
   function goBack() {

@@ -195,12 +195,14 @@
   }
 
   async function initParentHome(user) {
-    hide(el('landing'));
-    hide(el('courses-home'));
-    hide(el('home'));
-    hide(el('detail'));
-    hide(el('consentGate'));
-    hide(el('authGate'));
+    if (typeof window.hideAllTopLevel === 'function') {
+      window.hideAllTopLevel();
+    } else {
+      // Fallback if auth.js hasn't loaded yet.
+      ['landing', 'courses-home', 'home', 'detail', 'consentGate', 'authGate',
+       'profilePage', 'activityPage', 'tokenUsagePage', 'parentStudentDetail',
+       'about', 'contact', 'privacy', 'terms'].forEach(id => hide(el(id)));
+    }
     show(el('parentHome'));
     el('parentOwnLinkCode').textContent = fmtLinkCode(user && user.link_code);
     await renderStudentList();

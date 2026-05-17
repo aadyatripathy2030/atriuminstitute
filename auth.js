@@ -66,6 +66,10 @@
   function hideAllTopLevel() {
     for (const id of TOP_LEVEL_IDS) hide(el(id));
   }
+  // Exposed so parent.js / activity.js / profile.js / tokens.js can all
+  // share the same single source of truth for "what counts as a top-level
+  // view that should be hidden when we navigate".
+  window.hideAllTopLevel = hideAllTopLevel;
 
   function showLanding() {
     hideAllTopLevel();
