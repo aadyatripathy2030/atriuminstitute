@@ -59,7 +59,37 @@
     ['weak_topics', 'Focus on what I missed'],
   ];
 
-  function studentForm(profile, courses, isUnder13) {
+  function countryOptions(selected) {
+    const list = Array.isArray(window.ATRIUM_COUNTRIES) ? window.ATRIUM_COUNTRIES : [];
+    return list.map(c => {
+      if (c === '— — —') return `<option disabled>─────────────</option>`;
+      return `<option value="${esc(c)}"${c === selected ? ' selected' : ''}>${esc(c)}</option>`;
+    }).join('');
+  }
+
+  function accountFieldset(userInfo) {
+    const age = (userInfo && userInfo.age != null) ? userInfo.age : null;
+    const country = (userInfo && userInfo.country) || '';
+    return `
+      <fieldset>
+        <legend>Account</legend>
+        <label>Age
+          ${age != null
+            ? `<input type="text" value="${esc(age)}" disabled> <small class="profile-hint">Set at signup. Contact us to change.</small>`
+            : `<input type="text" value="(not set)" disabled> <small class="profile-hint">If you signed up before we asked, contact us to add it.</small>`}
+        </label>
+        <label>Country
+          <select name="country">
+            <option value="">${country ? 'Keep current value' : 'Select country…'}</option>
+            ${countryOptions(country)}
+          </select>
+          ${country ? `<small class="profile-hint">Current: ${esc(country)}</small>` : ''}
+        </label>
+      </fieldset>
+    `;
+  }
+
+  function studentForm(profile, courses, isUnder13, userInfo) {
     const p = profile || {};
     const tz = p.timezone || tzGuess();
     const subjects = p.subjects || [];
@@ -89,6 +119,8 @@
     ).join('');
 
     return `
+      ${accountFieldset(userInfo)}
+
       <fieldset>
         <legend>About you</legend>
         <label>Display name <input type="text" name="displayName" value="${esc(p.display_name || '')}" maxlength="200"></label>
@@ -128,7 +160,7 @@
 
   // ---------- Parent form ----------
 
-  function parentForm(profile, students) {
+  function parentForm(profile, students, userInfo) {
     const p = profile || {};
     const tz = p.timezone || tzGuess();
     const relOpts = ['parent', 'guardian', 'tutor', 'other'].map(r =>
@@ -149,6 +181,8 @@
     `).join('');
 
     return `
+      ${accountFieldset(userInfo)}
+
       <fieldset>
         <legend>About you</legend>
         <label>Display name <input type="text" name="displayName" value="${esc(p.display_name || '')}" maxlength="200"></label>
@@ -217,18 +251,18 @@
     setStatus('');
 
     try {
-      const { role, profile } = await fetchJSON('/api/me/rich-profile');
+      const { role, profile, user: userInfo } = await fetchJSON('/api/me/rich-profile');
       lastRole = role;
       const courses = (typeof COURSES !== 'undefined') ? Object.values(COURSES) : [];
       if (role === 'parent') {
         const { students } = await fetchJSON('/api/parent/students');
-        form.innerHTML = parentForm(profile, students || []);
+        form.innerHTML = parentForm(profile, students || [], userInfo);
         wireStudentReminderToggles();
         el('profileTitle').textContent = 'Parent profile';
       } else {
         const me = await fetchJSON('/api/auth/me').catch(() => ({ user: {} }));
         const isUnder13 = !!(me.user && me.user.consent_required);
-        form.innerHTML = studentForm(profile, courses, isUnder13);
+        form.innerHTML = studentForm(profile, courses, isUnder13, userInfo);
         el('profileTitle').textContent = 'Your profile';
       }
     } catch (e) {

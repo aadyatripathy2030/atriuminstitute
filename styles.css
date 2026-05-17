@@ -2704,3 +2704,16 @@ button.logo:focus-visible {
   background: var(--paper, #fff);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
+
+/* Profile-form hint text under a disabled / read-only field. */
+.profile-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  margin-top: 4px;
+}
+.profile-form input:disabled {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--muted, #6b7280);
+  cursor: not-allowed;
+}

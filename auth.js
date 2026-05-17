@@ -36,6 +36,9 @@
     'Yemen',
     'Zambia', 'Zimbabwe',
   ];
+  // Surface the country list so profile.js can offer the same dropdown.
+  window.ATRIUM_COUNTRIES = COUNTRIES;
+
   let selectedRole = 'student';
   let authMode = 'signin'; // 'signin' | 'signup' — only signup collects age/country/role/linkCode
   let pendingEmail = null;

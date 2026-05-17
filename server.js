@@ -296,7 +296,11 @@ async function handleGetRichProfile(req, res) {
   const profile = u.role === 'parent'
     ? await db.getParentProfile(u.id)
     : await db.getStudentProfile(u.id);
-  json(res, 200, { role: u.role, profile });
+  json(res, 200, {
+    role: u.role,
+    profile,
+    user: { age: u.age == null ? null : Number(u.age), country: u.country || null },
+  });
 }
 
 async function handleSaveRichProfile(req, res) {
@@ -304,6 +308,14 @@ async function handleSaveRichProfile(req, res) {
   if (!u) return json(res, 401, { error: 'Not signed in.' });
   const body = await readJSON(req);
   if (!body) return json(res, 400, { error: 'Bad payload.' });
+
+  // Country edits live on the users table. Age is NOT editable here — it
+  // controls consent_required and must stay at whatever was provided at
+  // signup. Mistyped ages get fixed via support.
+  if (typeof body.country === 'string' && body.country.trim()) {
+    await db.updateUserProfile(u.id, { country: body.country.trim() });
+  }
+
   // Under-13 students cannot turn their own reminders on without parent
   // authorisation; silently drop that flag if they try.
   if (u.role === 'student' && u.consent_required && body.reminderEnabled === true) {
@@ -315,7 +327,12 @@ async function handleSaveRichProfile(req, res) {
   const profile = u.role === 'parent'
     ? await db.upsertParentProfile(u.id, sanitizeParentProfile(body))
     : await db.upsertStudentProfile(u.id, sanitizeStudentProfile(body));
-  json(res, 200, { role: u.role, profile });
+  const fresh = await db.getUser(u.id);
+  json(res, 200, {
+    role: u.role,
+    profile,
+    user: { age: fresh.age == null ? null : Number(fresh.age), country: fresh.country || null },
+  });
 }
 
 async function handleParentAuthoriseReminders(req, res, studentId) {
