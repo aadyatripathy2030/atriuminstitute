@@ -3282,3 +3282,15 @@ button.logo:focus-visible {
 .plan-setup-actions { display: flex; gap: 8px; margin-top: 16px; }
 .plan-setup-status { margin-top: 10px; font-size: 13px; color: var(--muted, #6b7280); }
 .plan-setup-status.err { color: #b00020; }
+
+/* Make sure the site footer renders cleanly under every signed-in view
+   (courses home, profile, activity, lessons, parent dashboard, etc.).
+   The earlier styles only kicked in inside the landing layout. */
+.site-footer {
+  margin-top: 48px;
+  border-top: 1px solid var(--border, #e6e2d7);
+}
+body > .site-footer {
+  padding-left: 24px;
+  padding-right: 24px;
+}
