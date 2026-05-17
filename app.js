@@ -261,9 +261,9 @@ async function maybeRenderRecommendation() {
   `;
   const out = document.getElementById('recText');
   let buf = '';
-  const ctx = `Student name: ${profile.name}. Age: ${profile.age || 'unknown'}. Grade: ${profile.grade || 'unknown'}. Current class: ${profile.currentClass || 'unknown'}. Confidence: ${profile.confidence || 'unknown'}/5. Goal: ${profile.goal || 'unknown'}. Subject focus: ${profile.subject || 'unknown'}. Available courses: ${Object.values(COURSES).map(c => c.title).join(', ')}. Recommend 1-2 courses to start with and why, in 2-3 short sentences. Use their name. Be warm, not preachy.`;
+  const courseTitles = Object.values(COURSES).map(c => c.title);
   try {
-    for await (const chunk of AI.streamChat([{ role: 'user', content: ctx }], '')) {
+    for await (const chunk of AI.streamRecommendation(profile, courseTitles)) {
       buf += chunk;
       out.innerHTML = mdToHtml(buf);
     }
@@ -1079,6 +1079,14 @@ function openHelpPopup(missedIdx) {
   const showFix = async (why, q, user) => {
     const step_el = document.getElementById('modalStep');
     const topic = `${book.title} → ${section.title}`;
+    const reviewOpts = {
+      profile: loadProfile() || undefined,
+      sectionStats: {
+        total: section.questions.length,
+        wrong: missedIdx.length,
+        current: step + 1
+      }
+    };
 
     step_el.innerHTML = `
       <div class="tutor-bubble ai-bubble">
@@ -1089,7 +1097,7 @@ function openHelpPopup(missedIdx) {
     const out = document.getElementById('aiOutput');
     let buf = '';
     try {
-      for await (const chunk of AI.streamExplainMistake(q.q, user, q.answer, why, topic)) {
+      for await (const chunk of AI.streamExplainMistake(q.q, user, q.answer, why, topic, reviewOpts)) {
         buf += chunk;
         out.innerHTML = mdToHtml(buf);
         if (window.MathJax) MathJax.typesetPromise([out]);

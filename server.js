@@ -16,6 +16,7 @@ const path = require('path');
 
 const db = require('./db');
 const email = require('./email');
+const prompts = require('./prompts');
 
 const PORT = process.env.PORT || 8765;
 const ROOT = __dirname;
@@ -204,6 +205,25 @@ async function proxyClaude(req, res) {
 
   let bodyStr;
   try { bodyStr = await readBody(req); } catch (_e) { res.writeHead(400); return res.end('bad body'); }
+
+  // Intent-based system prompts. New clients send { intent: 'chat' | ... },
+  // letting the server attach a vetted, prompt-cacheable system prefix. Old
+  // clients still work — if no intent is present we forward the body
+  // unchanged (legacy path; remove once all browsers have refreshed).
+  let body;
+  try { body = JSON.parse(bodyStr); }
+  catch (_e) { return json(res, 400, { error: { message: 'Invalid JSON body.' } }); }
+
+  if (body && body.intent) {
+    if (!prompts.KNOWN_INTENTS.includes(body.intent)) {
+      return json(res, 400, { error: { message: `Unknown intent: ${body.intent}` } });
+    }
+    body.system = prompts.buildSystem(body.intent, body.system_extra);
+    delete body.intent;
+    delete body.system_extra;
+    bodyStr = JSON.stringify(body);
+  }
+
   const opts = {
     method: 'POST', hostname: 'api.anthropic.com', path: '/v1/messages',
     headers: {

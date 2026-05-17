@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "lint": "eslint server.js db.js email.js \"tools/**/*.js\" \"test/**/*.js\" eslint.config.js",
+    "lint": "eslint server.js db.js email.js prompts.js \"tools/**/*.js\" \"test/**/*.js\" eslint.config.js",
     "test": "node --test"
   },
   "engines": {

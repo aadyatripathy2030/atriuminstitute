@@ -1,9 +1,12 @@
-// Browser-side AI wrapper — talks to the local /api/claude proxy so no key is required in the browser.
+// Browser-side AI wrapper. Talks to /api/claude so the Anthropic key stays
+// on the server. Each method specifies an `intent` and the server attaches
+// the corresponding vetted, cacheable system prompt (see prompts.js).
+
 const MODEL_FAST = 'claude-haiku-4-5-20251001';
 const MODEL_SMART = 'claude-sonnet-4-5-20250929';
 
 const AI = {
-  available: true, // assumed true since proxy exists; failures surface as errors
+  available: true,
 
   async _post(payload) {
     const res = await fetch('/api/claude', {
@@ -50,29 +53,13 @@ const AI = {
   },
 
   async gradeAnswer(question, userAnswer, correctAnswer) {
-    const system = `You are a math grader. Given a problem, the student's answer, and the correct answer, decide if the student's answer is equivalent to the correct one.
-
-Allow:
-- Different notation ("5/2", "2.5", "\\frac{5}{2}")
-- Equivalent simplified forms
-- Missing units if the numeric value matches
-- Different variable orders (e.g. "3, 5" vs "5, 3" for solution sets)
-- Minor typos
-
-Reject:
-- Different numeric value
-- Wrong sign
-- Partial answer when a full one is needed
-
-Return ONLY JSON: {"correct": true|false, "note": "brief reason (<=15 words)"}`;
-
     const user = `Problem: ${question}
 Student's answer: ${userAnswer}
 Correct answer: ${correctAnswer}`;
 
     const text = await this._call({
+      intent: 'grade',
       model: MODEL_FAST,
-      system,
       messages: [{ role: 'user', content: user }],
       max_tokens: 200,
       temperature: 0
@@ -87,36 +74,42 @@ Correct answer: ${correctAnswer}`;
     }
   },
 
-  streamExplainMistake(question, userAnswer, correctAnswer, why, topic) {
-    // `why` is free text the student typed (or a "(skipped)" placeholder).
-    const system = `You are Max, a warm, patient tutor who handles both math and English. The student already submitted a wrong answer on this problem — now they want to learn from it. Tailor your explanation to whichever subject the problem is about.
+  // `opts.profile` and `opts.sectionStats` enrich the review with personal
+  // and session context. The static system prompt stays identical across
+  // calls so prompt caching applies; the dynamic context goes in the user
+  // message and an extra non-cached system block.
+  streamExplainMistake(question, userAnswer, correctAnswer, why, topic, opts = {}) {
+    const profile = opts.profile;
+    const stats = opts.sectionStats;
 
-Your job:
-1. Read the student's own description of what they think went wrong. Acknowledge it briefly and honestly — if they've diagnosed correctly, confirm it; if they're off, gently redirect to what likely actually tripped them up based on their answer.
-2. Give concrete, numbered fix steps tailored to what they described.
-3. Walk through the correct solution step by step.
-4. End with one encouraging sentence.
+    const extraBits = [];
+    if (profile && profile.name) {
+      const bits = [`Student: ${profile.name}`];
+      if (profile.age) bits.push(`age ${profile.age}`);
+      if (profile.grade) bits.push(`grade ${profile.grade}`);
+      if (profile.confidence) bits.push(`self-rated confidence ${profile.confidence}/5`);
+      if (profile.pace) bits.push(`prefers ${profile.pace.toLowerCase()}`);
+      extraBits.push(bits.join(', ') + '.');
+    }
+    if (stats && stats.total) {
+      const current = stats.current || 1;
+      const wrong = stats.wrong != null ? stats.wrong : current;
+      extraBits.push(`Section attempt context: mistake ${current} of ${wrong} on a ${stats.total}-question section.`);
+    }
+    const systemExtra = extraBits.length ? extraBits.join('\n') : undefined;
 
-Rules:
-- Plain, easy-to-understand language — no jargon, no textbook-speak.
-- Show at least one worked example with different numbers so they see the technique fresh.
-- Use a simple ASCII diagram (in a \`\`\`code fence\`\`\`) or Markdown table whenever the concept is visual or comparative.
-- Markdown with LaTeX (\\( ... \\) inline, \\[ ... \\] display).
-- Under ~300 words.
-- Never condescending.
-- If the student skipped describing, go straight to a clean walkthrough with example + diagram.`;
-
-    const user = `Topic: ${topic}
-Problem: ${question}
+    const user = `Section / topic: ${topic}
+Question: ${question}
 Student's answer: ${userAnswer || '(blank)'}
 Correct answer: ${correctAnswer}
-Student's own description of what went wrong: ${why}
+Student's own description of what went wrong: ${why || '(skipped)'}
 
-Address their self-diagnosis, give tailored fix steps, show the solution, encourage.`;
+Address their self-diagnosis (or skip-acknowledge), give tailored fix-steps, walk through the correct solution, show one fresh worked example with new numbers, end on one specific encouraging line.`;
 
     return this._stream({
+      intent: 'mistake',
+      system_extra: systemExtra,
       model: MODEL_SMART,
-      system,
       messages: [{ role: 'user', content: user }],
       max_tokens: 1200,
       temperature: 0.4
@@ -125,7 +118,6 @@ Address their self-diagnosis, give tailored fix steps, show the solution, encour
 
   async generateQuestions(courseTitle, bookTitle, section, count) {
     const existing = section.questions.map((q, i) => `${i + 1}. ${q.q} (answer: ${q.answer})`).join('\n');
-    const system = `You generate practice quiz questions for a student. Return ONLY a JSON array — no prose, no code fences, no markdown wrapping. Each item has keys: type ("regular" or "word"), q (the question text), answer (the correct answer, concise), solution (one short sentence explaining how to get it).`;
     const user = `Course: ${courseTitle}
 Topic: ${bookTitle}
 Section: ${section.title}
@@ -133,29 +125,22 @@ Section: ${section.title}
 Existing questions to NOT duplicate:
 ${existing}
 
-Generate ${count} NEW practice questions at the same difficulty level as the existing ones. Roughly mix ${Math.ceil(count * 0.6)} regular problems and ${Math.floor(count * 0.4)} word problems.
-
-Rules:
-- For math: use LaTeX with \\( ... \\) for inline math. Keep answers concise.
-- For English: answers should be short and checkable (e.g., a word, a phrase, "True/False", or a brief sample sentence).
-- Avoid copy-pasting existing questions — vary numbers, names, scenarios.
-- Every question must have a single, clearly correct (or most-correct) answer.
+Generate ${count} NEW practice questions at the same difficulty as the existing ones. Aim for roughly ${Math.ceil(count * 0.6)} regular problems and ${Math.floor(count * 0.4)} word problems.
 
 Return ONLY the JSON array.`;
 
     const text = await this._call({
+      intent: 'gen-questions',
       model: MODEL_SMART,
-      system,
       messages: [{ role: 'user', content: user }],
       max_tokens: 3500,
       temperature: 0.6
     });
 
-    let match = text.match(/\[[\s\S]*\]/);
+    const match = text.match(/\[[\s\S]*\]/);
     if (!match) return null;
-    let jsonStr = match[0];
     try {
-      const parsed = JSON.parse(jsonStr);
+      const parsed = JSON.parse(match[0]);
       if (!Array.isArray(parsed)) return null;
       return parsed.filter(q => q && q.q && q.answer).map(q => ({
         type: q.type === 'word' ? 'word' : 'regular',
@@ -170,14 +155,11 @@ Return ONLY the JSON array.`;
 
   async generateSections(courseTitle, book, count) {
     const existing = book.sections.map(s => `"${s.title}"`).join(', ');
-    const system = `You generate new sub-section (mini-quiz) topics and their 5-question quizzes. Return ONLY a JSON array. No prose, no code fences, no markdown wrapping.`;
     const user = `Course: ${courseTitle}
 Topic/Chapter: ${book.title}
 Existing sub-section titles already in this topic: ${existing}
 
-Generate ${count} more NEW sub-section titles that would naturally fit under this topic — think of sub-skills, adjacent concepts, common problem types, or depth extensions. Avoid duplicating existing titles.
-
-For EACH new sub-section, include a 5-question practice quiz with a mix of "regular" problems (3) and "word" problems (2). Each question has keys: type, q, answer, solution.
+Generate ${count} more NEW sub-section titles that would naturally fit under this topic. For EACH new sub-section, include a 5-question practice quiz (3 regular + 2 word). Each question has keys: type, q, answer, solution.
 
 Output format (return ONLY this array):
 [
@@ -190,25 +172,17 @@ Output format (return ONLY this array):
       {"type":"word","q":"...","answer":"...","solution":"..."},
       {"type":"word","q":"...","answer":"...","solution":"..."}
     ]
-  },
-  ...${count} total objects
-]
-
-Rules:
-- Math: use LaTeX \\( ... \\) for inline math. Keep answers concise and checkable.
-- English: keep answers short and checkable (word, phrase, identifier, brief example).
-- Each question must have one clear correct answer.
-- Vary scenarios and numbers across questions.`;
+  }
+]`;
 
     const text = await this._call({
+      intent: 'gen-sections',
       model: MODEL_SMART,
-      system,
       messages: [{ role: 'user', content: user }],
       max_tokens: 8000,
       temperature: 0.6
     });
 
-    // Extract the JSON array even if wrapped in code fences.
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return null;
     try {
@@ -239,7 +213,6 @@ Rules:
     const existing = book.cumulativeTest
       ? book.cumulativeTest.questions.map((q, i) => `${i + 1}. ${q.q} → ${q.answer}`).join('\n')
       : '';
-    const system = `You generate cumulative-test questions covering an entire topic. Return ONLY a JSON array — no prose, no code fences.`;
     const user = `Course: ${courseTitle}
 Topic: ${book.title}
 Sub-sections in this topic: ${topics}
@@ -247,23 +220,13 @@ Sub-sections in this topic: ${topics}
 Existing cumulative questions (do not duplicate):
 ${existing}
 
-Generate ${count} NEW cumulative questions that test understanding across the sub-sections above. Mix roughly 60% "regular" problems and 40% "word" problems. Vary difficulty and cover different sub-sections.
+Generate ${count} NEW cumulative questions covering the sub-sections above. Mix roughly 60% regular and 40% word problems. Vary difficulty.
 
-Output format (return ONLY this array):
-[
-  {"type":"regular","q":"...","answer":"...","solution":"..."},
-  {"type":"word","q":"...","answer":"...","solution":"..."},
-  ...${count} total
-]
-
-Rules:
-- Math: use LaTeX \\( ... \\). Keep answers concise and checkable.
-- English: keep answers short and checkable.
-- Each question must have one clear correct answer.`;
+Return ONLY the JSON array.`;
 
     const text = await this._call({
+      intent: 'gen-cumulative',
       model: MODEL_SMART,
-      system,
       messages: [{ role: 'user', content: user }],
       max_tokens: 6000,
       temperature: 0.5
@@ -285,43 +248,37 @@ Rules:
     }
   },
 
-  streamChat(history, contextBlurb) {
-    const hasStudent = contextBlurb && contextBlurb.includes('Student profile:');
-    const inQuiz = contextBlurb && contextBlurb.includes('Current question:');
-    const system = `You are Max, a warm and patient tutor who teaches both math and English Language Arts. You can help with: algebra, geometry, calculus, probability, word problems, grammar, punctuation, reading comprehension, literary analysis, essay writing, poetry, vocabulary, and research writing. If the student asks about something unrelated to math or English (coding questions unrelated to writing, personal problems, game strategy, etc.), politely redirect to academics.
+  streamRecommendation(profile, courseTitles) {
+    const user = `Student profile:
+Name: ${profile.name || 'unknown'}
+Age: ${profile.age || 'unknown'}
+Grade: ${profile.grade || 'unknown'}
+Current class: ${profile.currentClass || 'unknown'}
+Self-rated confidence: ${profile.confidence || 'unknown'}/5
+Goal: ${profile.goal || 'unknown'}
+Subject focus: ${profile.subject || 'unknown'}
 
-${hasStudent ? `## STUDENT PROFILE
-${contextBlurb.split('\n\n')[0]}
+Available courses: ${courseTitles.join(', ')}
 
-Use the student's name naturally. Tune your tone and depth to their age, grade, and stated confidence. If they said their pace is "Quick and to the point," be brief; if they said "Slow, thorough walk-throughs," be more detailed. Lean into the topics they flagged as hardest.
-` : ''}
-
-${inQuiz ? `## CURRENT QUIZ CONTEXT
-The student is IN THE MIDDLE OF a graded quiz right now. Here is the active question and its answer:
-
-${contextBlurb.split('\n\n').slice(1).join('\n\n')}
-
-## ANTI-CHEATING RULES (STRICT)
-- DO NOT reveal, state, hint at, or compute the final answer to the active quiz question above.
-- DO NOT walk through the full solution of the active quiz question.
-- DO NOT give away intermediate values that uniquely determine the final answer.
-- If the student asks for the answer, or asks you to solve it for them, politely refuse and say something like: "I can't give you the answer while you're taking the quiz — but I can help you understand the concept so you can solve it yourself."
-- You CAN: explain the underlying concept in general, review a similar (but different) worked example with different numbers, clarify vocabulary, answer "what does this notation mean?" type questions, suggest which technique category applies (e.g. "this is a substitution problem").
-- You CAN'T: plug in the actual numbers from the question and work it out.
-- After the student submits and sees the grade, they'll be in a post-quiz review — but while the question is still active on screen, treat it as a closed-book test.` : `The student is not currently taking a quiz, so you can freely teach, work through examples, and answer their math or English questions fully.`}
-
-## TEACHING STYLE
-- **Make it easy to understand.** Plain conversational language, not textbook-speak. If a sentence has a word a 12-year-old wouldn't know, swap it. Define jargon the first time you must use it.
-- **Use lots of examples.** Whenever you explain a concept, immediately follow with at least 2 worked examples — one super-simple, then a slightly harder one. Number them ("Example 1:", "Example 2:").
-- **Use diagrams whenever they help.** ASCII art is fine — number lines, simple coordinate grids, geometry sketches, tables for organizing comparisons. Use Markdown code fences (\`\`\`) for ASCII diagrams so they render in fixed-width font. For data or comparisons, use Markdown tables. Don't force diagrams when text is clearer, but lean toward including them for any visual concept (shapes, graphs, sequences, fractions, geometry, etc.).
-- **Build up step by step.** Break ideas into small, numbered steps. Never skip a step that "feels obvious" — what's obvious to you may not be to the student.
-- Use Markdown + LaTeX (\\( ... \\) inline, \\[ ... \\] display).
-- Ask a quick check-in question after a chunk of teaching to make sure they're with you.
-- Celebrate progress. Treat mistakes as learning opportunities.`;
+Recommend 1 or 2 courses to start with and why, in 2-3 short sentences. Use their name. Be warm, not preachy.`;
 
     return this._stream({
+      intent: 'recommendation',
       model: MODEL_SMART,
-      system,
+      messages: [{ role: 'user', content: user }],
+      max_tokens: 400,
+      temperature: 0.6
+    });
+  },
+
+  // Chat. `contextBlurb` carries dynamic per-call data (student profile,
+  // current quiz state, anti-cheating rules). It's sent as the non-cached
+  // second system block so the cached prefix stays stable across requests.
+  streamChat(history, contextBlurb) {
+    return this._stream({
+      intent: 'chat',
+      system_extra: contextBlurb || undefined,
+      model: MODEL_SMART,
       messages: history,
       max_tokens: 1500,
       temperature: 0.5
