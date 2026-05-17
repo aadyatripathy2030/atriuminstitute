@@ -5,9 +5,11 @@
 
 (function () {
   const ROLES = ['student', 'parent'];
+  const RESEND_COOLDOWN_SECONDS = 30;
   let selectedRole = 'student';
   let pendingEmail = null;
   let currentUser = null;
+  let resendCooldownTimer = null;
 
   function el(id) { return document.getElementById(id); }
   function show(node) { node && node.classList.remove('hidden'); }
@@ -119,6 +121,49 @@
   }
   function clearError() { hide(el('authError')); }
 
+  function setResendStatus(msg, kind) {
+    const node = el('authResendStatus');
+    if (!node) return;
+    if (!msg) {
+      node.textContent = '';
+      hide(node);
+      return;
+    }
+    node.textContent = msg;
+    node.classList.remove('ok', 'err');
+    if (kind) node.classList.add(kind);
+    show(node);
+  }
+
+  function clearResendCooldown() {
+    if (resendCooldownTimer) {
+      clearInterval(resendCooldownTimer);
+      resendCooldownTimer = null;
+    }
+    const btn = el('authResendCode');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Send a new code';
+    }
+  }
+
+  function startResendCooldown() {
+    const btn = el('authResendCode');
+    if (!btn) return;
+    let remaining = RESEND_COOLDOWN_SECONDS;
+    btn.disabled = true;
+    btn.textContent = `Send a new code (${remaining}s)`;
+    if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+    resendCooldownTimer = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearResendCooldown();
+        return;
+      }
+      btn.textContent = `Send a new code (${remaining}s)`;
+    }, 1000);
+  }
+
   async function postJSON(url, body) {
     const res = await fetch(url, {
       method: 'POST',
@@ -146,6 +191,7 @@
   async function handleEmailSubmit(e) {
     e.preventDefault();
     clearError();
+    setResendStatus(null);
     const email = (el('authEmail').value || '').trim();
     if (!email) return showError('Enter your email.');
 
@@ -161,12 +207,28 @@
       if (show2) show2.textContent = `Code sent to ${email}.`;
       hide(el('authEmailForm'));
       show(el('authCodeForm'));
+      startResendCooldown();
       setTimeout(() => el('authCode') && el('authCode').focus(), 30);
     } catch (err) {
       showError(err.message);
     } finally {
       btn.disabled = false;
       btn.textContent = originalText;
+    }
+  }
+
+  async function handleResendCode() {
+    if (!pendingEmail) return;
+    clearError();
+    setResendStatus(null);
+    const btn = el('authResendCode');
+    if (btn && btn.disabled) return; // still in cooldown
+    try {
+      await postJSON('/api/auth/signup', { email: pendingEmail, role: selectedRole });
+      setResendStatus(`A new code has been sent to ${pendingEmail}. Check your inbox (and spam).`, 'ok');
+      startResendCooldown();
+    } catch (err) {
+      setResendStatus(err.message || 'Could not resend the code.', 'err');
     }
   }
 
@@ -184,6 +246,8 @@
 
     try {
       const { user } = await postJSON('/api/auth/verify', { email: pendingEmail, code });
+      clearResendCooldown();
+      setResendStatus(null);
       setNavSignedIn(user);
       enterAppAfterAuth(user);
     } catch (err) {
@@ -198,6 +262,8 @@
     pendingEmail = null;
     el('authCode').value = '';
     clearError();
+    setResendStatus(null);
+    clearResendCooldown();
     hide(el('authCodeForm'));
     show(el('authEmailForm'));
     el('authEmail').focus();
@@ -246,6 +312,8 @@
     if (codeForm) codeForm.addEventListener('submit', handleCodeSubmit);
     const resend = el('authResend');
     if (resend) resend.addEventListener('click', handleResendDifferentEmail);
+    const resendCode = el('authResendCode');
+    if (resendCode) resendCode.addEventListener('click', handleResendCode);
     const signInBtn = el('navSignInBtn');
     if (signInBtn) signInBtn.addEventListener('click', () => window.openAuth());
     const signOutBtn = el('signOutBtn');

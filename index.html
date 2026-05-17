@@ -71,7 +71,15 @@
       <div class="auth-emailshow" id="authEmailShow"></div>
       <input type="text" id="authCode" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required>
       <button type="submit" id="authCodeBtn" class="auth-btn">Verify &amp; sign in</button>
-      <button type="button" id="authResend" class="auth-link">Use a different email</button>
+      <div class="auth-help-row">
+        <div class="auth-help-prompt">Didn't receive a code?</div>
+        <div class="auth-help-actions">
+          <button type="button" id="authResendCode" class="auth-link">Send a new code</button>
+          <span class="auth-help-sep" aria-hidden="true">·</span>
+          <button type="button" id="authResend" class="auth-link">Use a different email</button>
+        </div>
+        <div id="authResendStatus" class="auth-resend-status hidden"></div>
+      </div>
     </form>
 
     <div id="authError" class="auth-error hidden"></div>

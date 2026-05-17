@@ -1804,3 +1804,52 @@ footer {
   margin-top: 8px;
   line-height: 1.4;
 }
+
+/* Auth code-form help row: "Didn't receive a code?" + actions + status. */
+.auth-help-row {
+  margin-top: 14px;
+  text-align: center;
+}
+.auth-help-prompt {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+  margin-bottom: 6px;
+}
+.auth-help-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.auth-help-actions .auth-link {
+  background: none;
+  border: none;
+  color: var(--text, #1e2238);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+}
+.auth-help-actions .auth-link:disabled {
+  color: var(--muted, #6b7280);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+.auth-help-sep {
+  color: var(--muted, #6b7280);
+  font-size: 13px;
+}
+.auth-resend-status {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.auth-resend-status.ok {
+  color: #1b6b3a;
+}
+.auth-resend-status.err {
+  color: #b00020;
+}
