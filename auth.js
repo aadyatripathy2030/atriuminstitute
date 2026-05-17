@@ -557,13 +557,22 @@
   };
 
   // Clicking the nav logo. Routes to the right home view based on session +
-  // role. Doesn't bypass the consent gate — gated students still go there.
-  window.goHome = function () {
-    if (currentUser) {
-      enterAppAfterAuth(currentUser);
+  // role. If the in-memory currentUser isn't set yet (init still racing,
+  // or this is the very first interaction), re-check the session before
+  // falling through to the landing — keeps the logo click from silently
+  // doing nothing on a slow page load. Doesn't bypass the consent gate.
+  window.goHome = async function () {
+    let u = currentUser;
+    if (!u) {
+      try { u = await checkSession(); } catch (_) { u = null; }
+      if (u) setNavSignedIn(u);
+    }
+    if (u) {
+      enterAppAfterAuth(u);
     } else {
       showLanding();
     }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Exposed so other code (e.g. app.js) can ask who the user is.
