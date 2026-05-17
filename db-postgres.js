@@ -40,7 +40,7 @@ function normalizeRole(r) {
   return r === 'parent' ? 'parent' : 'student';
 }
 
-const USER_COLS = 'id, email, role, verified, created_at, link_code, age, state, consent_required, consent_granted_at';
+const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, consent_required, consent_granted_at';
 
 // 8-character link code from an unambiguous alphabet (no 0/O, 1/I/L).
 // Formatted as XXXX-XXXX for display; stored without the dash.
@@ -55,8 +55,11 @@ function normaliseLinkCode(code) {
   return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
-// US states + DC. Used to validate the `state` field on signup.
-const VALID_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']);
+// Loose validation for country name strings. The client picks from a curated
+// dropdown; here we just guard against absurd input.
+function isValidCountry(s) {
+  return typeof s === 'string' && s.trim().length >= 2 && s.trim().length <= 80;
+}
 
 // COPPA federal floor is 13. Some states have stricter rules; encode them here
 // when we want to enforce them. For MVP we apply the 13 floor uniformly.
@@ -118,20 +121,18 @@ async function markVerified(userId) {
   return getUser(userId);
 }
 
-async function updateUserProfile(userId, { age, state }) {
+async function updateUserProfile(userId, { age, country }) {
   const cleanAge = (typeof age === 'number' && age >= 4 && age <= 120) ? Math.floor(age) : null;
-  const cleanState = (typeof state === 'string' && VALID_STATES.has(state.toUpperCase())) ? state.toUpperCase() : null;
+  const cleanCountry = isValidCountry(country) ? country.trim() : null;
   const consentRequired = consentRequiredForAge(cleanAge);
-  // Only flip consent_required to true; never silently drop it (e.g. if an
-  // older student re-signs up and reports a different age).
   const rows = await q(
     `update users
      set age = coalesce($2, age),
-         state = coalesce($3, state),
+         country = coalesce($3, country),
          consent_required = case when $4::boolean then true else consent_required end
      where id = $1
      returning ${USER_COLS}`,
-    [userId, cleanAge, cleanState, consentRequired],
+    [userId, cleanAge, cleanCountry, consentRequired],
   );
   return rows[0] || null;
 }
@@ -270,7 +271,7 @@ async function createLinkFromCode(initiatedByUserId, otherLinkCode) {
 
 async function listLinkedStudents(parentUserId) {
   return q(
-    `select u.id, u.email, u.role, u.link_code, u.age, u.state, u.consent_required, u.consent_granted_at, u.created_at,
+    `select u.id, u.email, u.role, u.link_code, u.age, u.country, u.consent_required, u.consent_granted_at, u.created_at,
             l.status as link_status, l.created_at as linked_at
      from parent_student_links l
      join users u on u.id = l.student_user_id
@@ -555,5 +556,5 @@ module.exports = {
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
   _normaliseLinkCode: normaliseLinkCode,
-  _VALID_STATES: VALID_STATES,
+  _isValidCountry: isValidCountry,
 };

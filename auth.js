@@ -6,11 +6,40 @@
 (function () {
   const ROLES = ['student', 'parent'];
   const RESEND_COOLDOWN_SECONDS = 30;
-  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+  // Curated list of countries. Common picks at the top, then the rest alphabetical.
+  // Spelled out in full (no ISO codes, no abbreviations).
+  const COUNTRIES = [
+    'United States', 'Canada', 'United Kingdom', 'Australia', 'India',
+    '— — —',
+    'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 'Armenia', 'Austria', 'Azerbaijan',
+    'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi',
+    'Cambodia', 'Cameroon', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic',
+    'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
+    'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia',
+    'Fiji', 'Finland', 'France',
+    'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana',
+    'Haiti', 'Honduras', 'Hungary',
+    'Iceland', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Ivory Coast',
+    'Jamaica', 'Japan', 'Jordan',
+    'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan',
+    'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
+    'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar',
+    'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway',
+    'Oman',
+    'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal',
+    'Qatar',
+    'Romania', 'Russia', 'Rwanda',
+    'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
+    'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
+    'Uganda', 'Ukraine', 'United Arab Emirates', 'Uruguay', 'Uzbekistan',
+    'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam',
+    'Yemen',
+    'Zambia', 'Zimbabwe',
+  ];
   let selectedRole = 'student';
   let pendingEmail = null;
   let pendingAge = null;
-  let pendingState = null;
+  let pendingCountry = null;
   let pendingLinkCode = null;
   let currentUser = null;
   let resendCooldownTimer = null;
@@ -39,7 +68,7 @@
     hide(el('parentStudentDetail'));
     show(el('authGate'));
     renderRoleToggle();
-    populateStateOptions();
+    populateCountryOptions();
     // Reset to email form.
     show(el('authEmailForm'));
     hide(el('authCodeForm'));
@@ -47,13 +76,18 @@
     setTimeout(() => el('authEmail') && el('authEmail').focus(), 30);
   }
 
-  function populateStateOptions() {
-    const sel = el('authState');
+  function populateCountryOptions() {
+    const sel = el('authCountry');
     if (!sel || sel.options.length > 1) return;
-    for (const st of US_STATES) {
+    for (const c of COUNTRIES) {
       const opt = document.createElement('option');
-      opt.value = st;
-      opt.textContent = st;
+      if (c === '— — —') {
+        opt.disabled = true;
+        opt.textContent = '─────────────';
+      } else {
+        opt.value = c;
+        opt.textContent = c;
+      }
       sel.appendChild(opt);
     }
   }
@@ -222,8 +256,8 @@
     const ageRaw = (el('authAge').value || '').trim();
     const ageNum = ageRaw ? parseInt(ageRaw, 10) : null;
     if (!ageNum || ageNum < 4 || ageNum > 120) return showError('Enter a valid age between 4 and 120.');
-    const stateVal = (el('authState').value || '').trim();
-    if (!stateVal) return showError('Pick your state.');
+    const countryVal = (el('authCountry').value || '').trim();
+    if (!countryVal) return showError('Pick your country.');
     const linkCodeRaw = (el('authLinkCode').value || '').trim();
     const linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
     if (linkCode && linkCode.length !== 8) {
@@ -240,12 +274,12 @@
         email,
         role: selectedRole,
         age: ageNum,
-        state: stateVal,
+        country: countryVal,
         linkCode,
       });
       pendingEmail = email;
       pendingAge = ageNum;
-      pendingState = stateVal;
+      pendingCountry = countryVal;
       pendingLinkCode = linkCode;
       const show2 = el('authEmailShow');
       if (show2) show2.textContent = `Code sent to ${email}.`;
@@ -272,7 +306,7 @@
         email: pendingEmail,
         role: selectedRole,
         age: pendingAge,
-        state: pendingState,
+        country: pendingCountry,
         linkCode: pendingLinkCode,
       });
       setResendStatus(`A new code has been sent to ${pendingEmail}. Check your inbox (and spam).`, 'ok');

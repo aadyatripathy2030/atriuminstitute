@@ -49,16 +49,23 @@ create table if not exists progress (
 );
 
 -- ------------------------------------------------------------------
--- New columns on users (added in May 2026): link_code, age, state,
+-- New columns on users (added in May 2026): link_code, age, country,
 -- parental-consent flags.
 --
 -- link_code is a unique short code each user can share so the other
 -- party (parent or student) can link to them.
+--
+-- country (originally `state`) holds the full country name as a string.
+-- The earlier US-state-only design was widened on 2026-05-17.
 -- ------------------------------------------------------------------
 
 alter table users add column if not exists link_code text;
 alter table users add column if not exists age integer;
 alter table users add column if not exists state text;
+alter table users add column if not exists country text;
+-- Backfill country from any existing state values, then drop the old col.
+update users set country = state where country is null and state is not null;
+alter table users drop column if exists state;
 alter table users add column if not exists consent_required boolean not null default false;
 alter table users add column if not exists consent_granted_at timestamptz;
 

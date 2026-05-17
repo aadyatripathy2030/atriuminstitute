@@ -133,7 +133,7 @@ test('every new user gets a unique 8-char link_code', async () => {
 
 test('createLinkFromCode connects a parent to a student and grants consent', async () => {
   const student = await db.upsertUser('kid1@example.com', 'student');
-  await db.updateUserProfile(student.id, { age: 10, state: 'CA' });
+  await db.updateUserProfile(student.id, { age: 10, country: 'United States' });
   const refreshed = await db.getUser(student.id);
   assert.equal(refreshed.consent_required, true);
   assert.equal(refreshed.consent_granted_at, null);

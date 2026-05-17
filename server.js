@@ -154,7 +154,7 @@ async function handleSignupOrLogin(req, res) {
   cleanupPendingMeta();
   pendingSignupMeta.set(user.email, {
     age: typeof body.age === 'number' ? body.age : null,
-    state: typeof body.state === 'string' ? body.state : null,
+    country: typeof body.country === 'string' ? body.country : (typeof body.state === 'string' ? body.state : null),
     linkCode: typeof body.linkCode === 'string' ? body.linkCode : null,
     expiresAt: Date.now() + PENDING_META_TTL_MS,
   });
@@ -177,7 +177,7 @@ function userPublic(u) {
     role: u.role || 'student',
     link_code: u.link_code || null,
     age: u.age == null ? null : Number(u.age),
-    state: u.state || null,
+    country: u.country || u.state || null,
     consent_required: !!u.consent_required,
     consent_granted_at: u.consent_granted_at || null,
   };
@@ -205,8 +205,8 @@ async function handleVerify(req, res) {
   const meta = pendingSignupMeta.get(user.email);
   if (meta) {
     pendingSignupMeta.delete(user.email);
-    if (meta.age != null || meta.state != null) {
-      user = await db.updateUserProfile(user.id, { age: meta.age, state: meta.state }) || user;
+    if (meta.age != null || meta.country != null) {
+      user = await db.updateUserProfile(user.id, { age: meta.age, country: meta.country }) || user;
     }
     if (meta.linkCode) {
       const linked = await db.createLinkFromCode(user.id, meta.linkCode);
@@ -252,7 +252,7 @@ async function handleUpdateProfile(req, res) {
   if (!body) return json(res, 400, { error: 'Bad payload.' });
   const updated = await db.updateUserProfile(u.id, {
     age: typeof body.age === 'number' ? body.age : null,
-    state: typeof body.state === 'string' ? body.state : null,
+    country: typeof body.country === 'string' ? body.country : (typeof body.state === 'string' ? body.state : null),
   });
   json(res, 200, { user: userPublic(updated || u) });
 }

@@ -53,7 +53,11 @@ function normaliseLinkCode(code) {
   return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
-const VALID_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']);
+// Loose validation only — country comes from a curated dropdown on the client.
+// We just want to keep it sane-sized and not arbitrary garbage.
+function isValidCountry(s) {
+  return typeof s === 'string' && s.trim().length >= 2 && s.trim().length <= 80;
+}
 
 function consentRequiredForAge(age) {
   if (typeof age !== 'number' || isNaN(age)) return false;
@@ -100,7 +104,7 @@ async function upsertUser(email, role) {
       createdAt: now(),
       link_code: freshLinkCodeFor(),
       age: null,
-      state: null,
+      country: null,
       consent_required: false,
       consent_granted_at: null,
     };
@@ -120,7 +124,7 @@ async function markVerified(userId) {
   return u;
 }
 
-async function updateUserProfile(userId, { age, state: stateField }) {
+async function updateUserProfile(userId, { age, country }) {
   load();
   const u = state.users.find(x => x.id === userId);
   if (!u) return null;
@@ -128,8 +132,8 @@ async function updateUserProfile(userId, { age, state: stateField }) {
     u.age = Math.floor(age);
     if (consentRequiredForAge(u.age)) u.consent_required = true;
   }
-  if (typeof stateField === 'string' && VALID_STATES.has(stateField.toUpperCase())) {
-    u.state = stateField.toUpperCase();
+  if (isValidCountry(country)) {
+    u.country = country.trim();
   }
   save();
   return u;
@@ -601,5 +605,5 @@ module.exports = {
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
   _normaliseLinkCode: normaliseLinkCode,
-  _VALID_STATES: VALID_STATES,
+  _isValidCountry: isValidCountry,
 };
