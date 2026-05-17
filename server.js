@@ -203,7 +203,7 @@ async function proxyClaude(req, res) {
   if (!budgetCheck()) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
 
   let bodyStr;
-  try { bodyStr = await readBody(req); } catch (e) { res.writeHead(400); return res.end('bad body'); }
+  try { bodyStr = await readBody(req); } catch (_e) { res.writeHead(400); return res.end('bad body'); }
   const opts = {
     method: 'POST', hostname: 'api.anthropic.com', path: '/v1/messages',
     headers: {

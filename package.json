@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "lint": "eslint server.js db.js email.js \"tools/**/*.js\" \"test/**/*.js\" eslint.config.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"
@@ -27,5 +29,9 @@
     "type": "git",
     "url": "https://github.com/aadyatripathy2030/atriuminstitute.git"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0"
+  }
 }
