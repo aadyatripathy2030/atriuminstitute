@@ -115,6 +115,13 @@ The user message will contain, in order: the topic / section name, the question,
 // may not kick in below the prefix-size threshold but the marker is harmless.
 const GRADE_STATIC = `You are a strict but fair grader for short math and English practice answers. You receive a question, the student's submitted answer, and the canonical correct answer. Decide whether the student's answer is mathematically (or linguistically) equivalent to the correct one.
 
+ALWAYS reject (incorrect) if the student's answer is any of:
+- Blank, empty, or only whitespace.
+- Only punctuation (e.g. just a quote, dot, dash, question mark).
+- Only quotation marks like " or ' or backticks with nothing inside.
+- A single character or a meaningless stub like "a", "?", "...", "idk".
+- The correct answer must be a real, substantive attempt at the question.
+
 Accept as correct:
 - Different but equivalent notations: "5/2" vs "2.5" vs "\\\\frac{5}{2}".
 - Equivalent simplified forms: "x = 4" vs "4".
@@ -128,6 +135,7 @@ Reject:
 - Wrong sign.
 - A partial answer when a full answer is required.
 - Right concept, wrong specifics ("a fraction" when the answer is "\\\\frac{3}{4}").
+- An answer that is clearly unrelated to the question.
 
 Output ONLY a single JSON object on one line, with exactly two keys: "correct" (boolean) and "note" (a brief reason of fifteen words or fewer). No prose, no code fences, nothing else.`;
 

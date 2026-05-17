@@ -53,8 +53,19 @@ const AI = {
   },
 
   async gradeAnswer(question, userAnswer, correctAnswer) {
+    // Don't waste a Claude call on a non-answer. Strip wrapping quotes /
+    // backticks and whitespace; if what's left is empty or only punctuation,
+    // grade it incorrect locally.
+    const raw = String(userAnswer == null ? '' : userAnswer);
+    const trimmed = raw.trim();
+    const stripped = trimmed.replace(/^["'`“”‘’]+|["'`“”‘’]+$/g, '').trim();
+    const isJunk = !stripped || /^[\s\p{P}\p{S}]+$/u.test(stripped);
+    if (isJunk) {
+      return { correct: false, note: 'No answer provided.' };
+    }
+
     const user = `Problem: ${question}
-Student's answer: ${userAnswer}
+Student's answer: ${stripped}
 Correct answer: ${correctAnswer}`;
 
     const text = await this._call({
