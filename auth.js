@@ -372,6 +372,16 @@
     }
   };
 
+  // Clicking the nav logo. Routes to the right home view based on session +
+  // role. Doesn't bypass the consent gate — gated students still go there.
+  window.goHome = function () {
+    if (currentUser) {
+      enterAppAfterAuth(currentUser);
+    } else {
+      showLanding();
+    }
+  };
+
   // Exposed so other code (e.g. app.js) can ask who the user is.
   window.getCurrentUser = function () { return currentUser; };
 
@@ -398,6 +408,8 @@
     if (signInBtn) signInBtn.addEventListener('click', () => window.openAuth());
     const signOutBtn = el('signOutBtn');
     if (signOutBtn) signOutBtn.addEventListener('click', handleSignOut);
+    const logoBtn = el('logoHome');
+    if (logoBtn) logoBtn.addEventListener('click', () => window.goHome());
     // Consent gate buttons
     const consentRefresh = el('consentRefreshBtn');
     if (consentRefresh) consentRefresh.addEventListener('click', handleConsentRefresh);

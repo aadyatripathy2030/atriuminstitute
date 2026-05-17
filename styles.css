@@ -2245,3 +2245,24 @@ footer {
   color: var(--muted, #6b7280);
 }
 .profile-loading.err { color: #b00020; }
+
+/* Make the .logo button behave visually like the original div. */
+button.logo {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+button.logo:hover { opacity: 0.85; }
+button.logo:focus-visible {
+  outline: 2px solid var(--text, #1e2238);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
