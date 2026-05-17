@@ -1,6 +1,43 @@
+# Secrets — never commit
 .apikey
-node_modules/
+.env
+.env.local
+.env.*.local
+
+# Persistent app data — generated at runtime, contains user accounts and progress
+data.json
+data.json.tmp
+
+# Build caches and intermediate files
 tools/.expand-cache.json
 tools/.english-topics-cache.json
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.bak
+
+# Editor and OS junk
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
 *.log
+logs/
+
+# Deploy platform leftovers
+.fly/
+.render/
+.vercel/
+.netlify/
+
+# Backup files
+*.bak
+*.orig

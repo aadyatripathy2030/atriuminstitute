@@ -1,4 +1,4 @@
-# Deploying Atrium Math to Render
+# Deploying Atrium Institute to Render
 
 End-to-end this takes about 10 minutes. You need a GitHub account and a Render account (both free).
 
@@ -9,7 +9,7 @@ From this `course-site` folder, run:
 ```bash
 git init
 git add .
-git commit -m "Initial Atrium Math commit"
+git commit -m "Initial Atrium Institute commit"
 ```
 
 Then on github.com, create a new empty private repository called `atrium-math` (or anything you like). GitHub will show you commands like these — run them:

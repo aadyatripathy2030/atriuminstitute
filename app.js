@@ -234,7 +234,7 @@ async function maybeRenderRecommendation() {
     <div class="rec-card">
       <div class="rec-avatar">🧙</div>
       <div class="rec-body">
-        <div class="rec-name">Diego's suggestion for you, ${escapeHtml(profile.name)}</div>
+        <div class="rec-name">Max's suggestion for you, ${escapeHtml(profile.name)}</div>
         <div class="rec-text" id="recText"><div class="typing"><span></span><span></span><span></span></div></div>
       </div>
     </div>
@@ -282,10 +282,19 @@ function backToBooks() {
 function goToCourses() {
   document.getElementById('home').classList.add('hidden');
   document.getElementById('detail').classList.add('hidden');
+  document.getElementById('about').classList.add('hidden');
   document.getElementById('courses-home').classList.remove('hidden');
   renderCourses();
   renderProgressPill();
   CHAT_CONTEXT = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showAbout() {
+  document.getElementById('courses-home').classList.add('hidden');
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('detail').classList.add('hidden');
+  document.getElementById('about').classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -445,10 +454,12 @@ function openBook(bookId) {
         <button class="learn-btn">📖 Learn</button>
         <button class="start-btn">${score ? 'Retake' : 'Start Quiz'} →</button>
       </div>
+      <button class="study-section-btn" title="Study this with Max">💬 Study ${escapeHtml(s.title)}</button>
       <div class="lesson-panel hidden"></div>
     `;
     sCard.querySelector('.start-btn').onclick = () => startQuiz(book.id, si);
     sCard.querySelector('.learn-btn').onclick = () => toggleLesson(sCard, book, s);
+    sCard.querySelector('.study-section-btn').onclick = () => studyWithMax(book, s);
     sectionsEl.appendChild(sCard);
   });
 
@@ -575,7 +586,7 @@ async function toggleLesson(card, book, section) {
   panel.innerHTML = `
     ${prewritten}
     <div class="lesson-ai">
-      <div class="lesson-ai-head">✨ Diego's lesson on <em>${section.title}</em></div>
+      <div class="lesson-ai-head">✨ Max's lesson on <em>${section.title}</em></div>
       <div class="lesson-ai-body" id="lessonBody-${book.id}-${section.title.replace(/\W+/g,'')}">
         <div class="typing"><span></span><span></span><span></span></div>
       </div>
@@ -609,6 +620,18 @@ Use Markdown (headings with ###, bold, lists) and LaTeX (\\( \\) / \\[ \\]) for 
   } catch (e) {
     body.innerHTML = `<div class="ai-err">Lesson unavailable: ${escapeHtml(e.message)}.${section.lesson ? ' Use the written lesson above.' : ''}</div>`;
   }
+}
+
+function studyWithMax(book, section) {
+  openChat();
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  input.value = `I want to study **${book.title} → ${section.title}**.
+
+Can you walk me through the key concepts in this section, then quiz me with a few practice questions one at a time? Wait for my answer before moving on, and give me feedback after each one. Use whichever study technique you think works best (Active Recall, Feynman, etc.).`;
+  input.focus();
+  input.dispatchEvent(new Event('input'));
+  if (typeof sendChat === 'function') sendChat();
 }
 
 function startCumulative(bookId) {
@@ -677,7 +700,7 @@ function renderQuizQuestion() {
         <div id="revealBox"></div>
         <div class="quiz-actions" id="quizActions">
           <button class="cta submit-btn" id="submitBtn">Submit Answer</button>
-          <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Diego</button>
+          <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Max</button>
         </div>
       </div>
     </div>
@@ -742,7 +765,7 @@ async function submitAnswer() {
   const isLast = idx === section.questions.length - 1;
   actions.innerHTML = `
     <button class="cta next-btn">${isLast ? 'Finish Test →' : 'Next Question →'}</button>
-    <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Diego</button>
+    <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Max</button>
   `;
   actions.querySelector('.next-btn').onclick = nextQuestion;
 
@@ -851,7 +874,7 @@ function openHelpPopup(missedIdx) {
         <div class="tutor-row">
           <div class="tutor-avatar">🧙‍♂️</div>
           <div>
-            <div class="tutor-name">Diego, your tutor</div>
+            <div class="tutor-name">Max, your tutor</div>
             <div class="tutor-sub">Reviewing mistake ${step + 1} of ${missedIdx.length}</div>
           </div>
         </div>
@@ -897,7 +920,7 @@ function openHelpPopup(missedIdx) {
 
     step_el.innerHTML = `
       <div class="tutor-bubble ai-bubble">
-        <div class="ai-tag-row">✨ Diego is thinking…</div>
+        <div class="ai-tag-row">✨ Max is thinking…</div>
         <div class="ai-output" id="aiOutput"><div class="typing"><span></span><span></span><span></span></div></div>
       </div>
     `;
@@ -910,7 +933,7 @@ function openHelpPopup(missedIdx) {
         if (window.MathJax) MathJax.typesetPromise([out]);
         out.scrollIntoView({ block: 'nearest' });
       }
-      step_el.querySelector('.ai-tag-row').textContent = '✨ Personalized by Diego';
+      step_el.querySelector('.ai-tag-row').textContent = '✨ Personalized by Max';
     } catch (e) {
       step_el.innerHTML = renderFallbackFix(q) + `<div class="ai-err">AI unavailable: ${e.message}. Showing offline guide.</div>`;
     }
@@ -955,7 +978,7 @@ function openChat() {
     const name = p?.name ? p.name : 'there';
     const ctxLine = CHAT_CONTEXT
       ? `Hi ${escapeHtml(name)}! You're working on **${CHAT_CONTEXT.topic}**. I can explain the concept or talk through the technique — but I can't just hand you the answer while you're taking the quiz. Ask away!`
-      : `Hey ${escapeHtml(name)}! I'm Diego. Ask me anything about Algebra 2 — functions, quadratics, radicals, systems, whatever's on your mind.`;
+      : `Hey ${escapeHtml(name)}! I'm Max, your tutor at Atrium Institute. Ask me anything about math or English — algebra, geometry, calculus, grammar, writing, literature, whatever's on your mind.`;
     appendChat('assistant', ctxLine);
   }
 }
@@ -1120,7 +1143,7 @@ function renderOnboardStep() {
       <div class="onboard-top">
         <div class="logo-small">
           <div class="logo-dot">∑</div>
-          <span>Atrium Math</span>
+          <span>Atrium Institute</span>
         </div>
         <button class="skip-btn" onclick="skipOnboarding()">Skip for now</button>
       </div>
@@ -1305,6 +1328,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('askFab').onclick = () => openChat();
   document.getElementById('chatClose').onclick = closeChat;
   document.getElementById('chatClear').onclick = clearChat;
+  document.getElementById('chatExpand').onclick = () => {
+    const panel = document.getElementById('chat');
+    const btn = document.getElementById('chatExpand');
+    const isFull = panel.classList.toggle('fullscreen');
+    btn.textContent = isFull ? '⤡' : '⤢';
+    btn.title = isFull ? 'Shrink' : 'Full screen';
+  };
   const chatForm = document.getElementById('chatForm');
   chatForm.onsubmit = (e) => { e.preventDefault(); sendChat(); };
   const ci = document.getElementById('chatInput');

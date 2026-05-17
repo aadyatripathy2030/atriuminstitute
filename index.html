@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Atrium Math · A calm place to learn</title>
+<title>Atrium Institute · A calm place to learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
   <div class="nav-left">
     <div class="logo">
       <div class="logo-dot">∑</div>
-      Atrium Math
+      Atrium Institute
     </div>
     <button class="study-nav-btn" id="studyFab" title="Study methods & timers">
       <span class="fab-icon">📚</span>
@@ -35,10 +35,38 @@
     </div>
   </div>
   <div class="nav-right">
+    <button class="nav-link" id="aboutLink" onclick="showAbout()">About</button>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <div class="progress-pill" id="progressPill">0/0 quizzes passed · 0%</div>
+    <span class="nav-user hidden" id="navUser" title="Sign out">
+      <span id="navUserEmail"></span>
+      <button class="nav-link" id="signOutBtn" type="button">Sign out</button>
+    </span>
   </div>
 </nav>
+
+<!-- Auth gate (blocks site until signed in) -->
+<div id="authGate" class="auth-gate hidden">
+  <div class="auth-card">
+    <div class="auth-mark">∑</div>
+    <h1 class="auth-title">Welcome to Atrium Institute</h1>
+    <p class="auth-sub" id="authSub">Enter your email to sign in or create an account. We'll send you a 6-digit code — no password to remember.</p>
+
+    <form id="authEmailForm" class="auth-form">
+      <input type="email" id="authEmail" placeholder="you@example.com" required autocomplete="email">
+      <button type="submit" id="authEmailBtn" class="auth-btn">Send code</button>
+    </form>
+
+    <form id="authCodeForm" class="auth-form hidden">
+      <div class="auth-emailshow" id="authEmailShow"></div>
+      <input type="text" id="authCode" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required>
+      <button type="submit" id="authCodeBtn" class="auth-btn">Verify &amp; sign in</button>
+      <button type="button" id="authResend" class="auth-link">Use a different email</button>
+    </form>
+
+    <div id="authError" class="auth-error hidden"></div>
+  </div>
+</div>
 
 <div id="onboard" class="onboard hidden"></div>
 
@@ -51,7 +79,7 @@
       <span class="badge">🧙 AI Tutor</span>
       <span class="badge">💬 Ask Anything</span>
     </div>
-    <h1>A calm place to learn <em>math</em>.</h1>
+    <h1>A calm place to learn <em>math &amp; English</em>.</h1>
     <p>Interactive, auto-graded quizzes with a built-in AI tutor who checks your work, walks you through your mistakes, and answers any question.</p>
   </header>
   <div id="recBox"></div>
@@ -70,6 +98,27 @@
 </div>
 
 <div id="detail" class="detail hidden"></div>
+
+<!-- About page -->
+<div id="about" class="about-page hidden">
+  <button class="back-btn" onclick="goToCourses()">← Back to courses</button>
+  <header class="about-hero">
+    <div class="about-mark">∑</div>
+    <h1>About <em>Atrium Institute</em></h1>
+    <p class="about-tagline">A calm place to learn math &amp; English.</p>
+  </header>
+  <div class="about-body">
+    <p>Atrium Institute is a self-paced learning platform built for middle and high school students who want to actually understand the material — not just rack up streaks and badges. We cover math from Pre-Algebra through Calculus and English Language Arts from grades 6 through 12, all inside one calm, distraction-free interface designed to support deep, focused work instead of constant interruptions.</p>
+
+    <p>Each course is organized into topics, and each topic into smaller quiz sections — typically three per topic — followed by a cumulative test covering the whole topic, and at the end of every course, a comprehensive final exam drawing from every section you've studied. Quizzes auto-grade themselves with detailed feedback on each answer, and your progress saves automatically as you go. There are over 100 topics and nearly 10,000 questions across the platform, ranging from quick conceptual checks to multi-step word problems and full literary analysis prompts.</p>
+
+    <p>At the center of Atrium Institute is <strong>Max</strong>, an AI tutor available 24/7 inside the app. Max isn't a chatbot tacked onto a quiz site — he's woven throughout the learning experience. Get a wrong answer and Max walks you through the mistake, explaining the underlying concept in plain language. Stuck on a topic? Click "Study [section name]" and Max will quiz you through it interactively, using whichever study technique fits the material best. Want a lesson before starting a quiz? Hit "Learn" and Max writes a tailored explanation in seconds.</p>
+
+    <p>We built Atrium Institute around the idea that real learning is about habits, not just exposure. The Study Methods panel includes ten research-backed techniques — Active Recall, the Feynman Technique, Spaced Repetition, the Pomodoro Method, Cornell Notes, Interleaved Practice, and more — each with interactive tools built in. There's a customizable Pomodoro timer with persistent countdown, a spaced-repetition planner that calculates exactly when you should review, a guided active-recall timer, and one-click access to ask Max to drill you on any topic using your chosen method.</p>
+
+    <p>Atrium Institute is for students who want to feel prepared, focused, and in control of their own learning — and for parents who want a real tutor available on a Sunday night without scheduling, at a fraction of the cost of a private one-on-one. We don't gamify, we don't run ads, and we don't sell your data. The interface is intentionally quiet so the work itself can take center stage. Whether you're catching up, working ahead, or studying for a specific exam, Atrium Institute is built to meet you where you are and help you get where you want to go.</p>
+  </div>
+</div>
 
 <!-- Floating Ask button -->
 <button class="ask-fab" id="askFab" title="Ask Max">
@@ -104,6 +153,7 @@
     </div>
     <div class="chat-actions">
       <button class="icon-btn" id="chatClear" title="Clear">↺</button>
+      <button class="icon-btn" id="chatExpand" title="Full screen">⤢</button>
       <button class="icon-btn" id="chatClose" title="Close">✕</button>
     </div>
   </header>
@@ -118,7 +168,7 @@
 <div id="modal" class="modal hidden"></div>
 
 <footer>
-  Interactive Algebra 2 quizzes with an AI tutor · Progress saved locally in your browser.
+  Atrium Institute · Interactive math &amp; English quizzes with an AI tutor · Progress saved locally in your browser.
 </footer>
 
 <script src="prealgebra-data.js"></script>
@@ -134,6 +184,7 @@
 <script src="english-extras.js"></script>
 <script src="expansions.js"></script>
 <script src="ai.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 </body>

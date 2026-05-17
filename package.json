@@ -1,12 +1,31 @@
 {
-  "name": "atrium-math",
+  "name": "atrium-institute",
   "version": "1.0.0",
-  "description": "Atrium Math — interactive math + English tutoring app",
+  "description": "Atrium Institute — interactive math & English tutoring web app with an AI tutor, study tools, per-user progress, and email-based auth.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "keywords": [
+    "education",
+    "tutoring",
+    "math",
+    "english",
+    "ai-tutor",
+    "quizzes",
+    "spaced-repetition",
+    "pomodoro"
+  ],
+  "author": "Atrium Institute",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atrium-math/atrium-math.git"
+  },
+  "dependencies": {}
 }

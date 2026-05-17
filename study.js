@@ -72,7 +72,7 @@
       <div class="picker-label">📖 Study a topic with this method:</div>
       <select class="picker-select course-select" data-idx="${idx}">${courseOpts}</select>
       <select class="picker-select book-select" data-idx="${idx}"></select>
-      <button class="start-method-btn" data-idx="${idx}" data-method="${methodTitle.replace(/"/g, '&quot;')}">Start with Diego →</button>
+      <button class="start-method-btn" data-idx="${idx}" data-method="${methodTitle.replace(/"/g, '&quot;')}">Start with Max →</button>
     </div>`;
   }
 
@@ -117,7 +117,7 @@ Which section should we focus on? Once I pick, please walk me through it using t
           input.value = msg;
           input.focus();
           input.dispatchEvent(new Event('input'));
-          // Auto-send so Diego responds and asks which section.
+          // Auto-send so Max responds and asks which section.
           if (typeof sendChat === 'function') sendChat();
         }
       });
@@ -184,12 +184,12 @@ Which section should we focus on? Once I pick, please walk me through it using t
           ${m.body}
           ${m.widget ? widgetHTML(m.widget) : ''}
           ${topicPickerHTML(i, m.title)}
-          <button class="ask-diego-btn" data-method="${m.title.replace(/"/g, '&quot;')}">💬 Ask Diego for questions</button>
+          <button class="ask-max-btn" data-method="${m.title.replace(/"/g, '&quot;')}">💬 Ask Max for questions</button>
         </div>
       </div>
     `).join('');
 
-    body.querySelectorAll('.ask-diego-btn').forEach(btn => {
+    body.querySelectorAll('.ask-max-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const methodName = btn.getAttribute('data-method');
@@ -289,8 +289,8 @@ Which section should we focus on? Once I pick, please walk me through it using t
       if (ct) ct.textContent = fmt(pomoState.secondsLeft);
     }
     document.title = pomoState.running
-      ? `${fmt(pomoState.secondsLeft)} · ${phase.label} — Atrium Math`
-      : 'Atrium Math';
+      ? `${fmt(pomoState.secondsLeft)} · ${phase.label} — Atrium Institute`
+      : 'Atrium Institute';
   }
 
   function pomoAdvance() {
