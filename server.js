@@ -257,6 +257,78 @@ async function handleUpdateProfile(req, res) {
   json(res, 200, { user: userPublic(updated || u) });
 }
 
+// ---------- Rich profile (student + parent) ----------
+
+const REMINDER_FREQUENCIES = new Set(['daily', 'weekdays', 'mwf', 'twr', 'weekly', 'biweekly']);
+const REMINDER_CONTENTS = new Set(['generic', 'continuation', 'weak_topics']);
+const RELATIONSHIPS = new Set(['parent', 'guardian', 'tutor', 'other']);
+
+function sanitizeStudentProfile(body) {
+  const f = {};
+  if (typeof body.displayName === 'string') f.displayName = body.displayName.slice(0, 200);
+  if (typeof body.schoolName === 'string') f.schoolName = body.schoolName.slice(0, 200);
+  if (typeof body.gradeLevel === 'string') f.gradeLevel = body.gradeLevel.slice(0, 50);
+  if (Array.isArray(body.subjects)) f.subjects = body.subjects.map(String).slice(0, 20);
+  if (Array.isArray(body.studyPlanCourses)) f.studyPlanCourses = body.studyPlanCourses.map(String).slice(0, 20);
+  if (typeof body.studyGoal === 'string') f.studyGoal = body.studyGoal.slice(0, 2000);
+  if (typeof body.timezone === 'string') f.timezone = body.timezone.slice(0, 100);
+  if (typeof body.reminderEnabled === 'boolean') f.reminderEnabled = body.reminderEnabled;
+  if (typeof body.reminderFrequency === 'string' && REMINDER_FREQUENCIES.has(body.reminderFrequency)) f.reminderFrequency = body.reminderFrequency;
+  if (typeof body.reminderTimeLocal === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(body.reminderTimeLocal)) f.reminderTimeLocal = body.reminderTimeLocal;
+  if (typeof body.reminderContent === 'string' && REMINDER_CONTENTS.has(body.reminderContent)) f.reminderContent = body.reminderContent;
+  return f;
+}
+
+function sanitizeParentProfile(body) {
+  const f = {};
+  if (typeof body.displayName === 'string') f.displayName = body.displayName.slice(0, 200);
+  if (typeof body.relationship === 'string' && RELATIONSHIPS.has(body.relationship)) f.relationship = body.relationship;
+  if (typeof body.timezone === 'string') f.timezone = body.timezone.slice(0, 100);
+  if (typeof body.weeklyDigestEnabled === 'boolean') f.weeklyDigestEnabled = body.weeklyDigestEnabled;
+  if (typeof body.weeklyDigestDay === 'number' && body.weeklyDigestDay >= 0 && body.weeklyDigestDay <= 6) f.weeklyDigestDay = body.weeklyDigestDay | 0;
+  if (typeof body.weeklyDigestTimeLocal === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(body.weeklyDigestTimeLocal)) f.weeklyDigestTimeLocal = body.weeklyDigestTimeLocal;
+  return f;
+}
+
+async function handleGetRichProfile(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const profile = u.role === 'parent'
+    ? await db.getParentProfile(u.id)
+    : await db.getStudentProfile(u.id);
+  json(res, 200, { role: u.role, profile });
+}
+
+async function handleSaveRichProfile(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body) return json(res, 400, { error: 'Bad payload.' });
+  // Under-13 students cannot turn their own reminders on without parent
+  // authorisation; silently drop that flag if they try.
+  if (u.role === 'student' && u.consent_required && body.reminderEnabled === true) {
+    const sp = await db.getStudentProfile(u.id);
+    if (!sp || !sp.parent_authorised_reminders) {
+      body.reminderEnabled = false;
+    }
+  }
+  const profile = u.role === 'parent'
+    ? await db.upsertParentProfile(u.id, sanitizeParentProfile(body))
+    : await db.upsertStudentProfile(u.id, sanitizeStudentProfile(body));
+  json(res, 200, { role: u.role, profile });
+}
+
+async function handleParentAuthoriseReminders(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const body = await readJSON(req);
+  const allow = body && body.allow === true;
+  const profile = await db.setParentAuthorisedReminders(studentId, allow);
+  if (!allow) {
+    await db.upsertStudentProfile(studentId, { reminderEnabled: false });
+  }
+  json(res, 200, { profile });
+}
+
 async function handleCreateLink(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
@@ -379,6 +451,156 @@ async function handleStudentProgress(req, res, studentId) {
   json(res, 200, { progress });
 }
 
+// ---------- Reminder cron + unsubscribe ----------
+
+const CRON_SECRET = process.env.CRON_SECRET || '';
+const REMINDER_BACKOFF_MS = 12 * 60 * 60 * 1000; // never re-send within 12 hours
+
+function localPartsForTimezone(tz, when = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      weekday: 'short',
+      hour: '2-digit', minute: '2-digit',
+      hour12: false,
+    }).formatToParts(when);
+    const get = (t) => (parts.find(p => p.type === t) || {}).value;
+    const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return { hour: parseInt(get('hour'), 10), minute: parseInt(get('minute'), 10), weekday: dayMap[get('weekday')] };
+  } catch { return null; }
+}
+
+function reminderDueOnWeekday(frequency, weekday) {
+  switch (frequency) {
+    case 'daily': return true;
+    case 'weekdays': return weekday >= 1 && weekday <= 5;
+    case 'mwf': return weekday === 1 || weekday === 3 || weekday === 5;
+    case 'twr': return weekday === 2 || weekday === 4;
+    case 'weekly': return weekday === 1; // Mondays
+    case 'biweekly': return weekday === 1; // (true cadence enforced by 12h backoff + caller)
+    default: return false;
+  }
+}
+
+function isReminderDueNow(candidate, when = new Date()) {
+  if (!candidate.timezone || !candidate.reminder_enabled) return false;
+  // Under-13 students need explicit parent authorisation.
+  if (candidate.consent_required && !candidate.parent_authorised_reminders) return false;
+  const lp = localPartsForTimezone(candidate.timezone, when);
+  if (!lp) return false;
+  if (!reminderDueOnWeekday(candidate.reminder_frequency, lp.weekday)) return false;
+  // reminder_time_local is "HH:MM" or "HH:MM:SS"
+  const [hh, mm] = String(candidate.reminder_time_local || '17:00').split(':').map(n => parseInt(n, 10));
+  const targetMinutes = hh * 60 + mm;
+  const localMinutes = lp.hour * 60 + lp.minute;
+  // Fire within +/-15 min of target so a 15-min cron has a single hit window.
+  if (Math.abs(localMinutes - targetMinutes) > 15) return false;
+  // De-dup: don't re-send within REMINDER_BACKOFF_MS.
+  if (candidate.last_reminder_sent_at) {
+    const last = new Date(candidate.last_reminder_sent_at).getTime();
+    if (when.getTime() - last < REMINDER_BACKOFF_MS) return false;
+  }
+  return true;
+}
+
+function isDigestDueNow(candidate, when = new Date()) {
+  if (!candidate.timezone || !candidate.weekly_digest_enabled) return false;
+  const lp = localPartsForTimezone(candidate.timezone, when);
+  if (!lp) return false;
+  if (lp.weekday !== candidate.weekly_digest_day) return false;
+  const [hh, mm] = String(candidate.weekly_digest_time_local || '09:00').split(':').map(n => parseInt(n, 10));
+  if (Math.abs((lp.hour * 60 + lp.minute) - (hh * 60 + mm)) > 15) return false;
+  // Don't re-send within ~6 days.
+  if (candidate.last_digest_sent_at) {
+    const last = new Date(candidate.last_digest_sent_at).getTime();
+    if (when.getTime() - last < 6 * 24 * 60 * 60 * 1000) return false;
+  }
+  return true;
+}
+
+async function handleCronSendReminders(req, res) {
+  if (!CRON_SECRET) return json(res, 503, { error: 'CRON_SECRET not configured.' });
+  const provided = (req.headers['x-cron-secret'] || '').toString();
+  if (provided !== CRON_SECRET) return json(res, 403, { error: 'Forbidden.' });
+
+  const now = new Date();
+  const sent = { reminders: 0, digests: 0, errors: [] };
+
+  const reminderCandidates = await db.listReminderCandidates();
+  for (const c of reminderCandidates) {
+    if (!isReminderDueNow(c, now)) continue;
+    try {
+      await email.sendStudentReminder({ id: c.user_id, email: c.email }, { name: c.display_name, contentType: c.reminder_content });
+      await db.markReminderSent(c.user_id);
+      await db.logActivity(c.user_id, 'reminder_sent', { content: c.reminder_content });
+      sent.reminders++;
+    } catch (e) {
+      sent.errors.push({ kind: 'reminder', user: c.user_id, msg: e.message });
+    }
+  }
+
+  const digestCandidates = await db.listDigestCandidates();
+  for (const c of digestCandidates) {
+    if (!isDigestDueNow(c, now)) continue;
+    try {
+      const students = await db.listLinkedStudents(c.user_id);
+      const summaries = [];
+      for (const s of students) {
+        const attempts = await db.listQuizAttempts(s.id, { limit: 200 });
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const recent = attempts.filter(a => new Date(a.completed_at).getTime() >= sevenDaysAgo);
+        const passed = recent.filter(a => a.passed).length;
+        const failed = recent.length - passed;
+        const weak = await db.listWeakSections(s.id, 2);
+        summaries.push({
+          name: s.email,
+          quizzesPassed: passed,
+          quizzesFailed: failed,
+          weakTopics: weak.slice(0, 3).map(w => `${w.course_id}/${w.book_id}/section ${Number(w.section_idx) + 1}`),
+        });
+      }
+      await email.sendParentDigest({ id: c.user_id, email: c.email }, summaries, { name: c.display_name });
+      await db.markDigestSent(c.user_id);
+      await db.logActivity(c.user_id, 'digest_sent', { studentCount: summaries.length });
+      sent.digests++;
+    } catch (e) {
+      sent.errors.push({ kind: 'digest', user: c.user_id, msg: e.message });
+    }
+  }
+  json(res, 200, sent);
+}
+
+async function handleUnsubscribe(req, res) {
+  const url = new URL(req.url, 'http://localhost');
+  const userId = url.searchParams.get('u');
+  const kind = url.searchParams.get('k');
+  const token = url.searchParams.get('t');
+  if (!userId || !kind || !token || !['reminder', 'digest'].includes(kind)) {
+    res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end('<h1>Unsubscribe link is invalid</h1>');
+  }
+  if (!email.verifyUnsubscribeToken(userId, kind, token)) {
+    res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end('<h1>This unsubscribe link is no longer valid</h1>');
+  }
+  try {
+    if (kind === 'reminder') {
+      await db.upsertStudentProfile(userId, { reminderEnabled: false });
+    } else {
+      await db.upsertParentProfile(userId, { weeklyDigestEnabled: false });
+    }
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end(`<h1>Could not unsubscribe</h1><p>${e.message}</p>`);
+  }
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(`<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;padding:40px 20px;color:#1e2238;text-align:center">
+    <h1>You're unsubscribed</h1>
+    <p style="color:#6b7084">We won't send you any more ${kind === 'reminder' ? 'study reminders' : 'weekly digests'}.</p>
+    <p><a href="${process.env.SITE_URL || 'https://atriuminstitute.ai'}" style="color:#1e2238">Back to Atrium Institute</a></p>
+  </body></html>`);
+}
+
 // ---------- Claude proxy ----------
 async function proxyClaude(req, res) {
   if (req.method !== 'POST') { res.writeHead(405); return res.end('method'); }
@@ -455,10 +677,16 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/auth/me' && req.method === 'GET') return handleMe(req, res);
     // Profile, links
     if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
+    if (url === '/api/me/rich-profile' && req.method === 'GET') return handleGetRichProfile(req, res);
+    if (url === '/api/me/rich-profile' && req.method === 'POST') return handleSaveRichProfile(req, res);
     if (url === '/api/me/links' && req.method === 'POST') return handleCreateLink(req, res);
     if (url.startsWith('/api/me/links/') && req.method === 'DELETE') {
       return handleDeleteLink(req, res, url.slice('/api/me/links/'.length));
     }
+    // Public unsubscribe (no auth — signed token).
+    if (url === '/unsubscribe' && req.method === 'GET') return handleUnsubscribe(req, res);
+    // Cron-pingable reminder + digest dispatcher.
+    if (url === '/api/cron/send-reminders' && req.method === 'POST') return handleCronSendReminders(req, res);
     // Progress
     if (url === '/api/progress' && req.method === 'GET') return handleGetAllProgress(req, res);
     if (url === '/api/progress' && req.method === 'POST') return handleSaveProgress(req, res);
@@ -470,13 +698,14 @@ const server = http.createServer(async (req, res) => {
     // Parent dashboard
     if (url === '/api/parent/students' && req.method === 'GET') return handleListLinkedStudents(req, res);
     {
-      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress)$/);
-      if (m && req.method === 'GET') {
+      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress|authorise-reminders)$/);
+      if (m) {
         const [, studentId, kind] = m;
-        if (kind === 'activity') return handleStudentActivity(req, res, studentId);
-        if (kind === 'quiz-attempts') return handleStudentQuizAttempts(req, res, studentId);
-        if (kind === 'weak-sections') return handleStudentWeakSections(req, res, studentId);
-        if (kind === 'progress') return handleStudentProgress(req, res, studentId);
+        if (req.method === 'GET' && kind === 'activity') return handleStudentActivity(req, res, studentId);
+        if (req.method === 'GET' && kind === 'quiz-attempts') return handleStudentQuizAttempts(req, res, studentId);
+        if (req.method === 'GET' && kind === 'weak-sections') return handleStudentWeakSections(req, res, studentId);
+        if (req.method === 'GET' && kind === 'progress') return handleStudentProgress(req, res, studentId);
+        if (req.method === 'POST' && kind === 'authorise-reminders') return handleParentAuthoriseReminders(req, res, studentId);
       }
     }
     // Claude proxy

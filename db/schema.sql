@@ -121,3 +121,53 @@ create table if not exists activity_log (
 
 create index if not exists idx_activity_user_created on activity_log (user_id, created_at desc);
 create index if not exists idx_activity_kind on activity_log (kind);
+
+-- ------------------------------------------------------------------
+-- Student + parent profile pages.
+--
+-- Email reminders are driven by columns on student_profiles. For under-13
+-- students, parent_authorised_reminders must be true (set by a linked
+-- parent) before any reminder email is sent, regardless of the student's
+-- own reminder_enabled toggle.
+-- ------------------------------------------------------------------
+
+create table if not exists student_profiles (
+  user_id uuid primary key references users (id) on delete cascade,
+  display_name text,
+  school_name text,
+  grade_level text,
+  subjects text[] not null default '{}',
+  study_plan_courses text[] not null default '{}',
+  study_goal text,
+  timezone text,
+  reminder_enabled boolean not null default false,
+  reminder_frequency text not null default 'weekly'
+    check (reminder_frequency in ('daily', 'weekdays', 'mwf', 'twr', 'weekly', 'biweekly')),
+  reminder_time_local time not null default '17:00',
+  reminder_content text not null default 'generic'
+    check (reminder_content in ('generic', 'continuation', 'weak_topics')),
+  parent_authorised_reminders boolean not null default false,
+  last_reminder_sent_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists parent_profiles (
+  user_id uuid primary key references users (id) on delete cascade,
+  display_name text,
+  relationship text not null default 'parent'
+    check (relationship in ('parent', 'guardian', 'tutor', 'other')),
+  timezone text,
+  weekly_digest_enabled boolean not null default true,
+  weekly_digest_day integer not null default 0 check (weekly_digest_day between 0 and 6),
+  weekly_digest_time_local time not null default '09:00',
+  last_digest_sent_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+-- Index used by the cron job that finds due reminders / digests.
+create index if not exists idx_student_profiles_reminders
+  on student_profiles (reminder_enabled, last_reminder_sent_at)
+  where reminder_enabled = true;
+create index if not exists idx_parent_profiles_digests
+  on parent_profiles (weekly_digest_enabled, last_digest_sent_at)
+  where weekly_digest_enabled = true;

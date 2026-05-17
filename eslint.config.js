@@ -40,6 +40,8 @@ module.exports = [
         require: 'readonly',
         global: 'readonly',
         exports: 'writable',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
       },
     },
     rules: {

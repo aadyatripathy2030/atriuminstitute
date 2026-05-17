@@ -212,3 +212,45 @@ test('consent helper returns true for ages under 13 and false otherwise', () => 
   assert.equal(fn(45), false);
   assert.equal(fn(null), false);
 });
+
+// ---------- Profiles ----------
+
+test('upsertStudentProfile defaults sensibly and saves partial updates', async () => {
+  const u = await db.upsertUser('profile1@example.com', 'student');
+  const p1 = await db.upsertStudentProfile(u.id, {
+    displayName: 'Test Student', schoolName: 'Atrium HS', gradeLevel: '9th',
+    subjects: ['math'], studyPlanCourses: ['algebra', 'geometry'],
+    studyGoal: 'Ace Algebra 1', timezone: 'America/Los_Angeles',
+    reminderEnabled: true, reminderFrequency: 'mwf', reminderTimeLocal: '17:30',
+    reminderContent: 'continuation',
+  });
+  assert.equal(p1.display_name, 'Test Student');
+  assert.equal(p1.timezone, 'America/Los_Angeles');
+  assert.deepEqual(p1.subjects, ['math']);
+  assert.equal(p1.reminder_frequency, 'mwf');
+
+  // Partial update preserves untouched fields.
+  const p2 = await db.upsertStudentProfile(u.id, { reminderEnabled: false });
+  assert.equal(p2.reminder_enabled, false);
+  assert.equal(p2.display_name, 'Test Student');
+  assert.equal(p2.school_name, 'Atrium HS');
+});
+
+test('upsertParentProfile saves preferences', async () => {
+  const u = await db.upsertUser('profile-parent@example.com', 'parent');
+  const p = await db.upsertParentProfile(u.id, {
+    displayName: 'Test Parent', relationship: 'guardian',
+    timezone: 'America/New_York',
+    weeklyDigestEnabled: true, weeklyDigestDay: 1, weeklyDigestTimeLocal: '08:30',
+  });
+  assert.equal(p.relationship, 'guardian');
+  assert.equal(p.weekly_digest_day, 1);
+});
+
+test('setParentAuthorisedReminders toggles the student-side flag', async () => {
+  const u = await db.upsertUser('auth-target@example.com', 'student');
+  let p = await db.setParentAuthorisedReminders(u.id, true);
+  assert.equal(p.parent_authorised_reminders, true);
+  p = await db.setParentAuthorisedReminders(u.id, false);
+  assert.equal(p.parent_authorised_reminders, false);
+});

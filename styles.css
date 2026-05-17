@@ -2142,3 +2142,106 @@ footer {
 .parent-detail-row .warn { color: #b00020; }
 .parent-student-row .badge.ok { color: #1b6b3a; }
 .parent-student-row .badge.warn { color: #b00020; }
+
+/* Profile page (student or parent). */
+.profile-page {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+.profile-page.hidden { display: none; }
+.profile-hero h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 28px;
+  margin: 16px 0 4px;
+}
+.profile-sub { color: var(--muted, #6b7280); margin: 0 0 24px; }
+.profile-form fieldset {
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  background: var(--paper, #fff);
+}
+.profile-form legend {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0 6px;
+}
+.profile-form label {
+  display: block;
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+}
+.profile-form input[type="text"],
+.profile-form input[type="time"],
+.profile-form select,
+.profile-form textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  background: var(--paper, #fff);
+  color: var(--text, #1e2238);
+  margin-top: 4px;
+}
+.profile-label { font-weight: 500; font-size: 13px; color: var(--text, #1e2238); margin: 10px 0 6px; }
+.profile-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.profile-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.profile-check input { margin: 0; }
+.profile-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px !important;
+  color: var(--text, #1e2238) !important;
+}
+.profile-notice {
+  background: #fff7e6;
+  border: 1px solid #f5d99a;
+  color: #6b4d00;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.profile-student-row {
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+.profile-student-email { font-weight: 500; margin-bottom: 4px; }
+.profile-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.profile-save-status { font-size: 13px; color: var(--muted, #6b7280); }
+.profile-save-status.ok { color: #1b6b3a; }
+.profile-save-status.err { color: #b00020; }
+.profile-loading {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted, #6b7280);
+}
+.profile-loading.err { color: #b00020; }

@@ -50,6 +50,7 @@
     <button class="nav-cta hidden" id="navSignInBtn" type="button">Sign in</button>
     <span class="nav-user hidden" id="navUser" title="Sign out">
       <span id="navUserEmail"></span>
+      <button class="nav-link" id="profileNavBtn" type="button">Profile</button>
       <button class="nav-link" id="signOutBtn" type="button">Sign out</button>
     </span>
   </div>
@@ -332,6 +333,20 @@
   </section>
 </div>
 
+<!-- Profile page (student or parent — different fields per role) -->
+<div id="profilePage" class="profile-page hidden">
+  <button class="back-btn" id="profileBack">← Back</button>
+  <header class="profile-hero">
+    <h1 id="profileTitle">Your profile</h1>
+    <p class="profile-sub" id="profileSub">Set your preferences so reminders and the dashboard work the way you want.</p>
+  </header>
+  <form id="profileForm" class="profile-form"></form>
+  <div class="profile-actions">
+    <button type="button" class="auth-btn" id="profileSaveBtn">Save profile</button>
+    <span id="profileSaveStatus" class="profile-save-status"></span>
+  </div>
+</div>
+
 <!-- Parent → student detail view -->
 <div id="parentStudentDetail" class="parent-detail hidden">
   <button class="back-btn" id="parentDetailBack">← Back to family overview</button>
@@ -483,6 +498,7 @@
 <script src="ai.js"></script>
 <script src="auth.js"></script>
 <script src="parent.js"></script>
+<script src="profile.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 </body>

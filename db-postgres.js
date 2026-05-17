@@ -371,6 +371,147 @@ async function listActivity(userId, opts = {}) {
   );
 }
 
+// ---------- Profiles ----------
+const STUDENT_PROFILE_COLS = 'user_id, display_name, school_name, grade_level, subjects, study_plan_courses, study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local, reminder_content, parent_authorised_reminders, last_reminder_sent_at, updated_at';
+const PARENT_PROFILE_COLS = 'user_id, display_name, relationship, timezone, weekly_digest_enabled, weekly_digest_day, weekly_digest_time_local, last_digest_sent_at, updated_at';
+
+async function getStudentProfile(userId) {
+  const rows = await q(`select ${STUDENT_PROFILE_COLS} from student_profiles where user_id = $1`, [userId]);
+  return rows[0] || null;
+}
+
+async function getParentProfile(userId) {
+  const rows = await q(`select ${PARENT_PROFILE_COLS} from parent_profiles where user_id = $1`, [userId]);
+  return rows[0] || null;
+}
+
+// COALESCE-based upsert: only updates fields the caller passed. Validation /
+// allow-listing happens in the server handler, not here.
+async function upsertStudentProfile(userId, fields) {
+  const f = fields || {};
+  const arr = (v) => Array.isArray(v) ? v : (v == null ? null : [v]);
+  const rows = await q(
+    `insert into student_profiles (
+       user_id, display_name, school_name, grade_level, subjects, study_plan_courses,
+       study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local,
+       reminder_content, parent_authorised_reminders
+     ) values ($1,$2,$3,$4,coalesce($5::text[],'{}'),coalesce($6::text[],'{}'),
+               $7,$8,coalesce($9,false),coalesce($10,'weekly'),coalesce($11::time,'17:00'),
+               coalesce($12,'generic'),coalesce($13,false))
+     on conflict (user_id) do update set
+       display_name = coalesce($2, student_profiles.display_name),
+       school_name = coalesce($3, student_profiles.school_name),
+       grade_level = coalesce($4, student_profiles.grade_level),
+       subjects = coalesce($5::text[], student_profiles.subjects),
+       study_plan_courses = coalesce($6::text[], student_profiles.study_plan_courses),
+       study_goal = coalesce($7, student_profiles.study_goal),
+       timezone = coalesce($8, student_profiles.timezone),
+       reminder_enabled = coalesce($9, student_profiles.reminder_enabled),
+       reminder_frequency = coalesce($10, student_profiles.reminder_frequency),
+       reminder_time_local = coalesce($11::time, student_profiles.reminder_time_local),
+       reminder_content = coalesce($12, student_profiles.reminder_content),
+       parent_authorised_reminders = coalesce($13, student_profiles.parent_authorised_reminders),
+       updated_at = now()
+     returning ${STUDENT_PROFILE_COLS}`,
+    [
+      userId,
+      f.displayName ?? null,
+      f.schoolName ?? null,
+      f.gradeLevel ?? null,
+      arr(f.subjects),
+      arr(f.studyPlanCourses),
+      f.studyGoal ?? null,
+      f.timezone ?? null,
+      f.reminderEnabled ?? null,
+      f.reminderFrequency ?? null,
+      f.reminderTimeLocal ?? null,
+      f.reminderContent ?? null,
+      f.parentAuthorisedReminders ?? null,
+    ],
+  );
+  return rows[0];
+}
+
+async function upsertParentProfile(userId, fields) {
+  const f = fields || {};
+  const rows = await q(
+    `insert into parent_profiles (
+       user_id, display_name, relationship, timezone,
+       weekly_digest_enabled, weekly_digest_day, weekly_digest_time_local
+     ) values ($1,$2,coalesce($3,'parent'),$4,coalesce($5,true),coalesce($6,0),coalesce($7::time,'09:00'))
+     on conflict (user_id) do update set
+       display_name = coalesce($2, parent_profiles.display_name),
+       relationship = coalesce($3, parent_profiles.relationship),
+       timezone = coalesce($4, parent_profiles.timezone),
+       weekly_digest_enabled = coalesce($5, parent_profiles.weekly_digest_enabled),
+       weekly_digest_day = coalesce($6, parent_profiles.weekly_digest_day),
+       weekly_digest_time_local = coalesce($7::time, parent_profiles.weekly_digest_time_local),
+       updated_at = now()
+     returning ${PARENT_PROFILE_COLS}`,
+    [
+      userId,
+      f.displayName ?? null,
+      f.relationship ?? null,
+      f.timezone ?? null,
+      f.weeklyDigestEnabled ?? null,
+      f.weeklyDigestDay ?? null,
+      f.weeklyDigestTimeLocal ?? null,
+    ],
+  );
+  return rows[0];
+}
+
+// Called by a parent for one of their linked students: turn the under-13
+// reminder allow-flag on or off. Authorisation is checked server-side.
+async function setParentAuthorisedReminders(studentUserId, allow) {
+  const rows = await q(
+    `insert into student_profiles (user_id, parent_authorised_reminders)
+     values ($1, $2)
+     on conflict (user_id) do update set parent_authorised_reminders = excluded.parent_authorised_reminders, updated_at = now()
+     returning ${STUDENT_PROFILE_COLS}`,
+    [studentUserId, !!allow],
+  );
+  return rows[0];
+}
+
+// Mark a reminder / digest as just sent. Used by the cron endpoint.
+async function markReminderSent(studentUserId) {
+  await q('update student_profiles set last_reminder_sent_at = now() where user_id = $1', [studentUserId]);
+}
+async function markDigestSent(parentUserId) {
+  await q('update parent_profiles set last_digest_sent_at = now() where user_id = $1', [parentUserId]);
+}
+
+// All students whose reminder *could* fire now. The caller filters by
+// local-time-of-day, day-of-week, and the under-13 parent-authorisation
+// rule — we don't try to express that in SQL.
+async function listReminderCandidates() {
+  return q(
+    `select u.id as user_id, u.email, u.age, u.consent_required,
+            sp.display_name, sp.timezone, sp.reminder_enabled, sp.reminder_frequency,
+            sp.reminder_time_local, sp.reminder_content,
+            sp.parent_authorised_reminders, sp.last_reminder_sent_at
+     from student_profiles sp
+     join users u on u.id = sp.user_id
+     where sp.reminder_enabled = true
+       and sp.timezone is not null`,
+    [],
+  );
+}
+
+async function listDigestCandidates() {
+  return q(
+    `select u.id as user_id, u.email,
+            pp.display_name, pp.timezone, pp.weekly_digest_enabled,
+            pp.weekly_digest_day, pp.weekly_digest_time_local, pp.last_digest_sent_at
+     from parent_profiles pp
+     join users u on u.id = pp.user_id
+     where pp.weekly_digest_enabled = true
+       and pp.timezone is not null`,
+    [],
+  );
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -387,6 +528,9 @@ module.exports = {
   createLinkFromCode, listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
   logQuizAttempt, listQuizAttempts, listWeakSections,
   logActivity, listActivity,
+  getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
+  setParentAuthorisedReminders, markReminderSent, markDigestSent,
+  listReminderCandidates, listDigestCandidates,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

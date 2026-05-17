@@ -21,6 +21,8 @@ function load() {
   if (!Array.isArray(state.links)) state.links = [];
   if (!Array.isArray(state.quizAttempts)) state.quizAttempts = [];
   if (!Array.isArray(state.activity)) state.activity = [];
+  if (!state.studentProfiles) state.studentProfiles = {};
+  if (!state.parentProfiles) state.parentProfiles = {};
   return state;
 }
 
@@ -401,6 +403,162 @@ async function listActivity(userId, opts = {}) {
     .slice(0, limit);
 }
 
+// ---------- Profiles ----------
+function defaultStudentProfile(userId) {
+  return {
+    user_id: userId,
+    display_name: null,
+    school_name: null,
+    grade_level: null,
+    subjects: [],
+    study_plan_courses: [],
+    study_goal: null,
+    timezone: null,
+    reminder_enabled: false,
+    reminder_frequency: 'weekly',
+    reminder_time_local: '17:00',
+    reminder_content: 'generic',
+    parent_authorised_reminders: false,
+    last_reminder_sent_at: null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function defaultParentProfile(userId) {
+  return {
+    user_id: userId,
+    display_name: null,
+    relationship: 'parent',
+    timezone: null,
+    weekly_digest_enabled: true,
+    weekly_digest_day: 0,
+    weekly_digest_time_local: '09:00',
+    last_digest_sent_at: null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function getStudentProfile(userId) {
+  load();
+  return state.studentProfiles[userId] || null;
+}
+
+async function getParentProfile(userId) {
+  load();
+  return state.parentProfiles[userId] || null;
+}
+
+async function upsertStudentProfile(userId, fields) {
+  load();
+  const existing = state.studentProfiles[userId] || defaultStudentProfile(userId);
+  const f = fields || {};
+  const merged = {
+    ...existing,
+    display_name: f.displayName ?? existing.display_name,
+    school_name: f.schoolName ?? existing.school_name,
+    grade_level: f.gradeLevel ?? existing.grade_level,
+    subjects: Array.isArray(f.subjects) ? f.subjects : existing.subjects,
+    study_plan_courses: Array.isArray(f.studyPlanCourses) ? f.studyPlanCourses : existing.study_plan_courses,
+    study_goal: f.studyGoal ?? existing.study_goal,
+    timezone: f.timezone ?? existing.timezone,
+    reminder_enabled: f.reminderEnabled ?? existing.reminder_enabled,
+    reminder_frequency: f.reminderFrequency ?? existing.reminder_frequency,
+    reminder_time_local: f.reminderTimeLocal ?? existing.reminder_time_local,
+    reminder_content: f.reminderContent ?? existing.reminder_content,
+    parent_authorised_reminders: f.parentAuthorisedReminders ?? existing.parent_authorised_reminders,
+    updated_at: new Date().toISOString(),
+  };
+  state.studentProfiles[userId] = merged;
+  save();
+  return merged;
+}
+
+async function upsertParentProfile(userId, fields) {
+  load();
+  const existing = state.parentProfiles[userId] || defaultParentProfile(userId);
+  const f = fields || {};
+  const merged = {
+    ...existing,
+    display_name: f.displayName ?? existing.display_name,
+    relationship: f.relationship ?? existing.relationship,
+    timezone: f.timezone ?? existing.timezone,
+    weekly_digest_enabled: f.weeklyDigestEnabled ?? existing.weekly_digest_enabled,
+    weekly_digest_day: f.weeklyDigestDay ?? existing.weekly_digest_day,
+    weekly_digest_time_local: f.weeklyDigestTimeLocal ?? existing.weekly_digest_time_local,
+    updated_at: new Date().toISOString(),
+  };
+  state.parentProfiles[userId] = merged;
+  save();
+  return merged;
+}
+
+async function setParentAuthorisedReminders(studentUserId, allow) {
+  return upsertStudentProfile(studentUserId, { parentAuthorisedReminders: !!allow });
+}
+
+async function markReminderSent(studentUserId) {
+  load();
+  const p = state.studentProfiles[studentUserId];
+  if (p) {
+    p.last_reminder_sent_at = new Date().toISOString();
+    save();
+  }
+}
+async function markDigestSent(parentUserId) {
+  load();
+  const p = state.parentProfiles[parentUserId];
+  if (p) {
+    p.last_digest_sent_at = new Date().toISOString();
+    save();
+  }
+}
+
+async function listReminderCandidates() {
+  load();
+  const out = [];
+  for (const sp of Object.values(state.studentProfiles)) {
+    if (!sp.reminder_enabled || !sp.timezone) continue;
+    const u = state.users.find(x => x.id === sp.user_id);
+    if (!u) continue;
+    out.push({
+      user_id: u.id,
+      email: u.email,
+      age: u.age,
+      consent_required: u.consent_required,
+      display_name: sp.display_name,
+      timezone: sp.timezone,
+      reminder_enabled: sp.reminder_enabled,
+      reminder_frequency: sp.reminder_frequency,
+      reminder_time_local: sp.reminder_time_local,
+      reminder_content: sp.reminder_content,
+      parent_authorised_reminders: sp.parent_authorised_reminders,
+      last_reminder_sent_at: sp.last_reminder_sent_at,
+    });
+  }
+  return out;
+}
+
+async function listDigestCandidates() {
+  load();
+  const out = [];
+  for (const pp of Object.values(state.parentProfiles)) {
+    if (!pp.weekly_digest_enabled || !pp.timezone) continue;
+    const u = state.users.find(x => x.id === pp.user_id);
+    if (!u) continue;
+    out.push({
+      user_id: u.id,
+      email: u.email,
+      display_name: pp.display_name,
+      timezone: pp.timezone,
+      weekly_digest_enabled: pp.weekly_digest_enabled,
+      weekly_digest_day: pp.weekly_digest_day,
+      weekly_digest_time_local: pp.weekly_digest_time_local,
+      last_digest_sent_at: pp.last_digest_sent_at,
+    });
+  }
+  return out;
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   load();
@@ -422,6 +580,9 @@ module.exports = {
   createLinkFromCode, listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
   logQuizAttempt, listQuizAttempts, listWeakSections,
   logActivity, listActivity,
+  getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
+  setParentAuthorisedReminders, markReminderSent, markDigestSent,
+  listReminderCandidates, listDigestCandidates,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
