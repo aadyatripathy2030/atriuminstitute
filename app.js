@@ -313,12 +313,16 @@ function backToBooks() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function _hideAllScreens() {
+  const ids = ['courses-home','home','detail','about','study','landing','privacy','terms','contact'];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  }
+}
+
 function goToCourses() {
-  document.getElementById('home').classList.add('hidden');
-  document.getElementById('detail').classList.add('hidden');
-  document.getElementById('about').classList.add('hidden');
-  const studyEl = document.getElementById('study');
-  if (studyEl) studyEl.classList.add('hidden');
+  _hideAllScreens();
   document.getElementById('courses-home').classList.remove('hidden');
   renderCourses();
   renderProgressPill();
@@ -327,10 +331,26 @@ function goToCourses() {
 }
 
 function showAbout() {
-  document.getElementById('courses-home').classList.add('hidden');
-  document.getElementById('home').classList.add('hidden');
-  document.getElementById('detail').classList.add('hidden');
+  _hideAllScreens();
   document.getElementById('about').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showPrivacy() {
+  _hideAllScreens();
+  document.getElementById('privacy').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showTerms() {
+  _hideAllScreens();
+  document.getElementById('terms').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showContact() {
+  _hideAllScreens();
+  document.getElementById('contact').classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1538,4 +1558,74 @@ document.addEventListener('DOMContentLoaded', () => {
   ci.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
   });
+
+  // ----- Dark mode toggle (persists to localStorage) -----
+  const THEME_KEY = 'atrium_theme_v1';
+  const themeBtn = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+  if (savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (themeBtn) themeBtn.textContent = '☀️';
+  }
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem(THEME_KEY, 'light');
+        themeBtn.textContent = '🌙';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem(THEME_KEY, 'dark');
+        themeBtn.textContent = '☀️';
+      }
+    });
+  }
+
+  // ----- Back-to-top button -----
+  const backBtn = document.getElementById('backToTop');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 600) backBtn.classList.add('visible');
+      else backBtn.classList.remove('visible');
+    });
+  }
+
+  // ----- Course search in nav -----
+  const search = document.getElementById('navSearch');
+  if (search) {
+    let lastQ = '';
+    search.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      if (q === lastQ) return;
+      lastQ = q;
+      // Filter the visible courses on the courses-home grid.
+      const grid = document.getElementById('coursesGrid');
+      if (!grid) return;
+      grid.querySelectorAll('.course-card').forEach(card => {
+        const title = (card.querySelector('.course-title')?.textContent || '').toLowerCase();
+        const sub = (card.querySelector('.course-subtitle')?.textContent || '').toLowerCase();
+        const match = !q || title.includes(q) || sub.includes(q);
+        card.style.display = match ? '' : 'none';
+      });
+    });
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { search.value = ''; search.dispatchEvent(new Event('input')); search.blur(); }
+    });
+  }
+
+  // ----- Contact form (opens user's mail client via mailto:) -----
+  const cf = document.getElementById('contactForm');
+  if (cf) {
+    cf.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('contactName').value.trim();
+      const email = document.getElementById('contactEmail').value.trim();
+      const subject = document.getElementById('contactSubject').value;
+      const msg = document.getElementById('contactMessage').value.trim();
+      const body = `${msg}\n\n—\nFrom: ${name} <${email}>`;
+      window.location.href = `mailto:hello@atriuminstitute.com?subject=${encodeURIComponent('[Atrium] ' + subject)}&body=${encodeURIComponent(body)}`;
+    });
+  }
 });

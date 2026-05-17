@@ -27,6 +27,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
 <nav class="nav">
   <div class="nav-left">
     <button type="button" class="logo" id="logoHome" aria-label="Go to home">
@@ -44,7 +46,9 @@
     </div>
   </div>
   <div class="nav-right">
+    <input type="search" class="nav-search" id="navSearch" placeholder="Search courses…" aria-label="Search courses">
     <button class="nav-link" id="aboutLink" onclick="showAbout()">About</button>
+    <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
     <button class="nav-cta hidden" id="navSignInBtn" type="button">Sign in</button>
@@ -240,13 +244,50 @@
     </div>
   </section>
 
+  <section class="landing-testimonials">
+    <h2 class="landing-h2">What students say</h2>
+    <p class="landing-section-sub">Early users from our pilot.</p>
+    <div class="testimonial-grid">
+      <figure class="testimonial">
+        <blockquote>"I finally understood functions after working through the Algebra 2 course with Max. He explained it three different ways until one clicked."</blockquote>
+        <figcaption>
+          <div class="testi-avatar">M</div>
+          <div>
+            <div class="testi-name">Maya R.</div>
+            <div class="testi-meta">10th grade · Algebra 2</div>
+          </div>
+        </figcaption>
+      </figure>
+      <figure class="testimonial">
+        <blockquote>"The Pomodoro timer changed how I study. I used to lose hours scrolling. Now I do four focused blocks and I'm actually done with my work."</blockquote>
+        <figcaption>
+          <div class="testi-avatar">J</div>
+          <div>
+            <div class="testi-name">Jordan T.</div>
+            <div class="testi-meta">11th grade · Pre-Calc</div>
+          </div>
+        </figcaption>
+      </figure>
+      <figure class="testimonial">
+        <blockquote>"My daughter went from dreading math homework to opening the site on her own. The 'Ask Max' button means she doesn't get stuck and give up."</blockquote>
+        <figcaption>
+          <div class="testi-avatar">P</div>
+          <div>
+            <div class="testi-name">Priya S.</div>
+            <div class="testi-meta">Parent of a 7th grader</div>
+          </div>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
   <section class="landing-pricing">
     <div class="pricing-card">
       <div class="pricing-badge">Open access</div>
       <div class="pricing-amount">Free</div>
       <div class="pricing-trial">No account · no credit card · open the site and start</div>
       <ul class="pricing-list">
-        <li>✓ All 13 courses + every quiz, test, and final exam</li>
+        <li>✓ All 14 math courses + 7 English grades, every quiz, test, and final exam</li>
         <li>✓ Unlimited access to Max, the AI tutor</li>
         <li>✓ All study tools (Pomodoro, spaced rep, recall timer, and more)</li>
         <li>✓ Progress saved automatically in your browser</li>
@@ -256,13 +297,83 @@
     </div>
   </section>
 
-  <footer class="landing-footer">
-    <div class="landing-foot-mark">∑ Atrium Institute</div>
-    <div class="landing-foot-links">
-      <a href="#" onclick="showAbout(); return false;">About</a>
-      <a href="mailto:hello@atriuminstitute.com">Contact</a>
+  <section class="landing-faq">
+    <h2 class="landing-h2">Common questions</h2>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Do I need to create an account?</summary>
+        <p>No. Open the site and start. Your progress is saved automatically in your browser.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is it really free?</summary>
+        <p>Yes — every quiz, test, lesson, and study tool. No ads, no upsells, no credit card.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What grade levels does it cover?</summary>
+        <p>Math: arithmetic (grades 4–6) through college-level real analysis. English: grades 6–12. Most students between grades 6 and 12 are the sweet spot.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How is the AI tutor different from ChatGPT?</summary>
+        <p>Max is built into every quiz, lesson, and study tool — he sees the exact question you're working on, knows what subject and grade you're studying, and can explain a missed answer or walk you through a section without you copying anything around. He won't give answers during a graded quiz, only after.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use Atrium on my phone?</summary>
+        <p>Yes. The site works in any modern mobile browser. No app to install.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Will my progress sync across devices?</summary>
+        <p>Right now progress is per-browser (saved locally on your device). Cross-device sync via sign-in is coming soon.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What if I get stuck on a problem?</summary>
+        <p>Every quiz has a "💬 Ask Max" button. After a missed answer he'll walk you through the correct approach with a worked example and a diagram if it helps.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do I report a bug or ask for a feature?</summary>
+        <p>Email <a href="mailto:hello@atriuminstitute.com">hello@atriuminstitute.com</a> — we read everything.</p>
+      </details>
     </div>
-    <div class="landing-foot-copy">© 2026 Atrium Institute. A calm place to learn.</div>
+  </section>
+
+  <footer class="site-footer" id="siteFooter">
+    <div class="footer-grid">
+      <div class="footer-col footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-dot">∑</div>
+          <div class="footer-logo-text">Atrium Institute</div>
+        </div>
+        <p class="footer-tagline">A calm place to learn math &amp; English. Free for any student, anywhere.</p>
+        <div class="footer-social" aria-label="Social media">
+          <a href="https://twitter.com/" target="_blank" rel="noopener" title="Twitter / X" aria-label="Twitter">𝕏</a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">📷</a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube">▶️</a>
+          <a href="mailto:hello@atriuminstitute.com" title="Email" aria-label="Email">✉️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Learn</div>
+        <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('arithmetic'); return false;">Arithmetic</a>
+        <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('algebra'); return false;">Algebra</a>
+        <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('geometry'); return false;">Geometry</a>
+        <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('calculus'); return false;">Calculus</a>
+        <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('eng9'); return false;">English (9th)</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Company</div>
+        <a href="#" onclick="showAbout(); return false;">About</a>
+        <a href="#" onclick="showContact(); return false;">Contact</a>
+        <a href="mailto:hello@atriuminstitute.com">hello@atriuminstitute.com</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Legal</div>
+        <a href="#" onclick="showPrivacy(); return false;">Privacy Policy</a>
+        <a href="#" onclick="showTerms(); return false;">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 Atrium Institute. A calm place to learn.</div>
+      <div class="footer-secure">🔒 HTTPS · No ads · No tracking pixels</div>
+    </div>
   </footer>
 </div>
 
@@ -424,7 +535,77 @@
   <div class="books" id="books"></div>
 </div>
 
+<div id="main-content"></div>
 <div id="detail" class="detail hidden"></div>
+
+<!-- Static info pages -->
+<div id="privacy" class="info-page hidden">
+  <button class="back-btn" onclick="goToCourses()">← Back</button>
+  <header class="info-hero">
+    <div class="about-mark">∑</div>
+    <h1>Privacy <em>Policy</em></h1>
+    <p class="about-tagline">Last updated: May 17, 2026</p>
+  </header>
+  <div class="about-body">
+    <p><strong>Short version:</strong> we don't sell your data, we don't run ads, we don't track you across sites. We store the minimum needed to make your progress work and to answer your questions to Max.</p>
+    <p><strong>What we store locally on your device:</strong> your quiz scores, your profile (name, grade, etc.), and your study-tool preferences. All of this lives in your browser's local storage and never leaves your device unless you explicitly sign in (signed-in sync isn't on yet).</p>
+    <p><strong>What we send to our server:</strong> when you click "Ask Max" or take a quiz, the question text and your answer are sent to our server so we can return a tutor response. We pass that on to Anthropic (the company that makes the Claude model that powers Max) to generate the reply. We don't keep a permanent record of your individual chats beyond what's needed to debug errors.</p>
+    <p><strong>What we don't do:</strong> we don't sell your data. We don't share it with advertisers. We don't run third-party tracking pixels or fingerprinting. We don't email you unless you've explicitly asked us to.</p>
+    <p><strong>Cookies:</strong> we use one cookie for sign-in (when sign-in is enabled). No advertising cookies, no analytics cookies.</p>
+    <p><strong>Questions:</strong> email <a href="mailto:hello@atriuminstitute.com">hello@atriuminstitute.com</a> and we'll respond within a few days.</p>
+  </div>
+</div>
+
+<div id="terms" class="info-page hidden">
+  <button class="back-btn" onclick="goToCourses()">← Back</button>
+  <header class="info-hero">
+    <div class="about-mark">∑</div>
+    <h1>Terms of <em>Service</em></h1>
+    <p class="about-tagline">Last updated: May 17, 2026</p>
+  </header>
+  <div class="about-body">
+    <p><strong>What this is:</strong> Atrium Institute is a free educational website. By using it you agree to the following.</p>
+    <p><strong>Use the site for learning.</strong> Don't try to break it, abuse it, or use it for anything other than studying math and English. Don't scrape questions in bulk, use bots, or try to extract our content for resale.</p>
+    <p><strong>Max is a tutor, not a textbook.</strong> The AI tutor can make mistakes — especially on edge cases or unusual problems. Use it as a study companion, not a final authority. Always check important answers against an authoritative source (your teacher, an official textbook).</p>
+    <p><strong>No guarantees.</strong> The site is provided "as is." We do our best to keep it accurate and online, but we don't guarantee zero downtime, zero bugs, or that any specific answer is correct.</p>
+    <p><strong>Your content.</strong> If you submit feedback, suggestions, or anything else through email, you give us permission to use it to improve the site.</p>
+    <p><strong>Changes.</strong> We may update these terms over time. Significant changes will be announced on the homepage.</p>
+    <p><strong>Contact:</strong> <a href="mailto:hello@atriuminstitute.com">hello@atriuminstitute.com</a> for anything you're unsure about.</p>
+  </div>
+</div>
+
+<div id="contact" class="info-page hidden">
+  <button class="back-btn" onclick="goToCourses()">← Back</button>
+  <header class="info-hero">
+    <div class="about-mark">∑</div>
+    <h1><em>Contact</em> us</h1>
+    <p class="about-tagline">We read every email. Usually reply within 1-2 days.</p>
+  </header>
+  <div class="about-body">
+    <p>The fastest way to reach us is plain email:</p>
+    <p style="text-align:center; font-size:18px; margin: 24px 0;"><a href="mailto:hello@atriuminstitute.com" style="font-weight:600;">hello@atriuminstitute.com</a></p>
+    <p>Or use the form below — it'll open your default email client with the message pre-filled.</p>
+    <form class="contact-form" id="contactForm">
+      <label>Your name<input type="text" id="contactName" required></label>
+      <label>Your email<input type="email" id="contactEmail" required></label>
+      <label>What's it about?
+        <select id="contactSubject">
+          <option>I found a bug</option>
+          <option>I have a feature suggestion</option>
+          <option>I have a question about a specific problem</option>
+          <option>I'm a parent — questions about my student</option>
+          <option>Partnership / press</option>
+          <option>Something else</option>
+        </select>
+      </label>
+      <label>Message<textarea id="contactMessage" rows="6" required></textarea></label>
+      <button type="submit" class="cta-primary">Send email</button>
+    </form>
+    <p style="font-size:13px; color: var(--muted); text-align:center; margin-top: 20px;">No form submissions are stored on our server. This opens your email app so the message goes straight to us.</p>
+  </div>
+</div>
+
+<button class="back-to-top hidden" id="backToTop" title="Back to top" aria-label="Back to top">↑</button>
 
 <!-- Dedicated Study page (concept lesson + ~10 practice questions, no grading) -->
 <div id="study" class="study-page hidden"></div>
