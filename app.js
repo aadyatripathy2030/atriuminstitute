@@ -256,6 +256,203 @@ function renderCourses() {
   // Spaced-repetition: surface previously-failed sections that are due
   // for another look. Also non-blocking, also once per visit.
   maybeRenderReviewQueue();
+  // Goal-based study plan: show this week's plan, or a CTA to set one up.
+  maybeRenderStudyPlan();
+}
+
+let _planShown = false;
+async function maybeRenderStudyPlan() {
+  if (_planShown) return;
+  _planShown = true;
+  const grid = document.getElementById('coursesGrid');
+  if (!grid) return;
+  let plan = null;
+  try {
+    const res = await fetch('/api/me/study-plan', { credentials: 'same-origin' });
+    if (res.ok) {
+      const data = await res.json();
+      plan = data.plan || null;
+    }
+  } catch (_) { /* ignore */ }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'study-plan-card';
+  wrap.id = 'studyPlanCard';
+  if (!plan) {
+    wrap.innerHTML = `
+      <div class="plan-head">
+        <span class="plan-icon">🎯</span>
+        <div>
+          <div class="plan-title">Set a study goal</div>
+          <div class="plan-sub">Tell Max what you want to achieve and by when. He'll lay out a week-by-week plan you can actually follow.</div>
+        </div>
+        <button class="plan-cta" id="planSetupBtn" type="button">Set up my plan →</button>
+      </div>
+    `;
+  } else {
+    renderStudyPlanInto(wrap, plan);
+  }
+  grid.parentNode.insertBefore(wrap, grid);
+  const setupBtn = wrap.querySelector('#planSetupBtn');
+  if (setupBtn) setupBtn.addEventListener('click', openStudyPlanSetup);
+}
+
+function renderStudyPlanInto(wrap, plan) {
+  const planJson = plan.plan_json || {};
+  const weeks = Array.isArray(planJson.weeks) ? planJson.weeks : [];
+  // Find the week whose date range covers today (or the next future week).
+  const today = new Date().toISOString().slice(0, 10);
+  let activeIdx = weeks.findIndex(w => w.startDate <= today && today <= w.endDate);
+  if (activeIdx < 0) activeIdx = weeks.findIndex(w => w.startDate >= today);
+  if (activeIdx < 0) activeIdx = Math.max(0, weeks.length - 1);
+  const wk = weeks[activeIdx];
+  const scores = loadScores();
+  const sectionList = (wk && wk.sections) ? wk.sections.map(s => {
+    const passed = scores[sKey(s.bookId, s.sectionIdx)]?.passed;
+    return { ...s, passed };
+  }) : [];
+
+  const targetDate = plan.target_date ? new Date(plan.target_date).toLocaleDateString() : '—';
+  wrap.innerHTML = `
+    <div class="plan-head">
+      <span class="plan-icon">🎯</span>
+      <div class="plan-headline">
+        <div class="plan-title">Your study plan${wk ? ` · Week ${wk.weekNumber || activeIdx + 1}${wk.label ? `: ${escapeHtml(wk.label)}` : ''}` : ''}</div>
+        <div class="plan-sub">${escapeHtml(plan.goal_text || 'Your goal')}${plan.target_date ? ` · target ${escapeHtml(targetDate)}` : ''}</div>
+      </div>
+      <button class="plan-cta-sub" id="planManageBtn" type="button">Update plan</button>
+    </div>
+    ${planJson.summary ? `<div class="plan-summary">${escapeHtml(planJson.summary)}</div>` : ''}
+    ${wk ? `
+      <div class="plan-week-range">This week: ${escapeHtml(wk.startDate)} → ${escapeHtml(wk.endDate)}</div>
+      <div class="plan-section-list">
+        ${sectionList.map(s => `
+          <button type="button" class="plan-section-row${s.passed ? ' done' : ''}" data-book="${escapeHtml(s.bookId)}" data-idx="${s.sectionIdx}">
+            <span class="plan-section-check">${s.passed ? '✓' : '○'}</span>
+            <span class="plan-section-title">${escapeHtml(s.sectionTitle)}</span>
+            <span class="plan-section-cta">${s.passed ? 'Passed' : 'Start →'}</span>
+          </button>
+        `).join('') || '<div class="plan-empty">No sections in this week — looks like the plan is done.</div>'}
+      </div>
+    ` : '<div class="plan-empty">No weeks in this plan yet.</div>'}
+  `;
+  const manageBtn = wrap.querySelector('#planManageBtn');
+  if (manageBtn) manageBtn.addEventListener('click', () => openStudyPlanSetup(plan));
+  wrap.querySelectorAll('.plan-section-row').forEach(row => {
+    row.addEventListener('click', async () => {
+      const bookId = row.getAttribute('data-book');
+      const sIdx = parseInt(row.getAttribute('data-idx'), 10);
+      if (!isNaN(sIdx) && bookId) {
+        if (plan.course_id && plan.course_id !== COURSE.id && typeof openCourse === 'function') {
+          await openCourse(plan.course_id);
+        }
+        openBook(bookId);
+        setTimeout(() => startQuiz(bookId, sIdx), 120);
+      }
+    });
+  });
+}
+
+function openStudyPlanSetup(existingPlan) {
+  const modal = document.getElementById('modal');
+  const backdrop = document.getElementById('modalBackdrop');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  backdrop && backdrop.classList.remove('hidden');
+  const courseOpts = Object.entries(COURSES).map(([id, c]) =>
+    `<option value="${id}"${existingPlan && existingPlan.course_id === id ? ' selected' : ''}>${escapeHtml(c.title)}</option>`
+  ).join('');
+  // Default target date: 6 weeks from now.
+  const sixWeeks = new Date(Date.now() + 6 * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const target = (existingPlan && existingPlan.target_date) || sixWeeks;
+  const goal = existingPlan && existingPlan.goal_text || '';
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-content plan-setup">
+      <h2>Plan your study</h2>
+      <p>Tell Max where you're trying to land and by when. He'll lay out a week-by-week plan you can follow.</p>
+      <label>What's your goal?
+        <textarea id="planGoal" rows="3" maxlength="500" placeholder="e.g. Pass Algebra 1 with a B+ before summer break.">${escapeHtml(goal)}</textarea>
+      </label>
+      <label>Target date
+        <input type="date" id="planDate" value="${target}">
+      </label>
+      <label>Course to focus on
+        <select id="planCourse">${courseOpts}</select>
+      </label>
+      <div class="plan-setup-actions">
+        <button class="cta" id="planSubmitBtn">${existingPlan ? 'Regenerate plan' : 'Generate plan →'}</button>
+        ${existingPlan ? '<button class="q-btn" id="planDeleteBtn">Delete plan</button>' : ''}
+      </div>
+      <div id="planSetupStatus" class="plan-setup-status"></div>
+    </div>
+  `;
+  document.getElementById('planSubmitBtn').onclick = submitStudyPlanSetup;
+  const delBtn = document.getElementById('planDeleteBtn');
+  if (delBtn) delBtn.onclick = deleteStudyPlanFromModal;
+}
+
+async function submitStudyPlanSetup() {
+  const goal = (document.getElementById('planGoal').value || '').trim();
+  const targetDate = (document.getElementById('planDate').value || '').trim();
+  const courseId = (document.getElementById('planCourse').value || '').trim();
+  const status = document.getElementById('planSetupStatus');
+  if (!goal || !targetDate || !courseId) {
+    if (status) { status.textContent = 'Fill in the goal, target date, and course first.'; status.className = 'plan-setup-status err'; }
+    return;
+  }
+  const course = COURSES[courseId];
+  if (!course) return;
+  const sections = [];
+  (course.books || []).forEach(b => {
+    (b.sections || []).forEach((s, idx) => {
+      sections.push({ bookId: b.id, sectionIdx: idx, sectionTitle: s.title || `Section ${idx + 1}` });
+    });
+  });
+  const scores = loadScores();
+  const passedSections = sections.filter(s => scores[sKey(s.bookId, s.sectionIdx)]?.passed)
+    .map(s => ({ bookId: s.bookId, sectionIdx: s.sectionIdx }));
+  const profile = loadProfile() || {};
+
+  const submitBtn = document.getElementById('planSubmitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Generating…'; }
+  if (status) { status.textContent = 'Max is laying out your plan (about 10 seconds)…'; status.className = 'plan-setup-status'; }
+  try {
+    const res = await fetch('/api/me/study-plan', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        goalText: goal, targetDate, courseId,
+        courseTitle: course.title,
+        studentName: profile.name || null,
+        sections, passedSections,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Plan creation failed (${res.status})`);
+    closeModal();
+    // Re-render the home so the plan card refreshes.
+    _planShown = false;
+    const oldCard = document.getElementById('studyPlanCard');
+    if (oldCard) oldCard.remove();
+    maybeRenderStudyPlan();
+  } catch (e) {
+    if (status) { status.textContent = `Could not generate: ${e.message}`; status.className = 'plan-setup-status err'; }
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Generate plan →'; }
+  }
+}
+
+async function deleteStudyPlanFromModal() {
+  if (!confirm('Delete your current study plan?')) return;
+  try {
+    await fetch('/api/me/study-plan', { method: 'DELETE', credentials: 'same-origin' });
+  } catch (_) { /* ignore */ }
+  closeModal();
+  _planShown = false;
+  const oldCard = document.getElementById('studyPlanCard');
+  if (oldCard) oldCard.remove();
+  maybeRenderStudyPlan();
 }
 
 let _reviewShown = false;
@@ -1197,6 +1394,21 @@ function goHome() {
 let QUIZ = null;
 let CHAT_CONTEXT = null;
 
+// Heuristic difficulty in [0, 1]. Higher = harder. Used for adaptive
+// quiz ordering — we don't have curated tags so we infer:
+//   - Word problems are harder than "regular" exercises.
+//   - Later questions in a section's seed list trend harder.
+//   - Long question prompts (200+ chars) usually involve more reading
+//     and parsing than short ones.
+function questionDifficulty(q, indexInSection, totalInSection) {
+  if (!q) return 0.5;
+  let d = 0.4;
+  if (q.type === 'word') d += 0.15;
+  if (totalInSection > 1) d += (indexInSection / (totalInSection - 1)) * 0.2;
+  if (typeof q.q === 'string' && q.q.length > 200) d += 0.1;
+  return Math.min(1, Math.max(0, d));
+}
+
 function startQuiz(bookId, sIdx) {
   const book = COURSE.books.find(b => b.id === bookId);
   const section = book.sections[sIdx];
@@ -1408,12 +1620,38 @@ async function submitAnswer() {
 }
 
 function nextQuestion() {
-  if (QUIZ.idx < QUIZ.section.questions.length - 1) {
-    QUIZ.idx++;
-    renderQuizQuestion();
-  } else {
-    finishQuiz();
+  const { section, answers, idx } = QUIZ;
+  const total = section.questions.length;
+  // Indices the student hasn't yet answered (correct === null).
+  const remaining = answers
+    .map((a, i) => (a.correct === null ? i : -1))
+    .filter(i => i >= 0 && i !== idx);
+  if (!remaining.length) return finishQuiz();
+
+  // Adaptive: peek the recent answer streak. If 2 wrong in a row, swap to
+  // the easiest unanswered question. If 3 right in a row, swap to the
+  // hardest. Otherwise advance in natural order.
+  let rightStreak = 0, wrongStreak = 0;
+  for (let i = idx; i >= 0; i--) {
+    const c = answers[i].correct;
+    if (c === null) continue;
+    if (c === true) { if (wrongStreak) break; rightStreak++; }
+    else { if (rightStreak) break; wrongStreak++; }
   }
+
+  function diffOf(i) { return questionDifficulty(section.questions[i], i, total); }
+  let target;
+  if (wrongStreak >= 2) {
+    target = remaining.reduce((best, i) => diffOf(i) < diffOf(best) ? i : best, remaining[0]);
+  } else if (rightStreak >= 3) {
+    target = remaining.reduce((best, i) => diffOf(i) > diffOf(best) ? i : best, remaining[0]);
+  } else {
+    // Default: next index ahead, falling back to earliest unanswered.
+    const ahead = remaining.filter(i => i > idx).sort((a, b) => a - b);
+    target = ahead.length ? ahead[0] : Math.min(...remaining);
+  }
+  QUIZ.idx = target;
+  renderQuizQuestion();
 }
 
 function finishQuiz() {

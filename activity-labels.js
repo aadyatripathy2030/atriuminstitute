@@ -146,6 +146,16 @@
           when,
         };
 
+      case 'study_plan_created': {
+        const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
+        return {
+          icon: '🎯',
+          title: 'Set a new study plan',
+          detail: courseTitle ? `Focus: ${courseTitle}` : '',
+          when,
+        };
+      }
+
       case 'hint_used': {
         const levelLabel = meta.hintLevel === 1 ? 'a gentle nudge'
                           : meta.hintLevel === 2 ? 'a scaffolded hint'

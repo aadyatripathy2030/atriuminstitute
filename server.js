@@ -579,6 +579,84 @@ async function handleStudentProgress(req, res, studentId) {
   json(res, 200, { progress });
 }
 
+// ---------- Goal-based study plan ----------
+
+async function handleGetStudyPlan(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const plan = await db.getStudyPlan(u.id);
+  json(res, 200, { plan });
+}
+
+async function handleDeleteStudyPlan(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  await db.deleteStudyPlan(u.id);
+  json(res, 200, { ok: true });
+}
+
+async function handleCreateStudyPlan(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.goalText !== 'string' || !body.targetDate || !Array.isArray(body.sections)) {
+    return json(res, 400, { error: 'Bad payload.' });
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const userMsg = `Student name: ${body.studentName || '(unknown)'}
+Goal: ${body.goalText.slice(0, 500)}
+Today's date: ${today}
+Target date: ${body.targetDate}
+Course: ${body.courseTitle || body.courseId || '(unknown)'}
+
+All sections in this course (in order):
+${body.sections.map(s => `- bookId=${s.bookId}, sectionIdx=${s.sectionIdx}, title="${s.sectionTitle}"`).join('\n')}
+
+Sections the student has already passed:
+${(body.passedSections || []).map(s => `- bookId=${s.bookId}, sectionIdx=${s.sectionIdx}`).join('\n') || '(none)'}
+
+Output the JSON plan now, following the schema in the system prompt exactly.`;
+
+  let planJson;
+  try {
+    const system = prompts.buildSystem('study_plan');
+    const result = await callClaudeDirect({
+      model: 'claude-sonnet-4-5-20250929',
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+      max_tokens: 4000,
+      temperature: 0.3,
+    });
+    // Be lenient about extra wrapping.
+    const m = result.text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('No JSON object found in AI response.');
+    planJson = JSON.parse(m[0]);
+    if (result.usage) {
+      const cost = computeCost('claude-sonnet-4-5-20250929', result.usage);
+      db.recordAiUsage({
+        userId: u.id, userEmail: u.email,
+        intent: 'study_plan', model: 'claude-sonnet-4-5-20250929',
+        inputTokens: result.usage.input_tokens || 0,
+        outputTokens: result.usage.output_tokens || 0,
+        cacheReadTokens: result.usage.cache_read_input_tokens || 0,
+        cacheCreationTokens: result.usage.cache_creation_input_tokens || 0,
+        costUsd: cost,
+      }).catch(err => console.error('recordAiUsage failed:', err.message));
+    }
+  } catch (e) {
+    console.error('study plan generation failed:', e.message);
+    return json(res, 502, { error: 'Could not generate a plan. Try again.' });
+  }
+  const saved = await db.upsertStudyPlan(u.id, {
+    goalText: body.goalText,
+    targetDate: body.targetDate,
+    courseId: body.courseId || null,
+    planJson,
+  });
+  await db.logActivity(u.id, 'study_plan_created', { courseId: body.courseId || null });
+  json(res, 200, { plan: saved });
+}
+
 // ---------- Cached lessons ----------
 
 // Server-side direct Claude call (used by the lesson endpoint and any
@@ -1074,6 +1152,9 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/activity' && req.method === 'GET') return handleGetMyActivity(req, res);
     if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
     if (url === '/api/me/review-queue' && req.method === 'GET') return handleGetReviewQueue(req, res);
+    if (url === '/api/me/study-plan' && req.method === 'GET') return handleGetStudyPlan(req, res);
+    if (url === '/api/me/study-plan' && req.method === 'POST') return handleCreateStudyPlan(req, res);
+    if (url === '/api/me/study-plan' && req.method === 'DELETE') return handleDeleteStudyPlan(req, res);
     if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
     if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
     // Cached lessons: POST returns the cached lesson or generates+caches it; DELETE busts the cache.

@@ -3178,3 +3178,107 @@ button.logo:focus-visible {
 .review-queue-row-title { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
 .review-queue-row-sub { font-size: 12px; color: var(--muted, #6b7280); }
 .review-queue-row-cta { font-size: 13px; color: var(--accent, #4a6fa5); white-space: nowrap; }
+
+/* Study plan card on the courses home page. */
+.study-plan-card {
+  background: linear-gradient(135deg, #f3ede1 0%, #ffffff 100%);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 18px;
+}
+.plan-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.plan-icon { font-size: 28px; line-height: 1; }
+.plan-headline { flex: 1; min-width: 0; }
+.plan-title { font-weight: 600; font-size: 16px; color: var(--text, #1e2238); margin-bottom: 4px; }
+.plan-sub { font-size: 13px; color: var(--muted, #6b7280); }
+.plan-cta {
+  background: var(--text, #1e2238);
+  color: var(--paper, #fff);
+  border: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.plan-cta:hover { filter: brightness(1.1); }
+.plan-cta-sub {
+  background: transparent;
+  border: 1px solid var(--border, #e6e2d7);
+  color: var(--text, #1e2238);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.plan-summary {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.plan-week-range {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.plan-section-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.plan-section-row {
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.plan-section-row:hover { background: rgba(0, 0, 0, 0.02); }
+.plan-section-row.done { opacity: 0.65; }
+.plan-section-row.done .plan-section-title { text-decoration: line-through; }
+.plan-section-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #e6e2d7);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+.plan-section-row.done .plan-section-check {
+  background: #1b6b3a;
+  border-color: #1b6b3a;
+  color: #fff;
+}
+.plan-section-title { flex: 1; font-size: 14px; }
+.plan-section-cta { font-size: 12px; color: var(--accent, #4a6fa5); white-space: nowrap; }
+.plan-empty { color: var(--muted, #6b7280); font-size: 13px; padding: 8px 0; }
+.plan-setup label { display: block; font-size: 13px; color: var(--muted, #6b7280); margin: 12px 0 4px; }
+.plan-setup input,
+.plan-setup textarea,
+.plan-setup select {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  background: var(--paper, #fff);
+  color: var(--text, #1e2238);
+}
+.plan-setup-actions { display: flex; gap: 8px; margin-top: 16px; }
+.plan-setup-status { margin-top: 10px; font-size: 13px; color: var(--muted, #6b7280); }
+.plan-setup-status.err { color: #b00020; }

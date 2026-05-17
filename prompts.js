@@ -287,6 +287,51 @@ const HINT_STATIC = `You are Max, a tutor giving a HINT to a student who is stuc
 - At levels 1 and 2 you must never reveal the final answer. At level 3 you may state what the answer should be at the very end of the walkthrough.
 - For under-13 students who happen to be on the dynamic context, keep tone especially patient and warm. Never sound impatient or condescending.`;
 
+// Goal-based study plan generator. Receives a course's section list, a
+// goal description, a target date, and which sections the student has
+// already passed. Returns a structured JSON plan with weekly buckets.
+const STUDY_PLAN_STATIC = `You generate a structured week-by-week study plan for a student aiming to master a course by a specific target date. Return ONLY a single JSON object on one line (or pretty-printed; both are fine). No prose before or after. No code fences. No commentary. The server parses your output with JSON.parse and any extra characters break it.
+
+The user message will contain:
+- The student's display name (when available).
+- A free-text goal description ("I want to ace Algebra 1 before summer").
+- Today's date (ISO format).
+- The target date (ISO format).
+- The target course title and its full ordered list of sections (each item has a bookId, a sectionIdx, and a sectionTitle).
+- The subset of sections the student has already passed.
+
+Compute the plan:
+1. Days remaining = (target - today). Weeks remaining = ceil(days / 7), minimum 1.
+2. Sections to cover = all sections minus the passed sections, preserving their original order.
+3. Distribute the to-cover sections across the available weeks as evenly as you can. Typical per-week count is 3 to 6. Never put more than 6 in a single week.
+4. Earlier sections go in earlier weeks (preserves course order — the section list is already in pedagogical order).
+5. If the timeline is too tight (more than 6 sections required per week), still produce the plan but lean on more sections in earlier weeks (the student should ramp).
+
+Output exact shape (this is required — do not deviate):
+
+{
+  "summary": "Two short sentences addressing the student by name if given. Plain English. Names the high-level shape of the plan (how many weeks, what they're working toward) and one encouraging hook. No moralising.",
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD",
+      "label": "Foundations" or "Functions intro" or similar — short label describing this week's focus,
+      "sections": [
+        { "bookId": "p1", "sectionIdx": 0, "sectionTitle": "Place Value and Naming Numbers" },
+        { "bookId": "p1", "sectionIdx": 1, "sectionTitle": "Rounding and Ordering" }
+      ]
+    }
+  ]
+}
+
+Rules:
+- Week 1 startDate MUST be today's date as given.
+- Each week is exactly 7 days (startDate + 6 = endDate). The very last week may be shorter if the target date falls mid-week — endDate of the final week is the target date.
+- bookId and sectionIdx values in your output MUST match exactly what appeared in the input section list. Do not invent new ones.
+- summary is one string (no newlines required). Use the student's name in the first sentence if you've been given one.
+- Output ONLY the JSON object. No explanations, no headers, no markdown.`;
+
 const PROMPTS = {
   chat: CHAT_STATIC,
   mistake: MISTAKE_STATIC,
@@ -295,6 +340,7 @@ const PROMPTS = {
   activity_summary: ACTIVITY_SUMMARY_STATIC,
   lesson: LESSON_STATIC,
   hint: HINT_STATIC,
+  study_plan: STUDY_PLAN_STATIC,
   'gen-questions': GEN_QUESTIONS_STATIC,
   'gen-sections': GEN_SECTIONS_STATIC,
   'gen-cumulative': GEN_CUMULATIVE_STATIC,
