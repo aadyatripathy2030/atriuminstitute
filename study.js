@@ -130,8 +130,11 @@ Which section should we focus on? Once I pick, please walk me through it using t
     // "Open this topic" button: close the Study Methods panel, navigate to
     // the selected course's book overview so the user can pick any section
     // and use the existing Learn / Start Quiz / Study with Max buttons.
-    document.querySelectorAll('.open-topic-btn').forEach(btn => {
+    const openBtns = document.querySelectorAll('.open-topic-btn');
+    console.log('[study.js v2] Attaching to', openBtns.length, 'open-topic buttons');
+    openBtns.forEach(btn => {
       btn.addEventListener('click', async (e) => {
+        console.log('[study.js v2] Open this topic clicked');
         e.stopPropagation();
         e.preventDefault();
         const original = btn.textContent;
