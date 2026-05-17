@@ -458,28 +458,110 @@
   </section>
 </div>
 
-<!-- Admin page. Intentionally not linked from any menu. Admins reach it
-     via the URL hash #admin. Hidden for everyone except users whose
-     users.is_admin is true. -->
+<!-- Admin page. Not linked from any menu. Reached via /admin or /#admin
+     URL. Server enforces users.is_admin on every endpoint. -->
 <div id="adminPage" class="activity-page hidden">
   <button class="back-btn" id="adminBack">← Back</button>
   <header class="activity-hero">
     <h1>Admin</h1>
     <p class="activity-sub">Cross-account operational view. Visible only to admins.</p>
   </header>
-  <section class="admin-cards" id="adminCards"></section>
-  <section class="parent-section">
-    <h2>Users</h2>
+
+  <div class="admin-tabs" role="tablist">
+    <button class="admin-tab active" data-tab="overview" role="tab">Overview</button>
+    <button class="admin-tab" data-tab="users" role="tab">Users</button>
+    <button class="admin-tab" data-tab="activity" role="tab">Activity</button>
+    <button class="admin-tab" data-tab="quiz" role="tab">Quiz analytics</button>
+    <button class="admin-tab" data-tab="cost" role="tab">Cost</button>
+    <button class="admin-tab" data-tab="sessions" role="tab">Sessions</button>
+    <button class="admin-tab" data-tab="links" role="tab">Links</button>
+    <button class="admin-tab" data-tab="lessons" role="tab">Lessons</button>
+  </div>
+
+  <section class="admin-tab-panel" data-panel="overview">
+    <div class="admin-cards" id="adminCards"></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="users">
+    <div class="admin-toolbar">
+      <input type="search" id="adminUserSearch" placeholder="Search by email…" class="admin-search">
+      <select id="adminUserRoleFilter" class="admin-select">
+        <option value="">All roles</option>
+        <option value="student">Students</option>
+        <option value="parent">Parents</option>
+      </select>
+      <select id="adminUserStatusFilter" class="admin-select">
+        <option value="">All status</option>
+        <option value="verified">Verified</option>
+        <option value="unverified">Unverified</option>
+        <option value="admin">Admins</option>
+        <option value="consent-pending">Consent pending</option>
+      </select>
+      <span class="admin-toolbar-count" id="adminUserCount"></span>
+    </div>
     <div class="token-table-wrap"><table class="token-table" id="adminUsersTable"><thead><tr>
       <th>Email</th><th>Role</th><th>Age</th><th>Country</th><th>Joined</th>
       <th class="num">Quizzes</th><th class="num">Passed</th><th class="num">Activity</th>
       <th class="num">Cost</th><th>Status</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
-  <section class="parent-section">
-    <h2>Recent activity (cross-user)</h2>
+
+  <section class="admin-tab-panel hidden" data-panel="activity">
+    <div class="admin-toolbar">
+      <input type="search" id="adminActivityFilter" placeholder="Filter by kind or email…" class="admin-search">
+      <span class="admin-toolbar-count" id="adminActivityCount"></span>
+    </div>
     <div class="token-table-wrap"><table class="token-table" id="adminActivityTable"><thead><tr>
       <th>When</th><th>User</th><th>Kind</th><th>Meta</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="quiz">
+    <h2>Most-failed sections</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminFailedSectionsTable"><thead><tr>
+      <th>Course</th><th>Book</th><th>Section</th><th class="num">Attempts</th><th class="num">Passes</th><th class="num">Fails</th>
+    </tr></thead><tbody></tbody></table></div>
+    <h2 style="margin-top:32px">Hardest individual questions</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminHardestQuestionsTable"><thead><tr>
+      <th>Course</th><th>Book</th><th>Section</th><th>Question</th><th class="num">Wrong</th><th class="num">Total</th>
+    </tr></thead><tbody></tbody></table></div>
+    <h2 style="margin-top:32px">Courses by attempt count</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminCourseStatsTable"><thead><tr>
+      <th>Course</th><th class="num">Attempts</th><th class="num">Passes</th><th class="num">Students</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="cost">
+    <h2>Daily cost (last 30 days)</h2>
+    <div id="adminCostChartContainer" class="admin-cost-chart"></div>
+    <h2 style="margin-top:32px">Top spenders</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminTopSpendersTable"><thead><tr>
+      <th>Email</th><th class="num">Calls</th><th class="num">Cost</th>
+    </tr></thead><tbody></tbody></table></div>
+    <h2 style="margin-top:32px">By intent</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminCostByIntentTable"><thead><tr>
+      <th>Intent</th><th class="num">Calls</th><th class="num">Cost</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="sessions">
+    <h2>Active sessions</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminSessionsTable"><thead><tr>
+      <th>Email</th><th>Created</th><th>Expires</th><th>Action</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="links">
+    <h2>Parent ↔ student links</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminLinksTable"><thead><tr>
+      <th>Parent</th><th>Student</th><th>Age</th><th>Consent</th><th>Status</th><th>Linked</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="lessons">
+    <h2>Cached lessons by course</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminLessonsTable"><thead><tr>
+      <th>Course</th><th class="num">Cached</th><th>Last updated</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 </div>

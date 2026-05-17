@@ -3375,3 +3375,136 @@ body > .site-footer {
   border-radius: 8px;
   font-size: 13px;
 }
+
+/* Admin: tabs, toolbar, cost chart, user-detail modal. */
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.admin-tab {
+  background: transparent;
+  border: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted, #6b7280);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.admin-tab.active {
+  background: var(--text, #1e2238);
+  color: var(--paper, #fff);
+}
+.admin-tab:hover:not(.active) { background: rgba(0, 0, 0, 0.04); }
+
+.admin-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.admin-search,
+.admin-select {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 8px;
+  background: var(--paper, #fff);
+  color: var(--text, #1e2238);
+}
+.admin-search { min-width: 240px; }
+.admin-toolbar-count { font-size: 12px; color: var(--muted, #6b7280); margin-left: auto; }
+
+.admin-user-row { cursor: pointer; }
+.admin-user-row:hover { background: rgba(0, 0, 0, 0.03); }
+.admin-user-link { color: var(--accent, #4a6fa5); text-decoration: none; font-weight: 500; }
+
+.admin-user-modal h2 { margin: 0 0 4px; }
+.admin-user-meta { font-size: 13px; color: var(--muted, #6b7280); margin-bottom: 4px; }
+.admin-user-meta-sub { font-size: 12px; color: var(--muted, #6b7280); margin-bottom: 16px; }
+.admin-user-meta-sub code { font-size: 11px; }
+.admin-user-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 16px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.admin-user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.admin-delete {
+  border-color: #e8b6b6;
+  color: #b00020;
+}
+.admin-delete:hover { background: #fdecec; }
+.admin-user-section {
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-top: 8px;
+}
+.admin-user-section summary {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+}
+.admin-user-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 13px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.admin-user-list li { margin-bottom: 4px; line-height: 1.4; }
+
+/* Cost chart (sparkline-ish bars). */
+.admin-cost-chart {
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 16px;
+}
+.cost-bars {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 160px;
+}
+.cost-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+.cost-bar-fill {
+  background: var(--accent, #4a6fa5);
+  border-radius: 4px 4px 0 0;
+  width: 100%;
+}
+.cost-bar-label {
+  font-size: 9px;
+  color: var(--muted, #6b7280);
+  text-align: center;
+  margin-top: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

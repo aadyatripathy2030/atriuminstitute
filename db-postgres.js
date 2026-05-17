@@ -725,6 +725,152 @@ async function adminRecentActivity(limit = 50) {
   );
 }
 
+async function adminUserDetail(userId) {
+  const userRows = await q(`select ${USER_COLS} from users where id = $1 limit 1`, [userId]);
+  if (!userRows[0]) return null;
+  const user = userRows[0];
+  const studentProfile = await getStudentProfile(userId);
+  const parentProfile = await getParentProfile(userId);
+  const links = user.role === 'parent' ? await listLinkedStudents(userId) : await listLinkedParents(userId);
+  const attempts = await q(
+    `select course_id, book_id, section_idx, section_kind, score, total, passed, attempt_number, completed_at
+     from quiz_attempts where user_id = $1 order by completed_at desc limit 50`,
+    [userId],
+  );
+  const activity = await q(
+    `select kind, meta, created_at from activity_log where user_id = $1 order by created_at desc limit 50`,
+    [userId],
+  );
+  const usage = await q(
+    `select coalesce(sum(cost_usd),0) as cost,
+            count(*) as calls,
+            coalesce(sum(input_tokens),0) as input_tokens,
+            coalesce(sum(output_tokens),0) as output_tokens
+     from ai_usage where user_id = $1`,
+    [userId],
+  );
+  return {
+    user,
+    studentProfile,
+    parentProfile,
+    links,
+    attempts,
+    activity,
+    usage: usage[0] || {},
+  };
+}
+
+async function adminUpdateUser(userId, fields) {
+  const sets = [];
+  const params = [userId];
+  let i = 2;
+  if (typeof fields.is_admin === 'boolean') { sets.push(`is_admin = $${i++}`); params.push(fields.is_admin); }
+  if (typeof fields.verified === 'boolean') { sets.push(`verified = $${i++}`); params.push(fields.verified); }
+  if (typeof fields.role === 'string' && ['student', 'parent'].includes(fields.role)) {
+    sets.push(`role = $${i++}`); params.push(fields.role);
+  }
+  if (!sets.length) return null;
+  const rows = await q(
+    `update users set ${sets.join(', ')} where id = $1 returning ${USER_COLS}`,
+    params,
+  );
+  return rows[0] || null;
+}
+
+async function adminDeleteUser(userId) {
+  await q('delete from users where id = $1', [userId]);
+}
+
+async function adminQuizAnalytics() {
+  const hardestQuestions = await q(
+    `select course_id, book_id, section_idx,
+            jsonb_array_elements(answers)->>'q' as question,
+            count(*) filter (where (jsonb_array_elements(answers)->>'correct')::boolean = false) as wrong,
+            count(*) as total
+     from quiz_attempts
+     where jsonb_array_length(answers) > 0
+     group by course_id, book_id, section_idx, question
+     having count(*) >= 3
+     order by 1.0 * count(*) filter (where (jsonb_array_elements(answers)->>'correct')::boolean = false) / count(*) desc
+     limit 20`,
+  ).catch(() => []);
+  const failedSections = await q(
+    `select course_id, book_id, section_idx,
+            count(*) as attempts,
+            count(*) filter (where passed) as passes,
+            count(*) filter (where not passed) as fails
+     from quiz_attempts
+     group by course_id, book_id, section_idx
+     having count(*) filter (where not passed) >= 2
+     order by fails desc
+     limit 20`,
+  );
+  const courseStats = await q(
+    `select course_id, count(*) as attempts, count(*) filter (where passed) as passes, count(distinct user_id) as students
+     from quiz_attempts group by course_id order by attempts desc`,
+  );
+  return { hardestQuestions, failedSections, courseStats };
+}
+
+async function adminCostChart() {
+  const byDay = await q(
+    `select date_trunc('day', created_at)::date as day, sum(cost_usd) as cost, count(*) as calls
+     from ai_usage
+     where created_at > now() - interval '30 days'
+     group by day order by day asc`,
+  );
+  const topUsers = await q(
+    `select au.user_id, u.email, sum(au.cost_usd) as cost, count(*) as calls
+     from ai_usage au
+     left join users u on u.id = au.user_id
+     where au.user_id is not null
+     group by au.user_id, u.email
+     order by cost desc
+     limit 10`,
+  );
+  const byIntent = await q(
+    `select coalesce(intent, '(none)') as intent, count(*) as calls, sum(cost_usd) as cost
+     from ai_usage group by intent order by cost desc`,
+  );
+  return { byDay, topUsers, byIntent };
+}
+
+async function adminListSessions() {
+  return q(
+    `select s.token, s.user_id, u.email, s.created_at, s.expires_at
+     from sessions s
+     left join users u on u.id = s.user_id
+     where s.expires_at > now()
+     order by s.created_at desc
+     limit 200`,
+  );
+}
+
+async function adminRevokeSession(token) {
+  await q('delete from sessions where token = $1', [token]);
+}
+
+async function adminAllLinks() {
+  return q(
+    `select l.id, l.parent_user_id, p.email as parent_email,
+            l.student_user_id, s.email as student_email,
+            s.consent_required, s.consent_granted_at, s.age, l.status,
+            l.created_at, l.confirmed_at
+     from parent_student_links l
+     left join users p on p.id = l.parent_user_id
+     left join users s on s.id = l.student_user_id
+     order by l.created_at desc
+     limit 200`,
+  );
+}
+
+async function adminLessonStats() {
+  return q(
+    `select course_id, count(*) as cached_count, max(updated_at) as latest_at
+     from cached_lessons group by course_id order by course_id`,
+  );
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -748,6 +894,9 @@ module.exports = {
   getCachedLesson, saveCachedLesson, clearCachedLesson,
   getStudyPlan, upsertStudyPlan, deleteStudyPlan,
   adminListUsers, adminStats, adminRecentActivity,
+  adminUserDetail, adminUpdateUser, adminDeleteUser,
+  adminQuizAnalytics, adminCostChart, adminListSessions, adminRevokeSession,
+  adminAllLinks, adminLessonStats,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

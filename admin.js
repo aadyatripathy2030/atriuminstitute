@@ -1,6 +1,6 @@
-// Admin page. Accessible only when the signed-in user has users.is_admin = true,
-// and intentionally not linked from any menu — admins reach it by typing
-// /#admin in the URL bar (or calling window.openAdmin()).
+// Admin page. Reached at /admin (clean URL via SPA fallthrough) or /#admin.
+// Server enforces users.is_admin on every endpoint, so this code can be
+// inspected freely without leaking access.
 
 (function () {
   function el(id) { return document.getElementById(id); }
@@ -25,16 +25,35 @@
     if (!s) return '—';
     try { return new Date(s).toLocaleString(); } catch { return s; }
   }
+  function fmtDay(s) {
+    if (!s) return '';
+    try { return new Date(s).toLocaleDateString(); } catch { return s; }
+  }
 
-  async function fetchJSON(url) {
-    const res = await fetch(url, { credentials: 'same-origin' });
+  async function fetchJSON(url, opts) {
+    const res = await fetch(url, Object.assign({ credentials: 'same-origin' }, opts || {}));
     let data = {};
     try { data = await res.json(); } catch { /* tolerate */ }
     if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
     return data;
   }
+  function patchJSON(url, body) {
+    return fetchJSON(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+  function deleteJSON(url) { return fetchJSON(url, { method: 'DELETE' }); }
 
   let prevView = null;
+  let allUsers = [];
+  let allActivity = [];
+  let userSearch = '';
+  let userRoleFilter = '';
+  let userStatusFilter = '';
+  let activityFilter = '';
+
   function captureCurrentView() {
     const ids = ['courses-home', 'home', 'detail', 'profilePage', 'parentHome', 'parentStudentDetail', 'activityPage', 'tokenUsagePage', 'landing'];
     for (const id of ids) {
@@ -46,13 +65,33 @@
 
   function goBack() {
     hide(el('adminPage'));
-    if (window.location.hash === '#admin') {
+    if (window.location.pathname === '/admin') {
+      try { history.replaceState(null, '', '/'); } catch { /* ignore */ }
+    } else if (window.location.hash === '#admin') {
       try { history.replaceState(null, '', window.location.pathname); } catch { /* ignore */ }
     }
     if (prevView && el(prevView)) show(el(prevView));
     else if (typeof window.goHome === 'function') window.goHome();
   }
 
+  function switchTab(name) {
+    document.querySelectorAll('.admin-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === name);
+    });
+    document.querySelectorAll('.admin-tab-panel').forEach(p => {
+      if (p.dataset.panel === name) p.classList.remove('hidden');
+      else p.classList.add('hidden');
+    });
+    // Lazy-load each tab's data the first time it's selected.
+    if (name === 'quiz' && !switchTab._loaded.quiz) { switchTab._loaded.quiz = true; loadQuiz(); }
+    if (name === 'cost' && !switchTab._loaded.cost) { switchTab._loaded.cost = true; loadCost(); }
+    if (name === 'sessions') loadSessions(); // refresh every time
+    if (name === 'links' && !switchTab._loaded.links) { switchTab._loaded.links = true; loadLinks(); }
+    if (name === 'lessons' && !switchTab._loaded.lessons) { switchTab._loaded.lessons = true; loadLessons(); }
+  }
+  switchTab._loaded = {};
+
+  // ---------- Overview ----------
   function renderStats(stats) {
     const wrap = el('adminCards');
     if (!wrap) return;
@@ -76,25 +115,40 @@
     `).join('');
   }
 
-  function renderUsers(users) {
+  // ---------- Users ----------
+  function userMatchesFilter(u) {
+    if (userSearch) {
+      const q = userSearch.toLowerCase();
+      if (!u.email || !u.email.toLowerCase().includes(q)) return false;
+    }
+    if (userRoleFilter && u.role !== userRoleFilter) return false;
+    if (userStatusFilter === 'verified' && !u.verified) return false;
+    if (userStatusFilter === 'unverified' && u.verified) return false;
+    if (userStatusFilter === 'admin' && !u.is_admin) return false;
+    if (userStatusFilter === 'consent-pending' && !(u.consent_required && !u.consent_granted_at)) return false;
+    return true;
+  }
+  function renderUsers() {
     const tbody = el('adminUsersTable').querySelector('tbody');
-    if (!users.length) {
-      tbody.innerHTML = '<tr><td colspan="10" class="empty">No users yet.</td></tr>';
+    const filtered = allUsers.filter(userMatchesFilter);
+    el('adminUserCount').textContent = `${filtered.length} of ${allUsers.length}`;
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty">No users match.</td></tr>';
       return;
     }
-    tbody.innerHTML = users.map(u => {
+    tbody.innerHTML = filtered.map(u => {
       const status = [];
       if (u.is_admin) status.push('<span class="admin-badge admin">admin</span>');
       if (!u.verified) status.push('<span class="admin-badge unverif">unverified</span>');
       if (u.consent_required && !u.consent_granted_at) status.push('<span class="admin-badge gated">consent pending</span>');
       if (u.consent_required && u.consent_granted_at) status.push('<span class="admin-badge ok">consent ok</span>');
       return `
-        <tr>
-          <td>${esc(u.email)}</td>
+        <tr class="admin-user-row" data-id="${esc(u.id)}">
+          <td><a href="#" class="admin-user-link">${esc(u.email)}</a></td>
           <td>${esc(u.role)}</td>
           <td>${u.age == null ? '—' : esc(u.age)}</td>
           <td>${u.country ? esc(u.country) : '—'}</td>
-          <td>${esc(fmtDate(u.created_at))}</td>
+          <td>${esc(fmtDay(u.created_at))}</td>
           <td class="num">${num(u.quiz_attempts)}</td>
           <td class="num">${num(u.quiz_passed)}</td>
           <td class="num">${num(u.activity_count)}</td>
@@ -103,46 +157,246 @@
         </tr>
       `;
     }).join('');
+    tbody.querySelectorAll('.admin-user-row').forEach(row => {
+      row.addEventListener('click', () => openUserDetail(row.dataset.id));
+    });
   }
 
-  function activityMeta(meta) {
-    if (!meta || typeof meta !== 'object') return '';
-    const keys = ['courseId', 'bookId', 'sectionTitle', 'sectionIdx', 'score', 'total', 'passed', 'attemptNumber', 'hintLevel'];
-    const parts = [];
-    for (const k of keys) {
-      if (meta[k] != null) parts.push(`${k}=${meta[k]}`);
-    }
-    return parts.join(', ');
-  }
-
-  function renderActivity(rows) {
-    const tbody = el('adminActivityTable').querySelector('tbody');
-    if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty">No activity yet.</td></tr>';
+  // ---------- User detail modal ----------
+  async function openUserDetail(userId) {
+    const modal = el('modal');
+    const backdrop = el('modalBackdrop');
+    if (!modal) return;
+    show(modal); show(backdrop);
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-content"><div class="parent-empty">Loading user…</div></div>
+    `;
+    let detail;
+    try { detail = await fetchJSON(`/api/admin/users/${userId}`); }
+    catch (e) {
+      modal.innerHTML = `<button class="modal-close" onclick="closeModal()">✕</button><div class="modal-content"><div class="parent-empty err">${esc(e.message)}</div></div>`;
       return;
     }
-    tbody.innerHTML = rows.map(a => `
+    const u = detail.user;
+    const usage = detail.usage || {};
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-content admin-user-modal">
+        <h2>${esc(u.email)}</h2>
+        <div class="admin-user-meta">
+          ${esc(u.role)} · ${u.is_admin ? 'admin' : 'standard'} · ${u.verified ? 'verified' : 'unverified'}
+          ${u.age ? ` · age ${u.age}` : ''}
+          ${u.country ? ` · ${esc(u.country)}` : ''}
+          ${u.consent_required ? ` · ${u.consent_granted_at ? 'consent granted' : 'CONSENT PENDING'}` : ''}
+        </div>
+        <div class="admin-user-meta-sub">Joined: ${fmtDate(u.created_at)} · User ID: <code>${esc(u.id)}</code></div>
+
+        <div class="admin-user-stats">
+          <div><strong>AI cost:</strong> ${money(usage.cost)} (${num(usage.calls)} calls)</div>
+          <div><strong>Tokens:</strong> ${num(usage.input_tokens)} in / ${num(usage.output_tokens)} out</div>
+          <div><strong>Recent quizzes:</strong> ${num(detail.attempts.length)} · <strong>activity events:</strong> ${num(detail.activity.length)}</div>
+          <div><strong>Links:</strong> ${num(detail.links.length)} ${u.role === 'parent' ? 'students' : 'parents'}</div>
+        </div>
+
+        <div class="admin-user-actions">
+          <button class="cta" id="admToggleAdmin">${u.is_admin ? 'Revoke admin' : 'Make admin'}</button>
+          <button class="q-btn" id="admForceVerify" ${u.verified ? 'disabled' : ''}>Force-verify</button>
+          <button class="q-btn" id="admSwapRole">Set role to ${u.role === 'student' ? 'parent' : 'student'}</button>
+          <button class="q-btn admin-delete" id="admDeleteUser">Delete account</button>
+        </div>
+
+        <details class="admin-user-section" open>
+          <summary>Linked accounts (${detail.links.length})</summary>
+          ${detail.links.length ? `<ul class="admin-user-list">${detail.links.map(l => `<li>${esc(l.email)} ${l.role ? `(${esc(l.role)})` : ''}</li>`).join('')}</ul>` : '<div class="parent-empty">No links.</div>'}
+        </details>
+
+        <details class="admin-user-section">
+          <summary>Recent quiz attempts (${detail.attempts.length})</summary>
+          ${detail.attempts.length ? `<ul class="admin-user-list">${detail.attempts.map(a => `<li>${esc(a.course_id)} / ${esc(a.book_id)} / sec ${a.section_idx + 1} · ${a.score}/${a.total} · ${a.passed ? 'passed' : 'failed'}${a.attempt_number > 1 ? ` (attempt ${a.attempt_number})` : ''} · ${fmtDate(a.completed_at)}</li>`).join('')}</ul>` : '<div class="parent-empty">No quiz attempts.</div>'}
+        </details>
+
+        <details class="admin-user-section">
+          <summary>Recent activity (${detail.activity.length})</summary>
+          ${detail.activity.length ? `<ul class="admin-user-list">${detail.activity.slice(0, 30).map(a => `<li><code>${esc(a.kind)}</code> · ${fmtDate(a.created_at)}</li>`).join('')}</ul>` : '<div class="parent-empty">No activity.</div>'}
+        </details>
+      </div>
+    `;
+    el('admToggleAdmin').onclick = async () => {
+      try {
+        await patchJSON(`/api/admin/users/${u.id}`, { is_admin: !u.is_admin });
+        await refreshUsers();
+        closeModalSafe();
+      } catch (e) { alert(e.message); }
+    };
+    el('admForceVerify').onclick = async () => {
+      try {
+        await patchJSON(`/api/admin/users/${u.id}`, { verified: true });
+        await refreshUsers();
+        closeModalSafe();
+      } catch (e) { alert(e.message); }
+    };
+    el('admSwapRole').onclick = async () => {
+      const newRole = u.role === 'student' ? 'parent' : 'student';
+      if (!confirm(`Change role for ${u.email} to ${newRole}? Their existing data stays but the app will treat them as a ${newRole} from now on.`)) return;
+      try {
+        await patchJSON(`/api/admin/users/${u.id}`, { role: newRole });
+        await refreshUsers();
+        closeModalSafe();
+      } catch (e) { alert(e.message); }
+    };
+    el('admDeleteUser').onclick = async () => {
+      if (!confirm(`Permanently delete ${u.email}? This removes their account, profile, links, quiz attempts, and activity. The action cannot be undone.`)) return;
+      if (!confirm(`Really delete? Type yes-delete in the next prompt to confirm.`)) return;
+      const phrase = prompt('Type yes-delete to confirm.');
+      if (phrase !== 'yes-delete') { alert('Not confirmed — no changes made.'); return; }
+      try {
+        await deleteJSON(`/api/admin/users/${u.id}`);
+        await refreshUsers();
+        closeModalSafe();
+      } catch (e) { alert(e.message); }
+    };
+  }
+  function closeModalSafe() {
+    if (typeof window.closeModal === 'function') window.closeModal();
+    else {
+      hide(el('modal')); hide(el('modalBackdrop'));
+    }
+  }
+
+  // ---------- Activity ----------
+  function renderActivity() {
+    const tbody = el('adminActivityTable').querySelector('tbody');
+    const q = activityFilter.toLowerCase();
+    const filtered = q
+      ? allActivity.filter(a => (a.kind || '').toLowerCase().includes(q) || (a.email || '').toLowerCase().includes(q))
+      : allActivity;
+    el('adminActivityCount').textContent = `${filtered.length} of ${allActivity.length}`;
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No activity matches.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.slice(0, 200).map(a => `
       <tr>
         <td>${esc(fmtDate(a.created_at))}</td>
         <td>${esc(a.email || a.user_id || '—')}</td>
         <td><code>${esc(a.kind)}</code></td>
-        <td class="muted">${esc(activityMeta(a.meta))}</td>
+        <td class="muted">${esc(metaPreview(a.meta))}</td>
       </tr>
     `).join('');
   }
+  function metaPreview(meta) {
+    if (!meta || typeof meta !== 'object') return '';
+    const keys = ['courseId', 'bookId', 'sectionTitle', 'sectionIdx', 'score', 'total', 'passed', 'attemptNumber', 'hintLevel'];
+    return keys.filter(k => meta[k] != null).map(k => `${k}=${meta[k]}`).join(', ');
+  }
 
-  async function openAdmin() {
-    const user = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
-    if (!user || !user.is_admin) {
-      alert('This page is only available to admins. If you should have access, ask the operator to flip your is_admin flag.');
-      if (typeof window.goHome === 'function') window.goHome();
-      return;
-    }
-    captureCurrentView();
-    if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
-    show(el('adminPage'));
-    el('adminCards').innerHTML = '<div class="parent-empty">Loading…</div>';
+  // ---------- Quiz analytics ----------
+  async function loadQuiz() {
+    try {
+      const data = await fetchJSON('/api/admin/quiz-analytics');
+      const failedTbody = el('adminFailedSectionsTable').querySelector('tbody');
+      failedTbody.innerHTML = (data.failedSections || []).map(r => `
+        <tr><td>${esc(r.course_id)}</td><td>${esc(r.book_id)}</td><td>sec ${r.section_idx + 1}</td>
+        <td class="num">${num(r.attempts)}</td><td class="num">${num(r.passes)}</td><td class="num warn">${num(r.fails)}</td></tr>
+      `).join('') || '<tr><td colspan="6" class="empty">Not enough data yet.</td></tr>';
 
+      const hardTbody = el('adminHardestQuestionsTable').querySelector('tbody');
+      hardTbody.innerHTML = (data.hardestQuestions || []).map(r => `
+        <tr><td>${esc(r.course_id)}</td><td>${esc(r.book_id)}</td><td>sec ${r.section_idx + 1}</td>
+        <td class="muted">${esc(String(r.question || '').slice(0, 100))}</td>
+        <td class="num warn">${num(r.wrong)}</td><td class="num">${num(r.total)}</td></tr>
+      `).join('') || '<tr><td colspan="6" class="empty">Not enough graded answers yet.</td></tr>';
+
+      const courseTbody = el('adminCourseStatsTable').querySelector('tbody');
+      courseTbody.innerHTML = (data.courseStats || []).map(r => `
+        <tr><td>${esc(r.course_id)}</td>
+        <td class="num">${num(r.attempts)}</td><td class="num ok">${num(r.passes)}</td><td class="num">${num(r.students)}</td></tr>
+      `).join('') || '<tr><td colspan="4" class="empty">No attempts yet.</td></tr>';
+    } catch (e) { console.error(e); }
+  }
+
+  // ---------- Cost ----------
+  async function loadCost() {
+    try {
+      const data = await fetchJSON('/api/admin/cost-chart');
+      // Tiny sparkline-style bar chart.
+      const days = data.byDay || [];
+      const max = Math.max(0.0001, ...days.map(d => Number(d.cost) || 0));
+      el('adminCostChartContainer').innerHTML = days.length
+        ? `<div class="cost-bars">${days.map(d => `
+            <div class="cost-bar" title="${esc(d.day)}: ${money(d.cost)} (${num(d.calls)} calls)">
+              <div class="cost-bar-fill" style="height: ${Math.max(2, 100 * (Number(d.cost) || 0) / max).toFixed(1)}%"></div>
+              <div class="cost-bar-label">${esc(String(d.day).slice(5))}</div>
+            </div>
+          `).join('')}</div>`
+        : '<div class="parent-empty">No usage in the last 30 days.</div>';
+
+      const topTbody = el('adminTopSpendersTable').querySelector('tbody');
+      topTbody.innerHTML = (data.topUsers || []).map(r => `
+        <tr><td>${esc(r.email || r.user_id)}</td><td class="num">${num(r.calls)}</td><td class="num">${money(r.cost)}</td></tr>
+      `).join('') || '<tr><td colspan="3" class="empty">No usage yet.</td></tr>';
+
+      const intentTbody = el('adminCostByIntentTable').querySelector('tbody');
+      intentTbody.innerHTML = (data.byIntent || []).map(r => `
+        <tr><td>${esc(r.intent)}</td><td class="num">${num(r.calls)}</td><td class="num">${money(r.cost)}</td></tr>
+      `).join('') || '<tr><td colspan="3" class="empty">No usage yet.</td></tr>';
+    } catch (e) { console.error(e); }
+  }
+
+  // ---------- Sessions ----------
+  async function loadSessions() {
+    try {
+      const { sessions } = await fetchJSON('/api/admin/sessions');
+      const tbody = el('adminSessionsTable').querySelector('tbody');
+      tbody.innerHTML = (sessions || []).map(s => `
+        <tr><td>${esc(s.email || s.user_id)}</td><td>${esc(fmtDate(s.created_at))}</td><td>${esc(fmtDate(s.expires_at))}</td>
+        <td><button class="q-btn admin-revoke" data-token="${esc(s.token)}">Revoke</button></td></tr>
+      `).join('') || '<tr><td colspan="4" class="empty">No active sessions.</td></tr>';
+      tbody.querySelectorAll('.admin-revoke').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm(`Force sign-out this session?`)) return;
+          try {
+            await deleteJSON(`/api/admin/sessions/${btn.dataset.token}`);
+            loadSessions();
+          } catch (e) { alert(e.message); }
+        });
+      });
+    } catch (e) { console.error(e); }
+  }
+
+  // ---------- Links ----------
+  async function loadLinks() {
+    try {
+      const { links } = await fetchJSON('/api/admin/links');
+      const tbody = el('adminLinksTable').querySelector('tbody');
+      tbody.innerHTML = (links || []).map(l => {
+        const consent = l.consent_required
+          ? (l.consent_granted_at ? '<span class="admin-badge ok">granted</span>' : '<span class="admin-badge gated">pending</span>')
+          : '<span class="muted">n/a</span>';
+        return `<tr><td>${esc(l.parent_email || l.parent_user_id)}</td>
+          <td>${esc(l.student_email || l.student_user_id)}</td>
+          <td>${l.age != null ? esc(l.age) : '—'}</td>
+          <td>${consent}</td>
+          <td><code>${esc(l.status)}</code></td>
+          <td>${esc(fmtDate(l.created_at))}</td></tr>`;
+      }).join('') || '<tr><td colspan="6" class="empty">No links yet.</td></tr>';
+    } catch (e) { console.error(e); }
+  }
+
+  // ---------- Lessons ----------
+  async function loadLessons() {
+    try {
+      const { courses } = await fetchJSON('/api/admin/lessons');
+      const tbody = el('adminLessonsTable').querySelector('tbody');
+      tbody.innerHTML = (courses || []).map(c => `
+        <tr><td>${esc(c.course_id)}</td><td class="num">${num(c.cached_count)}</td><td>${c.latest_at ? esc(fmtDate(c.latest_at)) : '—'}</td></tr>
+      `).join('') || '<tr><td colspan="3" class="empty">No cached lessons yet — run npm run prebuild-lessons.</td></tr>';
+    } catch (e) { console.error(e); }
+  }
+
+  // ---------- Page-level ----------
+  async function refreshUsers() {
     try {
       const [statsR, usersR, activityR] = await Promise.all([
         fetchJSON('/api/admin/stats'),
@@ -150,11 +404,29 @@
         fetchJSON('/api/admin/activity'),
       ]);
       renderStats(statsR.stats || {});
-      renderUsers(usersR.users || []);
-      renderActivity(activityR.activity || []);
+      allUsers = usersR.users || [];
+      allActivity = activityR.activity || [];
+      renderUsers();
+      renderActivity();
     } catch (e) {
       el('adminCards').innerHTML = `<div class="parent-empty err">Could not load: ${esc(e.message)}</div>`;
     }
+  }
+
+  async function openAdmin() {
+    const user = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
+    if (!user || !user.is_admin) {
+      alert('This page is only available to admins.');
+      if (typeof window.goHome === 'function') window.goHome();
+      return;
+    }
+    captureCurrentView();
+    if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
+    show(el('adminPage'));
+    switchTab._loaded = {};
+    switchTab('overview');
+    el('adminCards').innerHTML = '<div class="parent-empty">Loading…</div>';
+    await refreshUsers();
   }
 
   function wireOnce() {
@@ -162,12 +434,19 @@
     wireOnce._done = true;
     const back = el('adminBack');
     if (back) back.addEventListener('click', goBack);
+    document.querySelectorAll('.admin-tab').forEach(t => {
+      t.addEventListener('click', () => switchTab(t.dataset.tab));
+    });
+    const us = el('adminUserSearch');
+    if (us) us.addEventListener('input', () => { userSearch = us.value.trim(); renderUsers(); });
+    const ur = el('adminUserRoleFilter');
+    if (ur) ur.addEventListener('change', () => { userRoleFilter = ur.value; renderUsers(); });
+    const usf = el('adminUserStatusFilter');
+    if (usf) usf.addEventListener('change', () => { userStatusFilter = usf.value; renderUsers(); });
+    const af = el('adminActivityFilter');
+    if (af) af.addEventListener('input', () => { activityFilter = af.value.trim(); renderActivity(); });
   }
 
-  // URL-based routing. Visiting either /admin (clean path served by the
-  // server's SPA fallthrough) or /#admin opens the page when the user is
-  // signed in and has is_admin = true. We respond to initial load AND to
-  // later hash / pathname changes so paste-in-the-URL-bar works.
   function isAdminRoute() {
     return window.location.pathname === '/admin' || window.location.hash === '#admin';
   }
@@ -186,9 +465,6 @@
   window.addEventListener('hashchange', checkRoute);
   window.addEventListener('popstate', checkRoute);
 
-  // Polled retry: if the page loads on the admin route and the session
-  // check hasn't populated currentUser yet, retry briefly so we don't
-  // silently land back on the home page.
   let retries = 0;
   const retryRoute = setInterval(() => {
     retries++;
@@ -196,9 +472,7 @@
     const u = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
     if (u) {
       clearInterval(retryRoute);
-      if (u.is_admin && el('adminPage') && el('adminPage').classList.contains('hidden')) {
-        openAdmin();
-      }
+      if (u.is_admin && el('adminPage') && el('adminPage').classList.contains('hidden')) openAdmin();
     }
   }, 250);
 

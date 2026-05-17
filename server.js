@@ -856,6 +856,69 @@ async function handleAdminActivity(req, res) {
   json(res, 200, { activity });
 }
 
+async function handleAdminUserDetail(req, res, userId) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const detail = await db.adminUserDetail(userId);
+  if (!detail) return json(res, 404, { error: 'User not found.' });
+  json(res, 200, detail);
+}
+
+async function handleAdminUpdateUser(req, res, userId) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const body = await readJSON(req);
+  if (!body) return json(res, 400, { error: 'Bad payload.' });
+  // Don't let an admin demote themselves accidentally.
+  if (userId === u.id && body.is_admin === false) {
+    return json(res, 400, { error: "You can't revoke your own admin access from this UI. Use psql or the set-admin script." });
+  }
+  const updated = await db.adminUpdateUser(userId, body);
+  if (!updated) return json(res, 404, { error: 'Nothing to update.' });
+  json(res, 200, { user: updated });
+}
+
+async function handleAdminDeleteUser(req, res, userId) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  if (userId === u.id) return json(res, 400, { error: "You can't delete your own account here." });
+  await db.adminDeleteUser(userId);
+  json(res, 200, { ok: true });
+}
+
+async function handleAdminQuizAnalytics(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const analytics = await db.adminQuizAnalytics();
+  json(res, 200, analytics);
+}
+
+async function handleAdminCostChart(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const chart = await db.adminCostChart();
+  json(res, 200, chart);
+}
+
+async function handleAdminSessions(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const sessions = await db.adminListSessions();
+  json(res, 200, { sessions });
+}
+
+async function handleAdminRevokeSession(req, res, token) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  await db.adminRevokeSession(token);
+  json(res, 200, { ok: true });
+}
+
+async function handleAdminLinks(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const links = await db.adminAllLinks();
+  json(res, 200, { links });
+}
+
+async function handleAdminLessons(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const courses = await db.adminLessonStats();
+  json(res, 200, { courses });
+}
+
 // ---------- Token usage (own) ----------
 async function handleGetMyTokenUsageSummary(req, res) {
   const u = await currentUser(req);
@@ -1207,6 +1270,21 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/admin/stats' && req.method === 'GET') return handleAdminStats(req, res);
     if (url === '/api/admin/users' && req.method === 'GET') return handleAdminUsers(req, res);
     if (url === '/api/admin/activity' && req.method === 'GET') return handleAdminActivity(req, res);
+    if (url === '/api/admin/quiz-analytics' && req.method === 'GET') return handleAdminQuizAnalytics(req, res);
+    if (url === '/api/admin/cost-chart' && req.method === 'GET') return handleAdminCostChart(req, res);
+    if (url === '/api/admin/sessions' && req.method === 'GET') return handleAdminSessions(req, res);
+    if (url === '/api/admin/links' && req.method === 'GET') return handleAdminLinks(req, res);
+    if (url === '/api/admin/lessons' && req.method === 'GET') return handleAdminLessons(req, res);
+    {
+      const mUserDetail = url.match(/^\/api\/admin\/users\/([0-9a-f-]+)$/);
+      if (mUserDetail) {
+        if (req.method === 'GET') return handleAdminUserDetail(req, res, mUserDetail[1]);
+        if (req.method === 'PATCH' || req.method === 'POST') return handleAdminUpdateUser(req, res, mUserDetail[1]);
+        if (req.method === 'DELETE') return handleAdminDeleteUser(req, res, mUserDetail[1]);
+      }
+      const mSession = url.match(/^\/api\/admin\/sessions\/([0-9a-f]+)$/);
+      if (mSession && req.method === 'DELETE') return handleAdminRevokeSession(req, res, mSession[1]);
+    }
     if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
     if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
     // Cached lessons: POST returns the cached lesson or generates+caches it; DELETE busts the cache.

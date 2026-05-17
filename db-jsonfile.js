@@ -725,6 +725,76 @@ async function adminRecentActivity(limit = 50) {
     return { id: a.id, user_id: a.user_id, email: u ? u.email : null, kind: a.kind, meta: a.meta, created_at: a.created_at };
   });
 }
+async function adminUserDetail(userId) {
+  load();
+  const user = state.users.find(u => u.id === userId);
+  if (!user) return null;
+  return {
+    user,
+    studentProfile: state.studentProfiles[userId] || null,
+    parentProfile: state.parentProfiles[userId] || null,
+    links: state.links.filter(l => l.parent_user_id === userId || l.student_user_id === userId),
+    attempts: state.quizAttempts.filter(a => a.user_id === userId).slice(0, 50),
+    activity: state.activity.filter(a => a.user_id === userId).slice(0, 50),
+    usage: state.aiUsage.filter(a => a.user_id === userId).reduce((acc, a) => {
+      acc.cost += a.cost_usd || 0;
+      acc.calls++;
+      acc.input_tokens += a.input_tokens || 0;
+      acc.output_tokens += a.output_tokens || 0;
+      return acc;
+    }, { cost: 0, calls: 0, input_tokens: 0, output_tokens: 0 }),
+  };
+}
+async function adminUpdateUser(userId, fields) {
+  load();
+  const u = state.users.find(x => x.id === userId);
+  if (!u) return null;
+  if (typeof fields.is_admin === 'boolean') u.is_admin = fields.is_admin;
+  if (typeof fields.verified === 'boolean') u.verified = fields.verified;
+  if (typeof fields.role === 'string' && ['student', 'parent'].includes(fields.role)) u.role = fields.role;
+  save();
+  return u;
+}
+async function adminDeleteUser(userId) {
+  load();
+  state.users = state.users.filter(u => u.id !== userId);
+  save();
+}
+async function adminQuizAnalytics() {
+  return { hardestQuestions: [], failedSections: [], courseStats: [] };
+}
+async function adminCostChart() {
+  return { byDay: [], topUsers: [], byIntent: [] };
+}
+async function adminListSessions() {
+  load();
+  return state.sessions.filter(s => s.expiresAt > Date.now()).map(s => {
+    const u = state.users.find(x => x.id === s.userId);
+    return { token: s.token, user_id: s.userId, email: u ? u.email : null, created_at: new Date(s.createdAt).toISOString(), expires_at: new Date(s.expiresAt).toISOString() };
+  });
+}
+async function adminRevokeSession(token) {
+  load();
+  state.sessions = state.sessions.filter(s => s.token !== token);
+  save();
+}
+async function adminAllLinks() {
+  load();
+  return state.links.map(l => {
+    const p = state.users.find(u => u.id === l.parent_user_id);
+    const s = state.users.find(u => u.id === l.student_user_id);
+    return { ...l, parent_email: p?.email, student_email: s?.email, age: s?.age, consent_required: s?.consent_required, consent_granted_at: s?.consent_granted_at };
+  });
+}
+async function adminLessonStats() {
+  load();
+  const byCourse = {};
+  for (const k of Object.keys(state.cachedLessons)) {
+    const courseId = k.split('|')[0];
+    byCourse[courseId] = (byCourse[courseId] || 0) + 1;
+  }
+  return Object.entries(byCourse).map(([course_id, cached_count]) => ({ course_id, cached_count }));
+}
 
 // ---------- Study plan ----------
 async function getStudyPlan(userId) {
@@ -770,6 +840,9 @@ module.exports = {
   getCachedLesson, saveCachedLesson, clearCachedLesson,
   getStudyPlan, upsertStudyPlan, deleteStudyPlan,
   adminListUsers, adminStats, adminRecentActivity,
+  adminUserDetail, adminUpdateUser, adminDeleteUser,
+  adminQuizAnalytics, adminCostChart, adminListSessions, adminRevokeSession,
+  adminAllLinks, adminLessonStats,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
