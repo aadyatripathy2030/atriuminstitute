@@ -62,9 +62,11 @@ See `.env.example` for the full list with descriptions. The minimums:
 ├── *-data.js              # Per-course base questions
 ├── extras.js              # Hand-written extra questions
 ├── english-extras.js      # Auto-generated English topics (built by tools/)
-├── expansions.js          # Auto-generated quiz expansions (built by tools/)
+├── expansions/            # Per-course quiz expansions, lazy-loaded by app.js
+│   └── <courseId>.js      # One file per course, produced by tools/split-expansions.js
 └── tools/                 # Helper scripts (run with `node tools/<script>.js`)
     ├── expand-quizzes.js          # Fills each section to 20 questions via Claude
+    ├── split-expansions.js        # Splits expansions.js into per-course files
     └── generate-english-topics.js # Adds new English topics via Claude
 ```
 
@@ -92,7 +94,14 @@ fly certs add atriuminstitute.com
 
 ## Content authoring tools
 
-`tools/expand-quizzes.js` and `tools/generate-english-topics.js` use the Claude API to bulk-generate quiz questions and new topics. Run them locally with your API key set. They write to `expansions.js` and `english-extras.js` respectively and are resumable via local cache files.
+`tools/expand-quizzes.js` and `tools/generate-english-topics.js` use the Claude API to bulk-generate quiz questions and new topics. Run them locally with your API key set. They are resumable via local cache files.
+
+The expansion flow has two steps:
+
+1. `node tools/expand-quizzes.js` writes a local `expansions.js` (not committed).
+2. `node tools/split-expansions.js` slices that file into `expansions/<courseId>.js` files, which ARE committed and served to the browser.
+
+The browser loads each course's expansion only when the user opens that course, so first paint never has to download all 13 courses' worth of question data.
 
 ## Security notes
 

@@ -168,6 +168,26 @@ function courseStats(courseId, scores) {
 
 let SUBJECT_FILTER = null; // 'math' | 'english' | 'all'
 
+// Per-course expansion files (~100-220 KB each) are loaded on demand the
+// first time a user opens a course, instead of shipping all 2 MB on page
+// load. The promise is cached so repeat opens are instant.
+const _loadedExpansions = {};
+function loadCourseExpansion(courseId) {
+  if (_loadedExpansions[courseId]) return _loadedExpansions[courseId];
+  _loadedExpansions[courseId] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = `expansions/${encodeURIComponent(courseId)}.js`;
+    s.async = false;
+    s.onload = () => resolve();
+    s.onerror = () => {
+      delete _loadedExpansions[courseId];
+      reject(new Error(`Failed to load expansions for ${courseId}`));
+    };
+    document.head.appendChild(s);
+  });
+  return _loadedExpansions[courseId];
+}
+
 function renderCourses() {
   const scores = loadScores();
   const grid = document.getElementById('coursesGrid');
@@ -252,7 +272,7 @@ async function maybeRenderRecommendation() {
   }
 }
 
-function openCourse(courseId) {
+async function openCourse(courseId) {
   setCourse(courseId);
   document.getElementById('courses-home').classList.add('hidden');
   document.getElementById('home').classList.remove('hidden');
@@ -269,8 +289,22 @@ function openCourse(courseId) {
       </div>
     </div>
   `;
-  renderBooks();
+
+  const booksEl = document.getElementById('books');
+  if (!_loadedExpansions[courseId]) {
+    booksEl.innerHTML = '<div class="books-loading">Loading course content…</div>';
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  try {
+    await loadCourseExpansion(courseId);
+  } catch (e) {
+    console.error(e);
+    booksEl.innerHTML = '<div class="books-loading books-loading-err">Could not load course content. Please refresh and try again.</div>';
+    return;
+  }
+
+  renderBooks();
 }
 
 function backToBooks() {

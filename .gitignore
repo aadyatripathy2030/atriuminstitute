@@ -12,6 +12,11 @@ data.json.tmp
 tools/.expand-cache.json
 tools/.english-topics-cache.json
 
+# Monolithic expansion output from tools/expand-quizzes.js. We don't ship it —
+# tools/split-expansions.js slices it into /expansions/<courseId>.js which IS
+# committed. Keep this file local-only to avoid bloating the repo.
+expansions.js
+
 # Node
 node_modules/
 npm-debug.log*

@@ -1746,3 +1746,14 @@ footer {
   .ask-fab .fab-label { display: none; }
   .nav-right .progress-pill { display: none; }
 }
+
+/* Lazy-load placeholder for course expansion files. */
+.books-loading {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted, #6b7280);
+  font-size: 15px;
+}
+.books-loading-err {
+  color: #b00020;
+}
