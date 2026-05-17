@@ -58,7 +58,7 @@
   // needing its own list.
   const TOP_LEVEL_IDS = [
     'landing', 'authGate', 'consentGate',
-    'courses-home', 'home', 'detail',
+    'courses-home', 'home', 'detail', 'study', 'onboard',
     'about', 'contact', 'privacy', 'terms',
     'parentHome', 'parentStudentDetail',
     'profilePage', 'activityPage', 'tokenUsagePage',
