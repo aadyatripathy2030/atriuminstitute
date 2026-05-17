@@ -660,9 +660,42 @@ async function toggleLesson(card, book, section) {
   await renderCachedLesson(panel, book, section, sIdx, false);
 }
 
-// Fetches the cached lesson for a section (cache hit = instant), renders
-// it inline, runs MathJax + Mermaid against the result, and wires the
-// regenerate button.
+// Parses a cached lesson into its five walker steps based on the H3
+// headings the lesson prompt produces. Falls back to a single "whole
+// lesson" step if the parser can't find the expected headings (so old
+// cached content still displays).
+const LESSON_STEP_HEADINGS = [
+  'The simple idea',
+  'The formulas',
+  'Walk-through example',
+  'One more example',
+  "You're ready",
+];
+
+function parseLessonSteps(content) {
+  if (!content) return [];
+  const lines = content.split('\n');
+  const found = [];
+  let current = null;
+  for (const line of lines) {
+    const m = line.match(/^###\s+(.+?)\s*$/);
+    if (m) {
+      if (current) found.push(current);
+      current = { title: m[1], body: '' };
+    } else if (current) {
+      current.body += line + '\n';
+    }
+  }
+  if (current) found.push(current);
+  // If we got something close to the five expected steps, use them in
+  // the canonical order. Otherwise fall back to a single step.
+  if (found.length >= 3) return found.map(s => ({ title: s.title, body: s.body.trim() }));
+  return [{ title: 'Lesson', body: content.trim() }];
+}
+
+// Fetches the cached lesson for a section and renders it as a guided
+// step-by-step walker (one step visible at a time) with an inline "Ask
+// Max" input on every step.
 async function renderCachedLesson(panel, book, section, sIdx, forceRegenerate) {
   const prewritten = section.lesson ? `<div class="lesson-written">${mdToHtml(section.lesson)}</div>` : '';
   panel.innerHTML = `
@@ -672,15 +705,16 @@ async function renderCachedLesson(panel, book, section, sIdx, forceRegenerate) {
         <span>✨ Max's lesson on <em>${escapeHtml(section.title)}</em></span>
         <button class="lesson-regen-btn" type="button" title="Regenerate this lesson with the latest version of Max">↻ Regenerate</button>
       </div>
-      <div class="lesson-ai-body">
+      <div class="lesson-walker">
         <div class="typing"><span></span><span></span><span></span></div>
       </div>
     </div>
   `;
 
-  const bodyEl = panel.querySelector('.lesson-ai-body');
+  const walkerEl = panel.querySelector('.lesson-walker');
   const regenBtn = panel.querySelector('.lesson-regen-btn');
 
+  let steps = [];
   try {
     const payload = {
       courseId: COURSE.id,
@@ -703,18 +737,190 @@ async function renderCachedLesson(panel, book, section, sIdx, forceRegenerate) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Lesson load failed (${res.status})`);
-    bodyEl.innerHTML = mdToHtml(data.content || '');
+    steps = parseLessonSteps(data.content || '');
+  } catch (e) {
+    walkerEl.innerHTML = `<div class="ai-err">Lesson unavailable: ${escapeHtml(e.message)}.${section.lesson ? ' Use the written lesson above.' : ''}</div>`;
+    if (regenBtn) {
+      regenBtn.addEventListener('click', async () => {
+        regenBtn.disabled = true;
+        regenBtn.textContent = '↻ Regenerating…';
+        panel.dataset.loaded = '';
+        await renderCachedLesson(panel, book, section, sIdx, true);
+        panel.dataset.loaded = '1';
+      });
+    }
+    return;
+  }
+
+  // Insert a synthetic "Explain it back" step just before the last
+  // ("You're ready") step. It's the Feynman-technique check: the student
+  // writes the rule in their own words and Max gives short feedback.
+  // The step is optional — there's a Skip button.
+  const FEYNMAN_TITLE = 'Explain it back to Max';
+  steps.splice(Math.max(0, steps.length - 1), 0, {
+    title: FEYNMAN_TITLE,
+    body: '_synthetic_',
+    feynman: true,
+  });
+
+  let stepIdx = 0;
+  const total = steps.length;
+
+  function renderStep() {
+    const step = steps[stepIdx];
+    const isLast = stepIdx === total - 1;
+    if (step.feynman) return renderFeynmanStep(step);
+    const dots = Array.from({ length: total }, (_, i) =>
+      `<span class="lesson-step-dot${i === stepIdx ? ' active' : ''}${i < stepIdx ? ' done' : ''}"></span>`
+    ).join('');
+    walkerEl.innerHTML = `
+      <div class="lesson-step-head">
+        <div class="lesson-step-counter">Step ${stepIdx + 1} of ${total} · ${escapeHtml(step.title)}</div>
+        <div class="lesson-step-dots">${dots}</div>
+      </div>
+      <div class="lesson-step-body">${mdToHtml(step.body)}</div>
+      <div class="lesson-ask">
+        <textarea class="lesson-ask-input" rows="1" placeholder="Ask Max about this — a question, or a suggestion like 'simpler please'."></textarea>
+        <button class="lesson-ask-btn" type="button">Ask Max</button>
+      </div>
+      <div class="lesson-step-nav">
+        <button class="lesson-step-prev" type="button" ${stepIdx === 0 ? 'disabled' : ''}>← Previous</button>
+        ${isLast
+          ? `<button class="lesson-step-quiz" type="button">Start the quiz →</button>`
+          : `<button class="lesson-step-next" type="button">Next step →</button>`}
+      </div>
+    `;
+    const bodyEl = walkerEl.querySelector('.lesson-step-body');
     if (window.MathJax) MathJax.typesetPromise([bodyEl]);
     renderMermaidIn(bodyEl);
-  } catch (e) {
-    bodyEl.innerHTML = `<div class="ai-err">Lesson unavailable: ${escapeHtml(e.message)}.${section.lesson ? ' Use the written lesson above.' : ''}</div>`;
+
+    const prevBtn = walkerEl.querySelector('.lesson-step-prev');
+    const nextBtn = walkerEl.querySelector('.lesson-step-next');
+    const quizBtn = walkerEl.querySelector('.lesson-step-quiz');
+    if (prevBtn) prevBtn.addEventListener('click', () => { stepIdx = Math.max(0, stepIdx - 1); renderStep(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { stepIdx = Math.min(total - 1, stepIdx + 1); renderStep(); });
+    if (quizBtn) quizBtn.addEventListener('click', () => startQuiz(book.id, sIdx));
+
+    // Clickable dots — jump to any step.
+    walkerEl.querySelectorAll('.lesson-step-dot').forEach((dot, i) => {
+      dot.addEventListener('click', () => { stepIdx = i; renderStep(); });
+      dot.style.cursor = 'pointer';
+    });
+
+    const askInput = walkerEl.querySelector('.lesson-ask-input');
+    const askBtn = walkerEl.querySelector('.lesson-ask-btn');
+    function submitAsk() {
+      const q = (askInput.value || '').trim();
+      if (!q) return;
+      askInput.value = '';
+      // Set chat context so Max knows what section + step the student is on.
+      CHAT_CONTEXT = {
+        topic: `${book.title} → ${section.title}`,
+        question: `(Studying step ${stepIdx + 1} of ${total}: ${step.title})`,
+        correctAnswer: '(student is on the Learn lesson, not in a quiz)',
+      };
+      if (typeof openChat === 'function') openChat();
+      const ci = document.getElementById('chatInput');
+      if (ci) {
+        ci.value = q;
+        ci.focus();
+        ci.dispatchEvent(new Event('input'));
+        if (typeof sendChat === 'function') sendChat();
+      }
+    }
+    if (askBtn) askBtn.addEventListener('click', submitAsk);
+    if (askInput) {
+      askInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitAsk(); }
+      });
+    }
   }
+
+  function renderFeynmanStep() {
+    const dots = Array.from({ length: total }, (_, i) =>
+      `<span class="lesson-step-dot${i === stepIdx ? ' active' : ''}${i < stepIdx ? ' done' : ''}"></span>`
+    ).join('');
+    walkerEl.innerHTML = `
+      <div class="lesson-step-head">
+        <div class="lesson-step-counter">Step ${stepIdx + 1} of ${total} · ${escapeHtml(FEYNMAN_TITLE)}</div>
+        <div class="lesson-step-dots">${dots}</div>
+      </div>
+      <div class="lesson-step-body lesson-feynman">
+        <p>In your own words, write down what you just learned about <em>${escapeHtml(section.title)}</em>. Don't use a formula. Pretend you're explaining it to a friend who missed class.</p>
+        <textarea class="lesson-feynman-input" rows="4" placeholder="In my own words..."></textarea>
+        <div class="lesson-feynman-actions">
+          <button class="lesson-feynman-check" type="button">Check my understanding</button>
+          <button class="lesson-feynman-skip" type="button">Skip for now</button>
+        </div>
+        <div class="lesson-feynman-feedback hidden"></div>
+      </div>
+      <div class="lesson-step-nav">
+        <button class="lesson-step-prev" type="button">← Previous</button>
+        <button class="lesson-step-next" type="button">Next step →</button>
+      </div>
+    `;
+
+    walkerEl.querySelector('.lesson-step-prev').addEventListener('click', () => { stepIdx = Math.max(0, stepIdx - 1); renderStep(); });
+    walkerEl.querySelector('.lesson-step-next').addEventListener('click', () => { stepIdx = Math.min(total - 1, stepIdx + 1); renderStep(); });
+    walkerEl.querySelectorAll('.lesson-step-dot').forEach((dot, i) => {
+      dot.addEventListener('click', () => { stepIdx = i; renderStep(); });
+      dot.style.cursor = 'pointer';
+    });
+    walkerEl.querySelector('.lesson-feynman-skip').addEventListener('click', () => {
+      stepIdx = Math.min(total - 1, stepIdx + 1);
+      renderStep();
+    });
+    walkerEl.querySelector('.lesson-feynman-check').addEventListener('click', async () => {
+      const inputEl = walkerEl.querySelector('.lesson-feynman-input');
+      const feedbackEl = walkerEl.querySelector('.lesson-feynman-feedback');
+      const text = (inputEl.value || '').trim();
+      if (!text || text.length < 8) {
+        feedbackEl.classList.remove('hidden');
+        feedbackEl.classList.add('err');
+        feedbackEl.textContent = 'Write a few sentences first — even rough is fine.';
+        return;
+      }
+      feedbackEl.classList.remove('hidden', 'err');
+      feedbackEl.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+      const prompt = `The student just finished a Max lesson on **${section.title}** (from ${book.title} in ${COURSE.title}). They've written their understanding in their own words below.
+
+Student's explanation:
+"""
+${text}
+"""
+
+In 2-4 short sentences, give them honest feedback. Confirm what they nailed. Name one thing they missed or got slightly off, if anything. Don't restate the whole lesson — just calibrate. End with a one-line nudge: either "You're ready — try the quiz" if their explanation is solid, or "Worth one more pass over Step X" naming the step they should re-read.`;
+      try {
+        let buf = '';
+        for await (const chunk of AI.streamChat([{ role: 'user', content: prompt }], '')) {
+          buf += chunk;
+          feedbackEl.innerHTML = mdToHtml(buf);
+          if (window.MathJax) MathJax.typesetPromise([feedbackEl]);
+        }
+      } catch (e) {
+        feedbackEl.classList.add('err');
+        feedbackEl.textContent = `Couldn't check just now: ${e.message}`;
+      }
+    });
+  }
+
+  renderStep();
+
+  // Keyboard nav: ← / → through steps. Scoped to the panel so the
+  // student can still use arrow keys inside textareas without jumping
+  // between steps.
+  panel.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); stepIdx = Math.min(total - 1, stepIdx + 1); renderStep(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); stepIdx = Math.max(0, stepIdx - 1); renderStep(); }
+  });
+  panel.tabIndex = 0;
 
   if (regenBtn) {
     regenBtn.addEventListener('click', async () => {
       regenBtn.disabled = true;
       regenBtn.textContent = '↻ Regenerating…';
-      panel.dataset.loaded = '';  // allow re-render
+      panel.dataset.loaded = '';
       await renderCachedLesson(panel, book, section, sIdx, true);
       panel.dataset.loaded = '1';
     });
