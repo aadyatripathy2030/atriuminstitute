@@ -205,6 +205,7 @@ function userPublic(u) {
     country: u.country || u.state || null,
     consent_required: !!u.consent_required,
     consent_granted_at: u.consent_granted_at || null,
+    is_admin: !!u.is_admin,
   };
 }
 
@@ -815,6 +816,33 @@ async function handleClearLesson(req, res) {
   json(res, 200, { ok: true });
 }
 
+// ---------- Admin endpoints (only when users.is_admin is true) ----------
+
+async function requireAdmin(req, res) {
+  const u = await currentUser(req);
+  if (!u) { json(res, 401, { error: 'Not signed in.' }); return null; }
+  if (!u.is_admin) { json(res, 403, { error: 'Admin access required.' }); return null; }
+  return u;
+}
+
+async function handleAdminStats(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const stats = await db.adminStats();
+  json(res, 200, { stats });
+}
+
+async function handleAdminUsers(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const users = await db.adminListUsers({ limit: 500 });
+  json(res, 200, { users });
+}
+
+async function handleAdminActivity(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const activity = await db.adminRecentActivity(100);
+  json(res, 200, { activity });
+}
+
 // ---------- Token usage (own) ----------
 async function handleGetMyTokenUsageSummary(req, res) {
   const u = await currentUser(req);
@@ -1155,6 +1183,10 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/study-plan' && req.method === 'GET') return handleGetStudyPlan(req, res);
     if (url === '/api/me/study-plan' && req.method === 'POST') return handleCreateStudyPlan(req, res);
     if (url === '/api/me/study-plan' && req.method === 'DELETE') return handleDeleteStudyPlan(req, res);
+    // Admin (only for users where is_admin = true).
+    if (url === '/api/admin/stats' && req.method === 'GET') return handleAdminStats(req, res);
+    if (url === '/api/admin/users' && req.method === 'GET') return handleAdminUsers(req, res);
+    if (url === '/api/admin/activity' && req.method === 'GET') return handleAdminActivity(req, res);
     if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
     if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
     // Cached lessons: POST returns the cached lesson or generates+caches it; DELETE busts the cache.

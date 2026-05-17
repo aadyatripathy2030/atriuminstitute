@@ -9,7 +9,8 @@
     "lint": "eslint server.js db.js db-jsonfile.js db-postgres.js email.js prompts.js \"tools/**/*.js\" \"test/**/*.js\" eslint.config.js",
     "test": "node --test",
     "migrate": "node tools/migrate.js",
-    "prebuild-lessons": "node tools/prebuild-lessons.js"
+    "prebuild-lessons": "node tools/prebuild-lessons.js",
+    "set-admin": "node tools/set-admin.js"
   },
   "engines": {
     "node": ">=18"
