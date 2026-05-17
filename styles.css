@@ -1853,3 +1853,292 @@ footer {
 .auth-resend-status.err {
   color: #b00020;
 }
+
+/* Auth signup extras: age + state row + collapsible link code field. */
+.auth-field-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+.auth-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+}
+.auth-field span {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.auth-field input,
+.auth-field select {
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  background: var(--paper, #fff);
+  color: var(--text, #1e2238);
+}
+.auth-linkcode-wrap {
+  margin-top: 12px;
+  text-align: left;
+}
+.auth-linkcode-wrap summary {
+  cursor: pointer;
+  color: var(--text, #1e2238);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 0;
+}
+.auth-linkcode-wrap input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  background: var(--paper, #fff);
+  margin-top: 6px;
+}
+.auth-linkcode-hint {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  margin-top: 4px;
+}
+
+/* Consent gate (under-13 waiting for parent). */
+.consent-gate {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(247, 245, 240, 0.96);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+.consent-gate.hidden { display: none; }
+.consent-card {
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+.consent-mark {
+  display: inline-block;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--text, #1e2238);
+  color: var(--paper, #fff);
+  text-align: center;
+  line-height: 48px;
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.consent-card h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+.consent-lede {
+  color: var(--muted, #6b7280);
+  margin: 0 0 24px;
+}
+.consent-codebox {
+  background: #f7f5f0;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 24px;
+}
+.consent-codebox-label {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+  margin-bottom: 8px;
+}
+.consent-codebox-code {
+  font-family: 'Courier New', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--text, #1e2238);
+  margin-bottom: 10px;
+}
+.consent-copy {
+  background: none;
+  border: 1px solid var(--border, #e6e2d7);
+  color: var(--text, #1e2238);
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.consent-steps {
+  text-align: left;
+  margin-bottom: 24px;
+}
+.consent-steps h3 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+.consent-steps ol {
+  padding-left: 20px;
+  color: var(--text, #1e2238);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.consent-refresh {
+  background: var(--text, #1e2238);
+  color: var(--paper, #fff);
+  border: none;
+  font: inherit;
+  padding: 12px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+.consent-foot {
+  margin-top: 16px;
+}
+.consent-foot .auth-link {
+  background: none;
+  border: none;
+  color: var(--muted, #6b7280);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Parent home. */
+.parent-home {
+  max-width: 880px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+.parent-home.hidden { display: none; }
+.parent-hero h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 32px;
+  margin: 16px 0 4px;
+}
+.parent-sub {
+  color: var(--muted, #6b7280);
+  margin: 0 0 24px;
+}
+.parent-section {
+  margin-top: 32px;
+}
+.parent-student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.parent-empty {
+  color: var(--muted, #6b7280);
+  font-size: 14px;
+  padding: 12px;
+  border: 1px dashed var(--border, #e6e2d7);
+  border-radius: 10px;
+}
+.parent-empty.err { color: #b00020; border-color: #f3c2c8; }
+.parent-student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 14px 18px;
+  background: var(--paper, #fff);
+}
+.parent-student-email {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.parent-student-meta {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+}
+.parent-link-form {
+  display: flex;
+  gap: 10px;
+}
+.parent-link-form input {
+  flex: 1;
+  font: inherit;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 14px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+}
+.parent-codebox {
+  background: #f7f5f0;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.parent-codebox-code {
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+/* Parent → student detail. */
+.parent-detail {
+  max-width: 880px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+.parent-detail.hidden { display: none; }
+.parent-detail-hero h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 28px;
+  margin: 16px 0 4px;
+}
+.parent-detail-meta {
+  color: var(--muted, #6b7280);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.parent-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.parent-detail-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+  background: var(--paper, #fff);
+  font-size: 14px;
+}
+.parent-detail-row .muted { color: var(--muted, #6b7280); font-size: 13px; }
+.parent-detail-row .ok { color: #1b6b3a; }
+.parent-detail-row .warn { color: #b00020; }
+.parent-student-row .badge.ok { color: #1b6b3a; }
+.parent-student-row .badge.warn { color: #b00020; }

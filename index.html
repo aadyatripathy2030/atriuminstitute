@@ -64,6 +64,23 @@
 
     <form id="authEmailForm" class="auth-form">
       <input type="email" id="authEmail" placeholder="you@example.com" required autocomplete="email">
+      <div class="auth-field-row">
+        <label class="auth-field">
+          <span>Age</span>
+          <input type="number" id="authAge" min="4" max="120" placeholder="e.g. 14" required>
+        </label>
+        <label class="auth-field">
+          <span>State</span>
+          <select id="authState" required>
+            <option value="">Select state…</option>
+          </select>
+        </label>
+      </div>
+      <details class="auth-linkcode-wrap">
+        <summary>Have a link code?</summary>
+        <input type="text" id="authLinkCode" placeholder="ABCD-EFGH" maxlength="9" autocomplete="off">
+        <div class="auth-linkcode-hint">Use this if a parent or student has already shared their code with you.</div>
+      </details>
       <button type="submit" id="authEmailBtn" class="auth-btn">Send code</button>
     </form>
 
@@ -249,6 +266,96 @@
 
 <div id="onboard" class="onboard hidden"></div>
 
+<!-- Consent gate: under-13 student waiting for a parent to link -->
+<div id="consentGate" class="consent-gate hidden">
+  <div class="consent-card">
+    <div class="consent-mark">∑</div>
+    <h1>Almost there, <span id="consentName">friend</span>!</h1>
+    <p class="consent-lede">Because you're under 13, we need a parent or legal guardian to confirm your account before you can start learning.</p>
+    <div class="consent-codebox">
+      <div class="consent-codebox-label">Share this code with your parent or guardian:</div>
+      <div class="consent-codebox-code" id="consentLinkCode">————————</div>
+      <button class="consent-copy" id="consentCopyBtn">Copy code</button>
+    </div>
+    <div class="consent-steps">
+      <h3>What your parent needs to do:</h3>
+      <ol>
+        <li>Go to <strong>atriuminstitute.ai</strong> on their own device.</li>
+        <li>Click <strong>Start learning</strong> and pick <strong>👪 Parent</strong>.</li>
+        <li>Sign up with their email and paste your code into the "Have a link code?" field.</li>
+        <li>When they confirm, your account unlocks automatically.</li>
+      </ol>
+    </div>
+    <button class="consent-refresh" id="consentRefreshBtn">I think they signed up. Check again.</button>
+    <div class="consent-foot">
+      <button class="auth-link" id="consentSignOut">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Parent home: linked students + add new link + own link code -->
+<div id="parentHome" class="parent-home hidden">
+  <header class="parent-hero">
+    <h1>Family overview</h1>
+    <p class="parent-sub">See where each of your students is in their learning.</p>
+  </header>
+
+  <section class="parent-section">
+    <div class="section-heading">
+      <h2>Linked students</h2>
+      <div class="sub">You can only see students you're explicitly linked to.</div>
+    </div>
+    <div id="parentStudentList" class="parent-student-list"></div>
+  </section>
+
+  <section class="parent-section">
+    <div class="section-heading">
+      <h2>Link another student</h2>
+      <div class="sub">Ask your student to share their Atrium code.</div>
+    </div>
+    <form id="parentLinkForm" class="parent-link-form">
+      <input type="text" id="parentLinkInput" placeholder="ABCD-EFGH" maxlength="9" autocomplete="off" required>
+      <button type="submit" class="auth-btn">Add student</button>
+    </form>
+    <div id="parentLinkError" class="auth-error hidden"></div>
+  </section>
+
+  <section class="parent-section">
+    <div class="section-heading">
+      <h2>Your code</h2>
+      <div class="sub">Share this with a student so they can link to you.</div>
+    </div>
+    <div class="parent-codebox">
+      <div class="parent-codebox-code" id="parentOwnLinkCode">————————</div>
+      <button class="consent-copy" id="parentCopyBtn">Copy code</button>
+    </div>
+  </section>
+</div>
+
+<!-- Parent → student detail view -->
+<div id="parentStudentDetail" class="parent-detail hidden">
+  <button class="back-btn" id="parentDetailBack">← Back to family overview</button>
+  <header class="parent-detail-hero">
+    <h1 id="parentDetailName">Student</h1>
+    <div class="parent-detail-meta" id="parentDetailMeta"></div>
+  </header>
+
+  <section class="parent-section">
+    <h2>Weak topics</h2>
+    <div id="parentDetailWeak" class="parent-detail-list"></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>Recent quiz attempts</h2>
+    <div id="parentDetailQuizzes" class="parent-detail-list"></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>Activity timeline</h2>
+    <div id="parentDetailActivity" class="parent-detail-list"></div>
+  </section>
+</div>
+
 <!-- Course picker (first home screen) -->
 <div id="courses-home">
   <header class="hero">
@@ -375,6 +482,7 @@
 <!-- expansions.js is now lazy-loaded per course on demand (see openCourse in app.js). -->
 <script src="ai.js"></script>
 <script src="auth.js"></script>
+<script src="parent.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 </body>

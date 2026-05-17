@@ -131,12 +131,34 @@ function isValidRole(r) {
   return typeof r === 'string' && VALID_ROLES.includes(r);
 }
 
+// Holding-area for signup metadata between /signup and /verify so we can apply
+// age/state/link_code at first verification rather than to a fresh-but-unverified
+// account. Keyed by normalised email; entries time out with the verification
+// code anyway.
+const pendingSignupMeta = new Map();
+const PENDING_META_TTL_MS = 30 * 60 * 1000;
+function cleanupPendingMeta() {
+  const now = Date.now();
+  for (const [k, v] of pendingSignupMeta) {
+    if (v.expiresAt < now) pendingSignupMeta.delete(k);
+  }
+}
+
 async function handleSignupOrLogin(req, res) {
   const body = await readJSON(req);
   if (!body || !isValidEmail(body.email)) return json(res, 400, { error: 'Invalid email.' });
-  // Role is only honoured for first-time signups; existing users keep theirs.
   const role = isValidRole(body.role) ? body.role : 'student';
   const user = await db.upsertUser(body.email, role);
+
+  // Stash optional first-signup metadata for /verify to apply atomically.
+  cleanupPendingMeta();
+  pendingSignupMeta.set(user.email, {
+    age: typeof body.age === 'number' ? body.age : null,
+    state: typeof body.state === 'string' ? body.state : null,
+    linkCode: typeof body.linkCode === 'string' ? body.linkCode : null,
+    expiresAt: Date.now() + PENDING_META_TTL_MS,
+  });
+
   const code = await db.createCode(user.email);
   try {
     await email.sendVerificationCode(user.email, code);
@@ -145,6 +167,20 @@ async function handleSignupOrLogin(req, res) {
     return json(res, 502, { error: 'Could not send verification email. Try again.' });
   }
   json(res, 200, { ok: true, message: 'Check your email for a 6-digit code.' });
+}
+
+function userPublic(u) {
+  if (!u) return null;
+  return {
+    id: u.id,
+    email: u.email,
+    role: u.role || 'student',
+    link_code: u.link_code || null,
+    age: u.age == null ? null : Number(u.age),
+    state: u.state || null,
+    consent_required: !!u.consent_required,
+    consent_granted_at: u.consent_granted_at || null,
+  };
 }
 
 async function handleVerify(req, res) {
@@ -159,15 +195,34 @@ async function handleVerify(req, res) {
               : 'Invalid code.';
     return json(res, 400, { error: msg });
   }
-  const user = await db.findUser(body.email);
+  let user = await db.findUser(body.email);
   if (!user) return json(res, 500, { error: 'User not found.' });
   await db.markVerified(user.id);
+
+  // Apply any first-signup metadata that the user sent on /signup. Done after
+  // verification so an attacker who guesses an email can't poison a real
+  // user's age / state / link.
+  const meta = pendingSignupMeta.get(user.email);
+  if (meta) {
+    pendingSignupMeta.delete(user.email);
+    if (meta.age != null || meta.state != null) {
+      user = await db.updateUserProfile(user.id, { age: meta.age, state: meta.state }) || user;
+    }
+    if (meta.linkCode) {
+      const linked = await db.createLinkFromCode(user.id, meta.linkCode);
+      if (linked && linked.ok) {
+        user = await db.getUser(user.id) || user;
+      }
+    }
+  }
+
   const token = await db.createSession(user.id);
+  await db.logActivity(user.id, 'signin', {});
   res.writeHead(200, {
     'Content-Type': 'application/json',
     'Set-Cookie': sessionCookieHeader(token)
   });
-  res.end(JSON.stringify({ ok: true, user: { id: user.id, email: user.email, role: user.role || 'student' } }));
+  res.end(JSON.stringify({ ok: true, user: userPublic(user) }));
 }
 
 async function handleLogout(req, res) {
@@ -183,7 +238,50 @@ async function handleLogout(req, res) {
 async function handleMe(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
-  json(res, 200, { user: { id: u.id, email: u.email, role: u.role || 'student' } });
+  // Add linked parents/students so the client can render the dashboard.
+  const links = u.role === 'parent'
+    ? await db.listLinkedStudents(u.id)
+    : await db.listLinkedParents(u.id);
+  json(res, 200, { user: userPublic(u), links: links.map(userPublic) });
+}
+
+async function handleUpdateProfile(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body) return json(res, 400, { error: 'Bad payload.' });
+  const updated = await db.updateUserProfile(u.id, {
+    age: typeof body.age === 'number' ? body.age : null,
+    state: typeof body.state === 'string' ? body.state : null,
+  });
+  json(res, 200, { user: userPublic(updated || u) });
+}
+
+async function handleCreateLink(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  const code = body && body.linkCode;
+  if (!code) return json(res, 400, { error: 'Link code required.' });
+  const result = await db.createLinkFromCode(u.id, code);
+  if (!result.ok) {
+    const msg = result.reason === 'invalid-code' ? 'That code does not match any account.'
+              : result.reason === 'self' ? 'You can’t link to yourself.'
+              : result.reason === 'same-role' ? 'Both accounts have the same role. A link must be between a student and a parent.'
+              : 'Could not create the link.';
+    return json(res, 400, { error: msg });
+  }
+  await db.logActivity(u.id, 'link_created', { linkId: result.link.id });
+  json(res, 200, { ok: true, link: result.link });
+}
+
+async function handleDeleteLink(req, res, linkId) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const removed = await db.deleteLink(linkId, u.id);
+  if (!removed) return json(res, 404, { error: 'Link not found.' });
+  await db.logActivity(u.id, 'link_removed', { linkId });
+  json(res, 200, { ok: true });
 }
 
 // ---------- Progress routes ----------
@@ -200,6 +298,85 @@ async function handleSaveProgress(req, res) {
   if (!body || typeof body.key !== 'string') return json(res, 400, { error: 'Bad payload.' });
   await db.setProgress(u.id, body.key, body.data);
   json(res, 200, { ok: true });
+}
+
+// ---------- Activity & quiz-attempt routes ----------
+async function handleLogQuizAttempt(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.courseId !== 'string' || typeof body.bookId !== 'string'
+    || typeof body.sectionIdx !== 'number' || typeof body.score !== 'number'
+    || typeof body.total !== 'number' || typeof body.passed !== 'boolean') {
+    return json(res, 400, { error: 'Bad payload.' });
+  }
+  const row = await db.logQuizAttempt(u.id, body);
+  json(res, 200, { ok: true, attempt: row });
+}
+
+async function handleGetMyQuizAttempts(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const attempts = await db.listQuizAttempts(u.id);
+  json(res, 200, { attempts });
+}
+
+async function handleGetMyActivity(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const activity = await db.listActivity(u.id);
+  json(res, 200, { activity });
+}
+
+async function handleGetMyWeakSections(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const sections = await db.listWeakSections(u.id);
+  json(res, 200, { sections });
+}
+
+// ---------- Parent dashboard ----------
+function isParentOnly(u) {
+  return u && u.role === 'parent';
+}
+
+async function handleListLinkedStudents(req, res) {
+  const u = await currentUser(req);
+  if (!u || !isParentOnly(u)) return json(res, 403, { error: 'Parent accounts only.' });
+  const students = await db.listLinkedStudents(u.id);
+  json(res, 200, { students: students.map(s => ({ ...userPublic(s), link_status: s.link_status, linked_at: s.linked_at })) });
+}
+
+async function requireLinkedStudent(req, res, studentId) {
+  const u = await currentUser(req);
+  if (!u || !isParentOnly(u)) { json(res, 403, { error: 'Parent accounts only.' }); return null; }
+  const ok = await db.isParentOfStudent(u.id, studentId);
+  if (!ok) { json(res, 403, { error: 'Not authorised for this student.' }); return null; }
+  return u;
+}
+
+async function handleStudentActivity(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const activity = await db.listActivity(studentId);
+  json(res, 200, { activity });
+}
+
+async function handleStudentQuizAttempts(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const attempts = await db.listQuizAttempts(studentId);
+  json(res, 200, { attempts });
+}
+
+async function handleStudentWeakSections(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const sections = await db.listWeakSections(studentId);
+  json(res, 200, { sections });
+}
+
+async function handleStudentProgress(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const progress = await db.getAllProgress(studentId);
+  json(res, 200, { progress });
 }
 
 // ---------- Claude proxy ----------
@@ -276,9 +453,32 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/auth/verify' && req.method === 'POST') return handleVerify(req, res);
     if (url === '/api/auth/logout' && req.method === 'POST') return handleLogout(req, res);
     if (url === '/api/auth/me' && req.method === 'GET') return handleMe(req, res);
+    // Profile, links
+    if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
+    if (url === '/api/me/links' && req.method === 'POST') return handleCreateLink(req, res);
+    if (url.startsWith('/api/me/links/') && req.method === 'DELETE') {
+      return handleDeleteLink(req, res, url.slice('/api/me/links/'.length));
+    }
     // Progress
     if (url === '/api/progress' && req.method === 'GET') return handleGetAllProgress(req, res);
     if (url === '/api/progress' && req.method === 'POST') return handleSaveProgress(req, res);
+    // Activity + quiz attempts (own)
+    if (url === '/api/me/quiz-attempts' && req.method === 'POST') return handleLogQuizAttempt(req, res);
+    if (url === '/api/me/quiz-attempts' && req.method === 'GET') return handleGetMyQuizAttempts(req, res);
+    if (url === '/api/me/activity' && req.method === 'GET') return handleGetMyActivity(req, res);
+    if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
+    // Parent dashboard
+    if (url === '/api/parent/students' && req.method === 'GET') return handleListLinkedStudents(req, res);
+    {
+      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress)$/);
+      if (m && req.method === 'GET') {
+        const [, studentId, kind] = m;
+        if (kind === 'activity') return handleStudentActivity(req, res, studentId);
+        if (kind === 'quiz-attempts') return handleStudentQuizAttempts(req, res, studentId);
+        if (kind === 'weak-sections') return handleStudentWeakSections(req, res, studentId);
+        if (kind === 'progress') return handleStudentProgress(req, res, studentId);
+      }
+    }
     // Claude proxy
     if (url.startsWith('/api/claude')) return proxyClaude(req, res);
     // Static

@@ -963,6 +963,25 @@ function finishQuiz() {
   const scores = loadScores();
   scores[sKey(book.id, sIdx)] = { correct, total, passed, when: Date.now() };
   saveScores(scores);
+  // Fire-and-forget: log this attempt server-side. Failures here are silent
+  // (the user's localStorage progress is the canonical UX state; the server
+  // record powers parent dashboards and analytics).
+  const sectionKind = (typeof sIdx === 'number') ? 'section' : (sIdx === 'cum' ? 'cumulative' : 'final');
+  const sectionIdxNum = (typeof sIdx === 'number') ? sIdx : 0;
+  fetch('/api/me/quiz-attempts', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      courseId: COURSE.id,
+      bookId: book.id,
+      sectionIdx: sectionIdxNum,
+      sectionKind,
+      score: correct,
+      total,
+      passed,
+    }),
+  }).catch(() => { /* ignore — best-effort */ });
   const missedIdx = answers.map((a, i) => a.correct ? -1 : i).filter(i => i >= 0);
 
   const detail = document.getElementById('detail');

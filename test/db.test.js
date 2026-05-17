@@ -120,3 +120,95 @@ test('markVerified flips the verified flag', async () => {
 test('the active db backend is jsonfile (DATABASE_URL is unset for tests)', () => {
   assert.equal(db.backend, 'jsonfile');
 });
+
+// ---------- Linking ----------
+
+test('every new user gets a unique 8-char link_code', async () => {
+  const a = await db.upsertUser('linktest1@example.com');
+  const b = await db.upsertUser('linktest2@example.com');
+  assert.match(a.link_code, /^[A-HJ-NP-Z2-9]{8}$/);
+  assert.match(b.link_code, /^[A-HJ-NP-Z2-9]{8}$/);
+  assert.notEqual(a.link_code, b.link_code);
+});
+
+test('createLinkFromCode connects a parent to a student and grants consent', async () => {
+  const student = await db.upsertUser('kid1@example.com', 'student');
+  await db.updateUserProfile(student.id, { age: 10, state: 'CA' });
+  const refreshed = await db.getUser(student.id);
+  assert.equal(refreshed.consent_required, true);
+  assert.equal(refreshed.consent_granted_at, null);
+
+  const parent = await db.upsertUser('mom1@example.com', 'parent');
+  const result = await db.createLinkFromCode(parent.id, student.link_code);
+  assert.equal(result.ok, true);
+
+  const after = await db.getUser(student.id);
+  assert.ok(after.consent_granted_at, 'consent should be granted once a parent links');
+
+  const linked = await db.listLinkedStudents(parent.id);
+  assert.equal(linked.length, 1);
+  assert.equal(linked[0].id, student.id);
+});
+
+test('createLinkFromCode rejects same-role and self links', async () => {
+  const studentA = await db.upsertUser('studentA@example.com', 'student');
+  const studentB = await db.upsertUser('studentB@example.com', 'student');
+  const same = await db.createLinkFromCode(studentA.id, studentB.link_code);
+  assert.equal(same.ok, false);
+  assert.equal(same.reason, 'same-role');
+
+  const self = await db.createLinkFromCode(studentA.id, studentA.link_code);
+  assert.equal(self.ok, false);
+  assert.equal(self.reason, 'self');
+});
+
+test('isParentOfStudent enforces authorisation correctly', async () => {
+  const student = await db.upsertUser('iso-student@example.com', 'student');
+  const parent = await db.upsertUser('iso-parent@example.com', 'parent');
+  const stranger = await db.upsertUser('iso-stranger@example.com', 'parent');
+  await db.createLinkFromCode(parent.id, student.link_code);
+  assert.equal(await db.isParentOfStudent(parent.id, student.id), true);
+  assert.equal(await db.isParentOfStudent(stranger.id, student.id), false);
+});
+
+// ---------- Activity log + quiz attempts ----------
+
+test('logQuizAttempt records the attempt and an activity entry', async () => {
+  const u = await db.upsertUser('quizzer1@example.com', 'student');
+  await db.logQuizAttempt(u.id, {
+    courseId: 'algebra', bookId: 'b1', sectionIdx: 0,
+    score: 8, total: 10, passed: true,
+  });
+  const attempts = await db.listQuizAttempts(u.id);
+  assert.equal(attempts.length, 1);
+  assert.equal(attempts[0].score, 8);
+  assert.equal(attempts[0].passed, true);
+
+  const activity = await db.listActivity(u.id);
+  assert.ok(activity.some(a => a.kind === 'quiz_pass'));
+});
+
+test('listWeakSections surfaces sections failed >= the threshold', async () => {
+  const u = await db.upsertUser('weakstudent@example.com', 'student');
+  // Two failures on the same section; one on another.
+  for (let i = 0; i < 2; i++) {
+    await db.logQuizAttempt(u.id, { courseId: 'algebra', bookId: 'b1', sectionIdx: 0, score: 4, total: 10, passed: false });
+  }
+  await db.logQuizAttempt(u.id, { courseId: 'algebra', bookId: 'b2', sectionIdx: 1, score: 5, total: 10, passed: false });
+
+  const weak = await db.listWeakSections(u.id, 2);
+  assert.equal(weak.length, 1);
+  assert.equal(weak[0].book_id, 'b1');
+  assert.equal(Number(weak[0].failures), 2);
+});
+
+// ---------- Profile / consent helper ----------
+
+test('consent helper returns true for ages under 13 and false otherwise', () => {
+  const fn = require('../db-jsonfile')._consentRequiredForAge;
+  assert.equal(fn(8), true);
+  assert.equal(fn(12), true);
+  assert.equal(fn(13), false);
+  assert.equal(fn(45), false);
+  assert.equal(fn(null), false);
+});
