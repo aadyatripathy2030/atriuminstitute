@@ -127,11 +127,26 @@
     el('parentDetailName').textContent = student.email;
     const meta = [];
     if (student.age) meta.push(`Age ${student.age}`);
-    if (student.state) meta.push(student.state);
+    if (student.country || student.state) meta.push(student.country || student.state);
     if (student.consent_required) {
       meta.push(student.consent_granted_at ? 'Consent granted' : 'Awaiting consent');
     }
     el('parentDetailMeta').textContent = meta.join(' · ');
+
+    // Make sure there's a summary container at the top of the detail
+    // view. Re-uses the existing parentStudentDetail layout.
+    const detailRoot = el('parentStudentDetail');
+    let summaryEl = el('parentDetailSummary');
+    if (!summaryEl) {
+      summaryEl = document.createElement('section');
+      summaryEl.id = 'parentDetailSummary';
+      summaryEl.className = 'parent-section parent-360-summary';
+      // Insert just after the hero, before "Weak topics".
+      const firstSection = detailRoot.querySelector('.parent-section');
+      if (firstSection) detailRoot.insertBefore(summaryEl, firstSection);
+      else detailRoot.appendChild(summaryEl);
+    }
+    summaryEl.innerHTML = '<div class="parent-empty">Loading…</div>';
 
     const weakEl = el('parentDetailWeak');
     const quizEl = el('parentDetailQuizzes');
@@ -141,12 +156,72 @@
     activityEl.innerHTML = '<div class="parent-empty">Loading…</div>';
 
     try {
-      const [{ sections }, { attempts }, { activity }] = await Promise.all([
+      const [profileR, sectionsR, attemptsR, activityR, planR] = await Promise.all([
+        fetchJSON(`/api/parent/students/${student.id}/profile`).catch(() => ({})),
         fetchJSON(`/api/parent/students/${student.id}/weak-sections`),
         fetchJSON(`/api/parent/students/${student.id}/quiz-attempts`),
         fetchJSON(`/api/parent/students/${student.id}/activity`),
+        fetchJSON(`/api/parent/students/${student.id}/study-plan`).catch(() => ({})),
       ]);
+      const profile = profileR.profile || {};
+      const userInfo = profileR.user || {};
+      const sections = sectionsR.sections || [];
+      const attempts = attemptsR.attempts || [];
+      const activity = activityR.activity || [];
+      const plan = planR.plan || null;
 
+      // ---------- 360 summary at top ----------
+      const totalQuizzes = attempts.length;
+      const passed = attempts.filter(a => a.passed).length;
+      const passRate = totalQuizzes ? Math.round((passed / totalQuizzes) * 100) : null;
+      const lastActivity = activity[0] ? activity[0].created_at : (attempts[0] ? attempts[0].completed_at : null);
+      const lessonsStarted = activity.filter(a => a.kind === 'lesson_started').length;
+      const studySessions = activity.filter(a => a.kind === 'study_started').length;
+      const hintsUsed = activity.filter(a => a.kind === 'hint_used').length;
+      const signins = activity.filter(a => a.kind === 'signin').length;
+
+      const profileLines = [];
+      if (profile.display_name) profileLines.push(`<strong>${escapeHTML(profile.display_name)}</strong>`);
+      if (profile.school_name) profileLines.push(`School: ${escapeHTML(profile.school_name)}`);
+      if (profile.grade_level) profileLines.push(`Grade: ${escapeHTML(profile.grade_level)}`);
+      if (userInfo.age) profileLines.push(`Age: ${userInfo.age}`);
+      if (userInfo.country) profileLines.push(`Country: ${escapeHTML(userInfo.country)}`);
+      if (profile.subjects && profile.subjects.length) profileLines.push(`Subjects: ${profile.subjects.map(escapeHTML).join(', ')}`);
+      if (profile.study_goal) profileLines.push(`Goal (own words): "${escapeHTML(profile.study_goal)}"`);
+
+      const planLine = plan
+        ? `<div class="parent-summary-plan">📋 <strong>Study plan:</strong> ${escapeHTML(plan.goal_text || '')}${plan.target_date ? ` · target ${new Date(plan.target_date).toLocaleDateString()}` : ''}</div>`
+        : '';
+
+      summaryEl.innerHTML = `
+        <h2>At a glance</h2>
+        <div class="parent-summary-grid">
+          <div class="parent-summary-card">
+            <div class="parent-summary-label">Quizzes taken</div>
+            <div class="parent-summary-value">${totalQuizzes}</div>
+            <div class="parent-summary-sub">${passed} passed${passRate != null ? ` · ${passRate}% pass rate` : ''}</div>
+          </div>
+          <div class="parent-summary-card">
+            <div class="parent-summary-label">Max lessons</div>
+            <div class="parent-summary-value">${lessonsStarted}</div>
+            <div class="parent-summary-sub">${studySessions} full Study sessions</div>
+          </div>
+          <div class="parent-summary-card">
+            <div class="parent-summary-label">Hints used</div>
+            <div class="parent-summary-value">${hintsUsed}</div>
+            <div class="parent-summary-sub">Times asked Max for a nudge</div>
+          </div>
+          <div class="parent-summary-card">
+            <div class="parent-summary-label">Sign-ins</div>
+            <div class="parent-summary-value">${signins}</div>
+            <div class="parent-summary-sub">Last active: ${lastActivity ? fmtDate(lastActivity) : '—'}</div>
+          </div>
+        </div>
+        ${profileLines.length ? `<div class="parent-summary-profile">${profileLines.join(' · ')}</div>` : ''}
+        ${planLine}
+      `;
+
+      // ---------- Existing detail sections ----------
       weakEl.innerHTML = sections.length
         ? sections.map(s => `
             <div class="parent-detail-row">
@@ -159,8 +234,8 @@
       quizEl.innerHTML = attempts.length
         ? attempts.slice(0, 25).map(a => `
             <div class="parent-detail-row">
-              <div>${escapeHTML(a.course_id)} · ${escapeHTML(a.book_id)} · section ${a.section_idx + 1}${a.section_kind !== 'section' ? ` (${escapeHTML(a.section_kind)})` : ''}</div>
-              <div class="${a.passed ? 'ok' : 'warn'}">${a.score}/${a.total} · ${a.passed ? 'passed' : 'did not pass'}</div>
+              <div>${escapeHTML(a.course_id)} · ${escapeHTML(a.book_id)} · section ${a.section_idx + 1}${a.section_kind !== 'section' ? ` (${escapeHTML(a.section_kind)})` : ''}${a.attempt_number > 1 ? ` · attempt ${a.attempt_number}` : ''}</div>
+              <div class="${a.passed ? 'ok' : 'warn'}">${a.score}/${a.total} · ${a.passed ? 'passed' : 'did not pass'}${a.duration_seconds ? ` · ${Math.round(a.duration_seconds / 60)} min` : ''}</div>
               <div class="muted">${fmtDate(a.completed_at)}</div>
             </div>
           `).join('')
@@ -171,6 +246,7 @@
         : '<div class="parent-empty">No activity yet for this student.</div>';
     } catch (e) {
       const msg = `<div class="parent-empty err">Could not load: ${escapeHTML(e.message)}</div>`;
+      summaryEl.innerHTML = msg;
       weakEl.innerHTML = msg; quizEl.innerHTML = msg; activityEl.innerHTML = msg;
     }
   }

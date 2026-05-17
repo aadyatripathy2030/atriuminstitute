@@ -3304,3 +3304,74 @@ body > .site-footer {
   padding-left: 24px;
   padding-right: 24px;
 }
+
+/* Admin page: stat cards + tables. Re-uses .token-card / .token-table. */
+.admin-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.admin-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-badge.admin { background: #fff4e0; color: #8c5a00; border: 1px solid #f5d99a; }
+.admin-badge.ok { background: #e6f4ea; color: #1b6b3a; border: 1px solid #b8dec6; }
+.admin-badge.unverif { background: #fdecec; color: #b00020; border: 1px solid #f3c2c8; }
+.admin-badge.gated { background: #fff9e6; color: #6b4d00; border: 1px solid #f5d99a; }
+
+/* Parent dashboard "at a glance" 360 summary. */
+.parent-360-summary { margin-top: 16px; }
+.parent-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.parent-summary-card {
+  background: var(--paper, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.parent-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted, #6b7280);
+  margin-bottom: 4px;
+}
+.parent-summary-value {
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text, #1e2238);
+}
+.parent-summary-sub {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  margin-top: 4px;
+}
+.parent-summary-profile {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.parent-summary-plan {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #fff9e6;
+  border: 1px solid #f5d99a;
+  border-radius: 8px;
+  font-size: 13px;
+}

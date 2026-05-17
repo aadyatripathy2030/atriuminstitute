@@ -458,6 +458,32 @@
   </section>
 </div>
 
+<!-- Admin page. Intentionally not linked from any menu. Admins reach it
+     via the URL hash #admin. Hidden for everyone except users whose
+     users.is_admin is true. -->
+<div id="adminPage" class="activity-page hidden">
+  <button class="back-btn" id="adminBack">← Back</button>
+  <header class="activity-hero">
+    <h1>Admin</h1>
+    <p class="activity-sub">Cross-account operational view. Visible only to admins.</p>
+  </header>
+  <section class="admin-cards" id="adminCards"></section>
+  <section class="parent-section">
+    <h2>Users</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminUsersTable"><thead><tr>
+      <th>Email</th><th>Role</th><th>Age</th><th>Country</th><th>Joined</th>
+      <th class="num">Quizzes</th><th class="num">Passed</th><th class="num">Activity</th>
+      <th class="num">Cost</th><th>Status</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+  <section class="parent-section">
+    <h2>Recent activity (cross-user)</h2>
+    <div class="token-table-wrap"><table class="token-table" id="adminActivityTable"><thead><tr>
+      <th>When</th><th>User</th><th>Kind</th><th>Meta</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+</div>
+
 <!-- Token Cost page (per-user view of own AI usage). -->
 <div id="tokenUsagePage" class="activity-page hidden">
   <button class="back-btn" id="tokenUsageBack">← Back</button>
@@ -943,6 +969,7 @@
 <script src="profile.js"></script>
 <script src="activity.js"></script>
 <script src="tokens.js"></script>
+<script src="admin.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 </body>

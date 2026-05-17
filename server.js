@@ -580,6 +580,19 @@ async function handleStudentProgress(req, res, studentId) {
   json(res, 200, { progress });
 }
 
+async function handleStudentProfile(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const profile = await db.getStudentProfile(studentId);
+  const user = await db.getUser(studentId);
+  json(res, 200, { profile, user: userPublic(user) });
+}
+
+async function handleStudentStudyPlan(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const plan = await db.getStudyPlan(studentId);
+  json(res, 200, { plan });
+}
+
 // ---------- Goal-based study plan ----------
 
 async function handleGetStudyPlan(req, res) {
@@ -1195,13 +1208,15 @@ const server = http.createServer(async (req, res) => {
     // Parent dashboard
     if (url === '/api/parent/students' && req.method === 'GET') return handleListLinkedStudents(req, res);
     {
-      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress|authorise-reminders)$/);
+      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress|profile|study-plan|authorise-reminders)$/);
       if (m) {
         const [, studentId, kind] = m;
         if (req.method === 'GET' && kind === 'activity') return handleStudentActivity(req, res, studentId);
         if (req.method === 'GET' && kind === 'quiz-attempts') return handleStudentQuizAttempts(req, res, studentId);
         if (req.method === 'GET' && kind === 'weak-sections') return handleStudentWeakSections(req, res, studentId);
         if (req.method === 'GET' && kind === 'progress') return handleStudentProgress(req, res, studentId);
+        if (req.method === 'GET' && kind === 'profile') return handleStudentProfile(req, res, studentId);
+        if (req.method === 'GET' && kind === 'study-plan') return handleStudentStudyPlan(req, res, studentId);
         if (req.method === 'POST' && kind === 'authorise-reminders') return handleParentAuthoriseReminders(req, res, studentId);
       }
     }

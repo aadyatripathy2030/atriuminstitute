@@ -61,7 +61,7 @@
     'courses-home', 'home', 'detail', 'study', 'onboard',
     'about', 'contact', 'privacy', 'terms',
     'parentHome', 'parentStudentDetail',
-    'profilePage', 'activityPage', 'tokenUsagePage',
+    'profilePage', 'activityPage', 'tokenUsagePage', 'adminPage',
   ];
   function hideAllTopLevel() {
     for (const id of TOP_LEVEL_IDS) hide(el(id));
