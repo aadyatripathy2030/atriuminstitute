@@ -157,9 +157,22 @@
       }
 
       case 'quiz_question_answered': {
+        const verdict = meta.correct === true ? 'got it right'
+                       : meta.correct === false ? 'got it wrong'
+                       : null;
+        let title;
+        if (meta.questionNumber != null) {
+          const total = meta.questionTotal ? ` of ${meta.questionTotal}` : '';
+          title = `Answered question ${meta.questionNumber}${total}`;
+          if (meta.sectionTitle) title += ` on ${meta.sectionTitle}`;
+          if (verdict) title += ` — ${verdict}`;
+        } else {
+          title = `Answered a quiz question${meta.sectionTitle ? ` on ${meta.sectionTitle}` : ''}`;
+          if (verdict) title += ` — ${verdict}`;
+        }
         return {
-          icon: '✍️',
-          title: `Answered a quiz question${meta.sectionTitle ? ` on ${meta.sectionTitle}` : ''}`,
+          icon: meta.correct === true ? '✅' : meta.correct === false ? '❌' : '✍️',
+          title,
           detail: '',
           when,
         };

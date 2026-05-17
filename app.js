@@ -970,6 +970,9 @@ async function submitAnswer() {
       bookId: QUIZ.book.id,
       sectionIdx: typeof QUIZ.sIdx === 'number' ? QUIZ.sIdx : 0,
       sectionTitle: QUIZ.section && QUIZ.section.title,
+      questionNumber: idx + 1,
+      questionTotal: QUIZ.section && QUIZ.section.questions ? QUIZ.section.questions.length : null,
+      correct: !!isCorrect,
     });
   }
 

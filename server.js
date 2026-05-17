@@ -456,15 +456,17 @@ async function handleLogClientActivity(req, res) {
     return json(res, 400, { error: 'Bad payload.' });
   }
   const meta = body.meta && typeof body.meta === 'object' ? body.meta : {};
-  // Restrict meta to a small set of known string keys so the DB doesn't fill
-  // up with arbitrary nested JSON.
+  // Restrict meta to a small set of known keys so the DB doesn't fill up
+  // with arbitrary nested JSON. Strings + numbers are cap-truncated; the
+  // `correct` key is the only allowed boolean.
   const safeMeta = {};
-  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'topic']) {
+  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'topic', 'questionNumber', 'questionTotal']) {
     if (k in meta && (typeof meta[k] === 'string' || typeof meta[k] === 'number')) {
       const v = meta[k];
       safeMeta[k] = typeof v === 'string' ? v.slice(0, 200) : v;
     }
   }
+  if (typeof meta.correct === 'boolean') safeMeta.correct = meta.correct;
   await db.logActivity(u.id, body.kind, safeMeta);
   json(res, 200, { ok: true });
 }
