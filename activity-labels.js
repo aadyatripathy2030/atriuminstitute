@@ -146,6 +146,25 @@
           when,
         };
 
+      case 'quiz_started': {
+        const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
+        return {
+          icon: '▶️',
+          title: `Started a quiz: ${meta.sectionTitle || 'a section'}`,
+          detail: courseTitle && meta.bookId ? `${courseTitle} → ${meta.bookId}` : '',
+          when,
+        };
+      }
+
+      case 'quiz_question_answered': {
+        return {
+          icon: '✍️',
+          title: `Answered a quiz question${meta.sectionTitle ? ` on ${meta.sectionTitle}` : ''}`,
+          detail: '',
+          when,
+        };
+      }
+
       case 'link_created':
         return {
           icon: '🔗',

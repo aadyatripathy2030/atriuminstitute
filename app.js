@@ -868,6 +868,14 @@ function startQuiz(bookId, sIdx) {
     answers: section.questions.map(() => ({ user: '', correct: null, aiNote: '' })),
     startedAt: new Date().toISOString(),
   };
+  if (typeof logUserActivity === 'function') {
+    logUserActivity('quiz_started', {
+      courseId: COURSE.id,
+      bookId: book.id,
+      sectionIdx: sIdx,
+      sectionTitle: section && section.title,
+    });
+  }
   renderQuizQuestion();
 }
 
@@ -952,6 +960,18 @@ async function submitAnswer() {
 
   answers[idx].correct = isCorrect;
   answers[idx].aiNote = aiNote;
+
+  // Server-side log for each graded question so partial quiz attempts
+  // appear in the activity timeline even if the student leaves before
+  // finishing the whole quiz.
+  if (typeof logUserActivity === 'function' && QUIZ && QUIZ.book) {
+    logUserActivity('quiz_question_answered', {
+      courseId: COURSE.id,
+      bookId: QUIZ.book.id,
+      sectionIdx: typeof QUIZ.sIdx === 'number' ? QUIZ.sIdx : 0,
+      sectionTitle: QUIZ.section && QUIZ.section.title,
+    });
+  }
 
   reveal.innerHTML = `
     <div class="reveal-block ${isCorrect ? 'good' : 'bad'}">

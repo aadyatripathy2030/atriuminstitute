@@ -443,7 +443,10 @@ async function handleLogQuizAttempt(req, res) {
 
 // Whitelisted client-emitted activity kinds. Server-emitted kinds (signin,
 // quiz_pass, etc.) are not accepted here.
-const CLIENT_ACTIVITY_KINDS = new Set(['lesson_started', 'study_started', 'chat_topic_started']);
+const CLIENT_ACTIVITY_KINDS = new Set([
+  'lesson_started', 'study_started', 'chat_topic_started',
+  'quiz_started', 'quiz_question_answered',
+]);
 
 async function handleLogClientActivity(req, res) {
   const u = await currentUser(req);
@@ -529,6 +532,21 @@ async function handleStudentProgress(req, res, studentId) {
   if (!await requireLinkedStudent(req, res, studentId)) return;
   const progress = await db.getAllProgress(studentId);
   json(res, 200, { progress });
+}
+
+// ---------- Token usage (own) ----------
+async function handleGetMyTokenUsageSummary(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const summary = await db.summariseAiUsage({ userId: u.id });
+  json(res, 200, summary);
+}
+
+async function handleGetMyTokenUsage(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const rows = await db.listAiUsage({ userId: u.id, limit: 500 });
+  json(res, 200, { rows });
 }
 
 // ---------- Reminder cron + unsubscribe ----------
@@ -852,6 +870,8 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/activity' && req.method === 'POST') return handleLogClientActivity(req, res);
     if (url === '/api/me/activity' && req.method === 'GET') return handleGetMyActivity(req, res);
     if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
+    if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
+    if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
     // Parent dashboard
     if (url === '/api/parent/students' && req.method === 'GET') return handleListLinkedStudents(req, res);
     {

@@ -59,6 +59,7 @@
         <div class="nav-menu-items hidden" id="myDetailsMenu" role="menu">
           <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
           <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
+          <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <div class="nav-menu-footer">
             <div class="nav-menu-label">Logged in as</div>
@@ -494,6 +495,44 @@
   </section>
 </div>
 
+<!-- Token Cost page (per-user view of own AI usage). -->
+<div id="tokenUsagePage" class="activity-page hidden">
+  <button class="back-btn" id="tokenUsageBack">← Back</button>
+  <header class="activity-hero">
+    <h1>Token Cost</h1>
+    <p class="activity-sub">Your Claude API usage and what it cost — only you can see this.</p>
+  </header>
+
+  <section class="token-cards" id="tokenCards">
+    <div class="token-card"><div class="token-card-label">Today</div><div class="token-card-value" id="tokTodayCost">—</div><div class="token-card-sub" id="tokTodayCalls"></div></div>
+    <div class="token-card"><div class="token-card-label">This month</div><div class="token-card-value" id="tokMonthCost">—</div><div class="token-card-sub" id="tokMonthCalls"></div></div>
+    <div class="token-card"><div class="token-card-label">All time</div><div class="token-card-value" id="tokAllCost">—</div><div class="token-card-sub" id="tokAllCalls"></div></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>By intent</h2>
+    <div class="token-table-wrap"><table class="token-table" id="tokByIntent"><thead><tr><th>Intent</th><th class="num">Calls</th><th class="num">Cost (USD)</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>By model</h2>
+    <div class="token-table-wrap"><table class="token-table" id="tokByModel"><thead><tr><th>Model</th><th class="num">Calls</th><th class="num">Input tokens</th><th class="num">Output tokens</th><th class="num">Cost (USD)</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>By day (last 30)</h2>
+    <div class="token-table-wrap"><table class="token-table" id="tokByDay"><thead><tr><th>Day</th><th class="num">Calls</th><th class="num">Cost (USD)</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="parent-section">
+    <div class="section-heading">
+      <h2>Recent calls (click a row to expand)</h2>
+      <div class="sub">Each call's exact input / output / cached tokens and computed cost.</div>
+    </div>
+    <div class="token-table-wrap"><table class="token-table token-table-detail" id="tokRecent"><thead><tr><th>When</th><th>Intent</th><th>Model</th><th class="num">Input</th><th class="num">Cached</th><th class="num">Output</th><th class="num">Cost</th></tr></thead><tbody></tbody></table></div>
+  </section>
+</div>
+
 <!-- Profile page (student or parent — different fields per role) -->
 <div id="profilePage" class="profile-page hidden">
   <button class="back-btn" id="profileBack">← Back</button>
@@ -902,6 +941,7 @@
 <script src="parent.js"></script>
 <script src="profile.js"></script>
 <script src="activity.js"></script>
+<script src="tokens.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 </body>
