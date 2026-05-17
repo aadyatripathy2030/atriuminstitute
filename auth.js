@@ -52,13 +52,24 @@
   function show(node) { node && node.classList.remove('hidden'); }
   function hide(node) { node && node.classList.add('hidden'); }
 
+  // Every top-level "page" we can show. Listing them here lets every
+  // navigation entry point (logo click, showApp, showLanding, parent
+  // dashboard, etc.) cleanly hide everything else without each handler
+  // needing its own list.
+  const TOP_LEVEL_IDS = [
+    'landing', 'authGate', 'consentGate',
+    'courses-home', 'home', 'detail',
+    'about', 'contact', 'privacy', 'terms',
+    'parentHome', 'parentStudentDetail',
+    'profilePage', 'activityPage', 'tokenUsagePage',
+  ];
+  function hideAllTopLevel() {
+    for (const id of TOP_LEVEL_IDS) hide(el(id));
+  }
+
   function showLanding() {
+    hideAllTopLevel();
     show(el('landing'));
-    hide(el('authGate'));
-    hide(el('courses-home'));
-    hide(el('home'));
-    hide(el('detail'));
-    hide(el('about'));
   }
 
   function showAuthGate(initialMode) {
@@ -172,8 +183,7 @@
   }
 
   function showApp() {
-    hide(el('landing'));
-    hide(el('authGate'));
+    hideAllTopLevel();
     show(el('courses-home'));
     if (typeof renderCourses === 'function') renderCourses();
     if (typeof renderProgressPill === 'function') renderProgressPill();

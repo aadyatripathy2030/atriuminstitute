@@ -185,3 +185,27 @@ create index if not exists idx_student_profiles_reminders
 create index if not exists idx_parent_profiles_digests
   on parent_profiles (weekly_digest_enabled, last_digest_sent_at)
   where weekly_digest_enabled = true;
+
+-- ------------------------------------------------------------------
+-- AI token-cost observability. Every Claude API call writes one row.
+-- Admins can query / aggregate to see spend per intent / per user.
+-- ------------------------------------------------------------------
+
+create table if not exists ai_usage (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users (id) on delete set null,
+  user_email text,
+  intent text,
+  model text not null,
+  input_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  cache_read_tokens integer not null default 0,
+  cache_creation_tokens integer not null default 0,
+  cost_usd numeric(12, 6) not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_ai_usage_created_at on ai_usage (created_at desc);
+create index if not exists idx_ai_usage_user on ai_usage (user_id);
+create index if not exists idx_ai_usage_intent on ai_usage (intent);
+create index if not exists idx_ai_usage_model on ai_usage (model);

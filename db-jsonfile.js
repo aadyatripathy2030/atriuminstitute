@@ -23,6 +23,7 @@ function load() {
   if (!Array.isArray(state.activity)) state.activity = [];
   if (!state.studentProfiles) state.studentProfiles = {};
   if (!state.parentProfiles) state.parentProfiles = {};
+  if (!Array.isArray(state.aiUsage)) state.aiUsage = [];
   return state;
 }
 
@@ -588,6 +589,69 @@ async function cleanup() {
   if (state.codes.length !== beforeCodes || state.sessions.length !== beforeSessions) save();
 }
 
+// ---------- AI usage tracking ----------
+async function recordAiUsage(rec) {
+  load();
+  state.aiUsage.push({
+    id: crypto.randomUUID(),
+    user_id: rec.userId || null,
+    user_email: rec.userEmail || null,
+    intent: rec.intent || null,
+    model: rec.model || 'unknown',
+    input_tokens: rec.inputTokens | 0,
+    output_tokens: rec.outputTokens | 0,
+    cache_read_tokens: rec.cacheReadTokens | 0,
+    cache_creation_tokens: rec.cacheCreationTokens | 0,
+    cost_usd: Number(rec.costUsd) || 0,
+    created_at: new Date().toISOString(),
+  });
+  save();
+}
+
+async function listAiUsage(opts = {}) {
+  load();
+  const limit = Math.min(parseInt(opts.limit, 10) || 200, 1000);
+  let rows = state.aiUsage;
+  if (opts.userId) rows = rows.filter(r => r.user_id === opts.userId);
+  return rows.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, limit);
+}
+
+async function summariseAiUsage(opts = {}) {
+  load();
+  let rows = state.aiUsage;
+  if (opts.userId) rows = rows.filter(r => r.user_id === opts.userId);
+  const totals = rows.reduce((acc, r) => {
+    acc.cost += r.cost_usd;
+    acc.input_tokens += r.input_tokens;
+    acc.output_tokens += r.output_tokens;
+    acc.cache_read_tokens += r.cache_read_tokens;
+    acc.cache_creation_tokens += r.cache_creation_tokens;
+    acc.calls += 1;
+    return acc;
+  }, { cost: 0, input_tokens: 0, output_tokens: 0, cache_read_tokens: 0, cache_creation_tokens: 0, calls: 0 });
+  const byIntent = Object.entries(rows.reduce((acc, r) => {
+    const k = r.intent || '(none)';
+    if (!acc[k]) acc[k] = { intent: k, calls: 0, cost: 0 };
+    acc[k].calls++; acc[k].cost += r.cost_usd;
+    return acc;
+  }, {})).map(([, v]) => v).sort((a, b) => b.cost - a.cost);
+  const byModel = Object.entries(rows.reduce((acc, r) => {
+    if (!acc[r.model]) acc[r.model] = { model: r.model, calls: 0, cost: 0, input_tokens: 0, output_tokens: 0 };
+    acc[r.model].calls++;
+    acc[r.model].cost += r.cost_usd;
+    acc[r.model].input_tokens += r.input_tokens;
+    acc[r.model].output_tokens += r.output_tokens;
+    return acc;
+  }, {})).map(([, v]) => v).sort((a, b) => b.cost - a.cost);
+  const byDay = Object.entries(rows.reduce((acc, r) => {
+    const d = r.created_at.slice(0, 10);
+    if (!acc[d]) acc[d] = { day: d, calls: 0, cost: 0 };
+    acc[d].calls++; acc[d].cost += r.cost_usd;
+    return acc;
+  }, {})).map(([, v]) => v).sort((a, b) => b.day.localeCompare(a.day)).slice(0, 30);
+  return { totals, byIntent, byModel, byDay };
+}
+
 module.exports = {
   backend: 'jsonfile',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -601,6 +665,7 @@ module.exports = {
   getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
   setParentAuthorisedReminders, markReminderSent, markDigestSent,
   listReminderCandidates, listDigestCandidates,
+  recordAiUsage, listAiUsage, summariseAiUsage,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

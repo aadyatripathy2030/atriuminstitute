@@ -18,6 +18,31 @@ const db = require('./db');
 const email = require('./email');
 const prompts = require('./prompts');
 
+// Anthropic pricing per million tokens (USD), as of mid-2026. If a model
+// is not listed we charge using Sonnet rates (conservative). Update when
+// Anthropic publishes new pricing.
+const MODEL_PRICING = {
+  'claude-sonnet-4-5-20250929': { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 },
+  'claude-haiku-4-5-20251001': { input: 1, output: 5, cacheWrite: 1.25, cacheRead: 0.10 },
+  'claude-opus-4-7': { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 },
+};
+function pricingFor(model) { return MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-5-20250929']; }
+function computeCost(model, usage) {
+  const p = pricingFor(model);
+  const inT = (usage.input_tokens || 0) - (usage.cache_read_input_tokens || 0) - (usage.cache_creation_input_tokens || 0);
+  const cost = (Math.max(0, inT) * p.input
+              + (usage.cache_creation_input_tokens || 0) * p.cacheWrite
+              + (usage.cache_read_input_tokens || 0) * p.cacheRead
+              + (usage.output_tokens || 0) * p.output) / 1_000_000;
+  return cost;
+}
+
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+function _isAdminEmail(emailStr) {
+  return emailStr && ADMIN_EMAILS.includes(String(emailStr).toLowerCase());
+}
+
 const PORT = process.env.PORT || 8765;
 const ROOT = __dirname;
 const RATE_LIMIT_PER_HOUR = parseInt(process.env.RATE_LIMIT_PER_HOUR, 10) || 30;
@@ -668,13 +693,13 @@ async function proxyClaude(req, res) {
   let bodyStr;
   try { bodyStr = await readBody(req); } catch (_e) { res.writeHead(400); return res.end('bad body'); }
 
-  // Intent-based system prompts. New clients send { intent: 'chat' | ... },
-  // letting the server attach a vetted, prompt-cacheable system prefix. Old
-  // clients still work — if no intent is present we forward the body
-  // unchanged (legacy path; remove once all browsers have refreshed).
   let body;
   try { body = JSON.parse(bodyStr); }
   catch (_e) { return json(res, 400, { error: { message: 'Invalid JSON body.' } }); }
+
+  // Capture intent + model BEFORE we strip them, so we can record usage.
+  const callIntent = (body && typeof body.intent === 'string') ? body.intent : null;
+  const callModel = (body && typeof body.model === 'string') ? body.model : 'unknown';
 
   if (body && body.intent) {
     if (!prompts.KNOWN_INTENTS.includes(body.intent)) {
@@ -686,6 +711,11 @@ async function proxyClaude(req, res) {
     bodyStr = JSON.stringify(body);
   }
 
+  // Look up the calling user so we can attribute token spend.
+  const me = await currentUser(req);
+  const callerUserId = me ? me.id : null;
+  const callerEmail = me ? me.email : null;
+
   const opts = {
     method: 'POST', hostname: 'api.anthropic.com', path: '/v1/messages',
     headers: {
@@ -695,8 +725,79 @@ async function proxyClaude(req, res) {
       'Content-Length': Buffer.byteLength(bodyStr)
     }
   };
-  const upstream = https.request(opts, up => { res.writeHead(up.statusCode, up.headers); up.pipe(res); });
-  upstream.on('error', err => json(res, 502, { error: { message: 'Upstream error: ' + err.message } }));
+
+  const upstream = https.request(opts, up => {
+    res.writeHead(up.statusCode, up.headers);
+    // We replace the simple `up.pipe(res)` with a chunk-by-chunk forwarder
+    // so we can also parse the response for the `usage` field that Anthropic
+    // returns (in the JSON body for non-streaming, and in message_start /
+    // message_delta SSE events for streaming).
+    const isStreaming = String(up.headers['content-type'] || '').includes('text/event-stream');
+    let sseBuf = '';
+    let bodyBuf = '';
+    const usage = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+
+    function ingestSseBlock(block) {
+      const m = block.match(/^data: (.+)$/m);
+      if (!m) return;
+      let evt; try { evt = JSON.parse(m[1]); } catch { return; }
+      if (evt.type === 'message_start' && evt.message && evt.message.usage) {
+        const u = evt.message.usage;
+        usage.input_tokens = u.input_tokens || 0;
+        usage.cache_read_input_tokens = u.cache_read_input_tokens || 0;
+        usage.cache_creation_input_tokens = u.cache_creation_input_tokens || 0;
+        usage.output_tokens = u.output_tokens || 0;
+      } else if (evt.type === 'message_delta' && evt.usage) {
+        if (typeof evt.usage.output_tokens === 'number') usage.output_tokens = evt.usage.output_tokens;
+      }
+    }
+
+    up.on('data', chunk => {
+      res.write(chunk);
+      if (up.statusCode >= 400) return;
+      if (isStreaming) {
+        sseBuf += chunk.toString('utf8');
+        let nl;
+        while ((nl = sseBuf.indexOf('\n\n')) !== -1) {
+          ingestSseBlock(sseBuf.slice(0, nl));
+          sseBuf = sseBuf.slice(nl + 2);
+        }
+      } else {
+        bodyBuf += chunk.toString('utf8');
+      }
+    });
+
+    up.on('end', () => {
+      res.end();
+      if (up.statusCode >= 400) return;
+      if (!isStreaming && bodyBuf) {
+        try {
+          const parsed = JSON.parse(bodyBuf);
+          if (parsed.usage) Object.assign(usage, parsed.usage);
+        } catch { /* tolerate */ }
+      }
+      const totalIn = (usage.input_tokens || 0) + (usage.cache_read_input_tokens || 0) + (usage.cache_creation_input_tokens || 0);
+      if (totalIn > 0 || usage.output_tokens > 0) {
+        const cost = computeCost(callModel, usage);
+        db.recordAiUsage({
+          userId: callerUserId,
+          userEmail: callerEmail,
+          intent: callIntent,
+          model: callModel,
+          inputTokens: usage.input_tokens || 0,
+          outputTokens: usage.output_tokens || 0,
+          cacheReadTokens: usage.cache_read_input_tokens || 0,
+          cacheCreationTokens: usage.cache_creation_input_tokens || 0,
+          costUsd: cost,
+        }).catch(err => console.error('recordAiUsage failed:', err.message));
+      }
+    });
+  });
+
+  upstream.on('error', err => {
+    try { json(res, 502, { error: { message: 'Upstream error: ' + err.message } }); }
+    catch { /* response may already be partly written */ }
+  });
   upstream.write(bodyStr); upstream.end();
 }
 

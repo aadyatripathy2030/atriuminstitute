@@ -531,6 +531,90 @@ async function listDigestCandidates() {
   );
 }
 
+// ---------- AI usage tracking ----------
+async function recordAiUsage(rec) {
+  await q(
+    `insert into ai_usage (user_id, user_email, intent, model, input_tokens, output_tokens,
+                           cache_read_tokens, cache_creation_tokens, cost_usd)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      rec.userId || null,
+      rec.userEmail || null,
+      rec.intent || null,
+      rec.model || 'unknown',
+      rec.inputTokens | 0,
+      rec.outputTokens | 0,
+      rec.cacheReadTokens | 0,
+      rec.cacheCreationTokens | 0,
+      Number(rec.costUsd) || 0,
+    ],
+  );
+}
+
+async function listAiUsage(opts = {}) {
+  const limit = Math.min(parseInt(opts.limit, 10) || 200, 1000);
+  const params = [];
+  let where = '';
+  if (opts.userId) {
+    params.push(opts.userId);
+    where = `where user_id = $${params.length}`;
+  }
+  params.push(limit);
+  return q(
+    `select id, user_id, user_email, intent, model, input_tokens, output_tokens,
+            cache_read_tokens, cache_creation_tokens, cost_usd, created_at
+     from ai_usage ${where} order by created_at desc limit $${params.length}`,
+    params,
+  );
+}
+
+async function summariseAiUsage(opts = {}) {
+  const params = [];
+  let where = '';
+  if (opts.userId) {
+    params.push(opts.userId);
+    where = `where user_id = $${params.length}`;
+  }
+  const totalsRow = await q(
+    `select coalesce(sum(cost_usd),0) as cost,
+            coalesce(sum(input_tokens),0) as input_tokens,
+            coalesce(sum(output_tokens),0) as output_tokens,
+            coalesce(sum(cache_read_tokens),0) as cache_read_tokens,
+            coalesce(sum(cache_creation_tokens),0) as cache_creation_tokens,
+            count(*) as calls
+     from ai_usage ${where}`,
+    params,
+  );
+  const byIntent = await q(
+    `select coalesce(intent,'(none)') as intent,
+            count(*) as calls,
+            sum(cost_usd) as cost
+     from ai_usage ${where} group by intent order by cost desc nulls last`,
+    params,
+  );
+  const byModel = await q(
+    `select model, count(*) as calls, sum(cost_usd) as cost,
+            sum(input_tokens) as input_tokens,
+            sum(output_tokens) as output_tokens
+     from ai_usage ${where} group by model order by cost desc`,
+    params,
+  );
+  const byDay = await q(
+    `select date_trunc('day', created_at)::date as day,
+            count(*) as calls,
+            sum(cost_usd) as cost
+     from ai_usage ${where}
+     group by day order by day desc limit 30`,
+    params,
+  );
+  return {
+    totals: totalsRow[0] || {},
+    byIntent,
+    byModel,
+    byDay,
+  };
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -550,6 +634,7 @@ module.exports = {
   getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
   setParentAuthorisedReminders, markReminderSent, markDigestSent,
   listReminderCandidates, listDigestCandidates,
+  recordAiUsage, listAiUsage, summariseAiUsage,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,
