@@ -2677,3 +2677,30 @@ button.logo:focus-visible {
 }
 .info-long li { margin-bottom: 6px; }
 .info-long p { margin: 8px 0 12px; }
+
+/* Sign in / Create account tabs at the top of the auth card. */
+.auth-mode-toggle { margin: 0 0 16px; }
+.auth-mode-buttons {
+  display: flex;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 999px;
+  padding: 4px;
+}
+.auth-mode-btn {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text, #1e2238);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.auth-mode-btn.active {
+  background: var(--paper, #fff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}

@@ -37,6 +37,7 @@
     'Zambia', 'Zimbabwe',
   ];
   let selectedRole = 'student';
+  let authMode = 'signin'; // 'signin' | 'signup' — only signup collects age/country/role/linkCode
   let pendingEmail = null;
   let pendingAge = null;
   let pendingCountry = null;
@@ -67,13 +68,87 @@
     hide(el('parentHome'));
     hide(el('parentStudentDetail'));
     show(el('authGate'));
+    renderModeToggle();
     renderRoleToggle();
     populateCountryOptions();
+    applyModeVisibility();
     // Reset to email form.
     show(el('authEmailForm'));
     hide(el('authCodeForm'));
     hide(el('authError'));
     setTimeout(() => el('authEmail') && el('authEmail').focus(), 30);
+  }
+
+  // Tabs at the top of the auth card: Sign in (default, just email) vs
+  // Create account (asks role, age — student only — country, link code).
+  function renderModeToggle() {
+    if (el('authModeToggle')) {
+      updateModeToggleUI();
+      return;
+    }
+    const card = document.querySelector('.auth-card');
+    const sub = el('authSub');
+    if (!card || !sub) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'authModeToggle';
+    wrap.className = 'auth-mode-toggle';
+    wrap.innerHTML = `
+      <div class="auth-mode-buttons" role="tablist">
+        <button type="button" class="auth-mode-btn" data-mode="signin" role="tab" aria-selected="true">Sign in</button>
+        <button type="button" class="auth-mode-btn" data-mode="signup" role="tab" aria-selected="false">Create account</button>
+      </div>
+    `;
+    sub.before(wrap);
+    wrap.querySelectorAll('.auth-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const m = btn.dataset.mode;
+        if (m !== 'signin' && m !== 'signup') return;
+        authMode = m;
+        updateModeToggleUI();
+        applyModeVisibility();
+      });
+    });
+    updateModeToggleUI();
+  }
+
+  function updateModeToggleUI() {
+    const wrap = el('authModeToggle');
+    if (!wrap) return;
+    wrap.querySelectorAll('.auth-mode-btn').forEach(btn => {
+      const active = btn.dataset.mode === authMode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    const sub = el('authSub');
+    if (sub) {
+      sub.textContent = authMode === 'signup'
+        ? "We'll send you a 6-digit code by email. No password to remember."
+        : 'Enter your email — we\'ll send you a 6-digit code to sign in.';
+    }
+    const submitBtn = el('authEmailBtn');
+    if (submitBtn) submitBtn.textContent = authMode === 'signup' ? 'Create account' : 'Send sign-in code';
+  }
+
+  // Show / hide signup-only fields and the role-specific age field based on
+  // the current mode and selected role.
+  function applyModeVisibility() {
+    const isSignup = authMode === 'signup';
+    const roleToggle = el('authRoleToggle');
+    const fieldRow = document.querySelector('#authEmailForm .auth-field-row');
+    const linkWrap = document.querySelector('#authEmailForm .auth-linkcode-wrap');
+    const ageInput = el('authAge');
+    const countryInput = el('authCountry');
+    const ageLabel = ageInput && ageInput.closest('label');
+
+    if (roleToggle) roleToggle.style.display = isSignup ? '' : 'none';
+    if (fieldRow) fieldRow.style.display = isSignup ? '' : 'none';
+    if (linkWrap) linkWrap.style.display = isSignup ? '' : 'none';
+
+    // Age is only meaningful for students, and only when creating an account.
+    const showAge = isSignup && selectedRole === 'student';
+    if (ageLabel) ageLabel.style.display = showAge ? '' : 'none';
+    if (ageInput) ageInput.required = showAge;
+    if (countryInput) countryInput.required = isSignup;
   }
 
   function populateCountryOptions() {
@@ -166,7 +241,7 @@
     wrap.id = 'authRoleToggle';
     wrap.className = 'auth-role-toggle';
     wrap.innerHTML = `
-      <div class="auth-role-label">I'm signing in as a…</div>
+      <div class="auth-role-label">I'm signing up as a…</div>
       <div class="auth-role-buttons" role="radiogroup" aria-label="Account type">
         <button type="button" class="auth-role-btn" data-role="student" role="radio" aria-checked="true">🎓 Student</button>
         <button type="button" class="auth-role-btn" data-role="parent" role="radio" aria-checked="false">👪 Parent</button>
@@ -180,6 +255,7 @@
         if (!ROLES.includes(role)) return;
         selectedRole = role;
         updateRoleToggleUI();
+        applyModeVisibility();
       });
     });
     updateRoleToggleUI();
@@ -276,15 +352,26 @@
     setResendStatus(null);
     const email = (el('authEmail').value || '').trim();
     if (!email) return showError('Enter your email.');
-    const ageRaw = (el('authAge').value || '').trim();
-    const ageNum = ageRaw ? parseInt(ageRaw, 10) : null;
-    if (!ageNum || ageNum < 4 || ageNum > 120) return showError('Enter a valid age between 4 and 120.');
-    const countryVal = (el('authCountry').value || '').trim();
-    if (!countryVal) return showError('Pick your country.');
-    const linkCodeRaw = (el('authLinkCode').value || '').trim();
-    const linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
-    if (linkCode && linkCode.length !== 8) {
-      return showError('Link codes are 8 characters (e.g. ABCD-EFGH).');
+
+    // Only validate / send signup-extras when actually signing up.
+    let ageNum = null;
+    let countryVal = null;
+    let linkCode = null;
+    if (authMode === 'signup') {
+      if (selectedRole === 'student') {
+        const ageRaw = (el('authAge').value || '').trim();
+        ageNum = ageRaw ? parseInt(ageRaw, 10) : null;
+        if (!ageNum || ageNum < 4 || ageNum > 120) {
+          return showError('Enter a valid age between 4 and 120.');
+        }
+      }
+      countryVal = (el('authCountry').value || '').trim();
+      if (!countryVal) return showError('Pick your country.');
+      const linkCodeRaw = (el('authLinkCode').value || '').trim();
+      linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
+      if (linkCode && linkCode.length !== 8) {
+        return showError('Link codes are 8 characters (e.g. ABCD-EFGH).');
+      }
     }
 
     const btn = el('authEmailBtn');
@@ -293,13 +380,14 @@
     btn.textContent = 'Sending…';
 
     try {
-      await postJSON('/api/auth/signup', {
-        email,
-        role: selectedRole,
-        age: ageNum,
-        country: countryVal,
-        linkCode,
-      });
+      const body = { email };
+      if (authMode === 'signup') {
+        body.role = selectedRole;
+        if (ageNum != null) body.age = ageNum;
+        if (countryVal) body.country = countryVal;
+        if (linkCode) body.linkCode = linkCode;
+      }
+      await postJSON('/api/auth/signup', body);
       pendingEmail = email;
       pendingAge = ageNum;
       pendingCountry = countryVal;
@@ -325,13 +413,14 @@
     const btn = el('authResendCode');
     if (btn && btn.disabled) return; // still in cooldown
     try {
-      await postJSON('/api/auth/signup', {
-        email: pendingEmail,
-        role: selectedRole,
-        age: pendingAge,
-        country: pendingCountry,
-        linkCode: pendingLinkCode,
-      });
+      const body = { email: pendingEmail };
+      if (authMode === 'signup') {
+        body.role = selectedRole;
+        if (pendingAge != null) body.age = pendingAge;
+        if (pendingCountry) body.country = pendingCountry;
+        if (pendingLinkCode) body.linkCode = pendingLinkCode;
+      }
+      await postJSON('/api/auth/signup', body);
       setResendStatus(`A new code has been sent to ${pendingEmail}. Check your inbox (and spam).`, 'ok');
       startResendCooldown();
     } catch (err) {
