@@ -51,7 +51,8 @@
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
-    <button class="nav-cta hidden" id="navSignInBtn" type="button">Sign in</button>
+    <button class="nav-link hidden" id="navSignInBtn" type="button">Sign in</button>
+    <button class="nav-cta hidden" id="navSignUpBtn" type="button">Sign up</button>
     <span class="nav-user hidden" id="navUser">
       <div class="nav-menu">
         <button class="nav-link" id="myDetailsBtn" type="button" aria-haspopup="menu" aria-expanded="false">My Details ▾</button>
@@ -125,10 +126,10 @@
     <h1 class="landing-h1">Learn math and English<br><em>like you mean it.</em></h1>
     <p class="landing-lede">A calm, focused place to study — without streaks, ads, or noise. 113 topics, nearly 10,000 questions, and an AI tutor named Max who actually teaches.</p>
     <div class="landing-cta-row">
-      <button class="cta-primary" onclick="openAuth()">Start learning</button>
-      <button class="cta-secondary" onclick="showAbout()">Learn more</button>
+      <button class="cta-primary" onclick="openAuth('signup')">Sign up free</button>
+      <button class="cta-secondary" onclick="openAuth('signin')">Sign in</button>
     </div>
-    <div class="landing-cta-sub">Free · no account required · open in any browser</div>
+    <div class="landing-cta-sub">Free · email + 6-digit code, no passwords to remember</div>
   </section>
 
   <section class="landing-stats">
@@ -302,7 +303,7 @@
         <li>✓ Progress saved automatically in your browser</li>
         <li>✓ No ads, no streaks, no upsells</li>
       </ul>
-      <button class="cta-primary cta-full" onclick="openAuth()">Start learning</button>
+      <button class="cta-primary cta-full" onclick="openAuth('signup')">Sign up free</button>
     </div>
   </section>
 

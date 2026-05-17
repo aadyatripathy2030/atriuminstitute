@@ -61,7 +61,7 @@
     hide(el('about'));
   }
 
-  function showAuthGate() {
+  function showAuthGate(initialMode) {
     hide(el('landing'));
     hide(el('courses-home'));
     hide(el('home'));
@@ -71,6 +71,7 @@
     hide(el('parentHome'));
     hide(el('parentStudentDetail'));
     show(el('authGate'));
+    if (initialMode === 'signin' || initialMode === 'signup') authMode = initialMode;
     renderModeToggle();
     renderRoleToggle();
     populateCountryOptions();
@@ -186,7 +187,9 @@
     const navEmail = el('navUserEmail');
     const activityBtn = el('activityNavBtn');
     const studyFab = el('studyFab');
+    const signUpBtn = el('navSignUpBtn');
     if (signInBtn) hide(signInBtn);
+    if (signUpBtn) hide(signUpBtn);
     if (navUser) show(navUser);
     if (navEmail) {
       const label = user.role === 'parent' ? `👪 ${user.email}` : user.email;
@@ -206,10 +209,12 @@
   function setNavSignedOut() {
     currentUser = null;
     const signInBtn = el('navSignInBtn');
+    const signUpBtn = el('navSignUpBtn');
     const navUser = el('navUser');
     const studyFab = el('studyFab');
     const menu = el('myDetailsMenu');
     if (signInBtn) show(signInBtn);
+    if (signUpBtn) show(signUpBtn);
     if (navUser) hide(navUser);
     if (studyFab) hide(studyFab);
     if (menu) hide(menu);
@@ -519,11 +524,11 @@
   }
 
   // Landing CTAs call openAuth(). If already signed in, jump straight in.
-  window.openAuth = function () {
+  window.openAuth = function (mode) {
     if (currentUser) {
       enterAppAfterAuth(currentUser);
     } else {
-      showAuthGate();
+      showAuthGate(mode);
     }
   };
 
@@ -560,7 +565,9 @@
     const resendCode = el('authResendCode');
     if (resendCode) resendCode.addEventListener('click', handleResendCode);
     const signInBtn = el('navSignInBtn');
-    if (signInBtn) signInBtn.addEventListener('click', () => window.openAuth());
+    if (signInBtn) signInBtn.addEventListener('click', () => window.openAuth('signin'));
+    const signUpBtn = el('navSignUpBtn');
+    if (signUpBtn) signUpBtn.addEventListener('click', () => window.openAuth('signup'));
     const signOutBtn = el('signOutBtn');
     if (signOutBtn) signOutBtn.addEventListener('click', handleSignOut);
     const logoBtn = el('logoHome');
