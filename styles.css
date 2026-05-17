@@ -2856,3 +2856,41 @@ button.logo:focus-visible {
   font-size: 13px;
   padding: 4px 0;
 }
+
+/* Lesson panel: regenerate button + mermaid container. */
+.lesson-ai-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.lesson-regen-btn {
+  background: transparent;
+  border: 1px solid var(--border, #e6e2d7);
+  color: var(--muted, #6b7280);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.lesson-regen-btn:hover { color: var(--text, #1e2238); border-color: var(--text, #1e2238); }
+.lesson-regen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mermaid-rendered {
+  margin: 12px 0;
+  overflow-x: auto;
+  text-align: center;
+}
+.mermaid-rendered svg {
+  max-width: 100%;
+  height: auto;
+}
+.lesson-ai-body svg {
+  display: block;
+  margin: 12px auto;
+  max-width: 100%;
+  height: auto;
+  color: var(--text, #1e2238);
+}

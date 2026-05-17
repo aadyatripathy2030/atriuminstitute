@@ -536,6 +536,164 @@ async function handleStudentProgress(req, res, studentId) {
   json(res, 200, { progress });
 }
 
+// ---------- Cached lessons ----------
+
+// Server-side direct Claude call (used by the lesson endpoint and any
+// other internal generators). Single-shot, non-streaming, returns the
+// joined text content plus the model that produced it.
+function callClaudeDirect(payload) {
+  return new Promise((resolve, reject) => {
+    if (!API_KEY) return reject(new Error('Server has no ANTHROPIC_API_KEY.'));
+    const body = JSON.stringify(payload);
+    const req = https.request({
+      method: 'POST',
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    }, res => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          return reject(new Error(`Anthropic ${res.statusCode}: ${data.slice(0, 300)}`));
+        }
+        try {
+          const parsed = JSON.parse(data);
+          const text = (parsed.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
+          resolve({ text, usage: parsed.usage || null });
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// Conservative SVG sanitizer: strip script tags, on* event handlers,
+// javascript: URLs, and external href / src references. Operates on text;
+// never trusts the LLM. Returns the sanitized text. Designed to be safe
+// rather than feature-complete — anything weird gets dropped.
+function sanitizeLessonContent(content) {
+  if (typeof content !== 'string') return '';
+  let out = content;
+  // Remove <script>...</script> blocks entirely.
+  out = out.replace(/<script[\s\S]*?<\/script>/gi, '');
+  // Strip on* event handlers like onclick="..." or onmouseover='...'.
+  out = out.replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  // Strip javascript:, data:text/html, and any href / src that starts with
+  // those schemes inside <svg> blocks.
+  out = out.replace(/(?:href|xlink:href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*'|"data:text\/html[^"]*"|'data:text\/html[^']*')/gi, '');
+  // Strip <foreignObject> — can host arbitrary HTML inside SVG.
+  out = out.replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '');
+  // Strip <iframe>, <object>, <embed>.
+  out = out.replace(/<(iframe|object|embed)[\s\S]*?<\/\1>/gi, '');
+  out = out.replace(/<(iframe|object|embed)[^>]*\/?>/gi, '');
+  return out;
+}
+
+async function generateLesson({ courseTitle, bookTitle, sectionTitle, sectionKind, sampleQuestions, studentName }) {
+  const seedLines = (sampleQuestions || []).slice(0, 6)
+    .map((q, i) => `${i + 1}. (${q.type || 'regular'}) ${q.q} → ${q.answer}`)
+    .join('\n');
+  const userMsg = `Course: ${courseTitle || 'Unknown course'}
+Topic / chapter: ${bookTitle || 'Unknown chapter'}
+Section title: ${sectionTitle || 'Unknown section'}
+Section kind: ${sectionKind || 'section'}
+${studentName ? `Student name: ${studentName}` : ''}
+
+Sample seed questions for this section (use to calibrate difficulty + style of your examples):
+${seedLines || '(no seed questions available — use your judgement based on the section title)'}
+
+Write the lesson now, following the headings and rules in the system prompt exactly.`;
+
+  const model = 'claude-sonnet-4-5-20250929';
+  const system = prompts.buildSystem('lesson');
+  const result = await callClaudeDirect({
+    model,
+    system,
+    messages: [{ role: 'user', content: userMsg }],
+    max_tokens: 1500,
+    temperature: 0.5,
+  });
+
+  // Record usage for the operator's Token Cost dashboard.
+  if (result.usage) {
+    const usage = result.usage;
+    const cost = computeCost(model, usage);
+    db.recordAiUsage({
+      userId: null,
+      userEmail: '(lesson-prebuild)',
+      intent: 'lesson',
+      model,
+      inputTokens: usage.input_tokens || 0,
+      outputTokens: usage.output_tokens || 0,
+      cacheReadTokens: usage.cache_read_input_tokens || 0,
+      cacheCreationTokens: usage.cache_creation_input_tokens || 0,
+      costUsd: cost,
+    }).catch(err => console.error('recordAiUsage failed:', err.message));
+  }
+
+  return { content: result.text, model };
+}
+
+async function handleGetLesson(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.courseId !== 'string' || typeof body.bookId !== 'string'
+    || typeof body.sectionIdx !== 'number') {
+    return json(res, 400, { error: 'Bad payload.' });
+  }
+  const sectionKind = body.sectionKind || 'section';
+  const forceRegenerate = body.regenerate === true;
+
+  if (!forceRegenerate) {
+    const cached = await db.getCachedLesson(body.courseId, body.bookId, body.sectionIdx, sectionKind);
+    if (cached) {
+      return json(res, 200, { content: cached.content, model: cached.model, cached: true });
+    }
+  }
+
+  let result;
+  try {
+    result = await generateLesson({
+      courseTitle: body.courseTitle,
+      bookTitle: body.bookTitle,
+      sectionTitle: body.sectionTitle,
+      sectionKind,
+      sampleQuestions: body.sampleQuestions,
+      studentName: body.studentName,
+    });
+  } catch (e) {
+    console.error('lesson generation failed:', e.message);
+    return json(res, 502, { error: 'Lesson generation failed. Try again in a moment.' });
+  }
+
+  const safeContent = sanitizeLessonContent(result.content);
+  await db.saveCachedLesson(body.courseId, body.bookId, body.sectionIdx, sectionKind, safeContent, result.model);
+  json(res, 200, { content: safeContent, model: result.model, cached: false });
+}
+
+async function handleClearLesson(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.courseId !== 'string' || typeof body.bookId !== 'string'
+    || typeof body.sectionIdx !== 'number') {
+    return json(res, 400, { error: 'Bad payload.' });
+  }
+  await db.clearCachedLesson(body.courseId, body.bookId, body.sectionIdx, body.sectionKind || 'section');
+  json(res, 200, { ok: true });
+}
+
 // ---------- Token usage (own) ----------
 async function handleGetMyTokenUsageSummary(req, res) {
   const u = await currentUser(req);
@@ -874,6 +1032,9 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
     if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
     if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
+    // Cached lessons: POST returns the cached lesson or generates+caches it; DELETE busts the cache.
+    if (url === '/api/lessons' && req.method === 'POST') return handleGetLesson(req, res);
+    if (url === '/api/lessons' && req.method === 'DELETE') return handleClearLesson(req, res);
     // Parent dashboard
     if (url === '/api/parent/students' && req.method === 'GET') return handleListLinkedStudents(req, res);
     {

@@ -647,7 +647,8 @@ async function toggleLesson(card, book, section) {
   panel.classList.remove('hidden');
   btn.textContent = '▲ Hide';
 
-  // If we've already rendered, skip
+  // If we've already rendered, skip the network round-trip — the panel
+  // markup is still in the DOM from the previous open.
   if (panel.dataset.loaded) return;
   panel.dataset.loaded = '1';
 
@@ -655,43 +656,116 @@ async function toggleLesson(card, book, section) {
     courseId: COURSE.id, bookId: book.id, sectionTitle: section.title,
   });
 
+  const sIdx = (book.sections || []).indexOf(section);
+  await renderCachedLesson(panel, book, section, sIdx, false);
+}
+
+// Fetches the cached lesson for a section (cache hit = instant), renders
+// it inline, runs MathJax + Mermaid against the result, and wires the
+// regenerate button.
+async function renderCachedLesson(panel, book, section, sIdx, forceRegenerate) {
   const prewritten = section.lesson ? `<div class="lesson-written">${mdToHtml(section.lesson)}</div>` : '';
   panel.innerHTML = `
     ${prewritten}
     <div class="lesson-ai">
-      <div class="lesson-ai-head">✨ Max's lesson on <em>${section.title}</em></div>
-      <div class="lesson-ai-body" id="lessonBody-${book.id}-${section.title.replace(/\W+/g,'')}">
+      <div class="lesson-ai-head">
+        <span>✨ Max's lesson on <em>${escapeHtml(section.title)}</em></span>
+        <button class="lesson-regen-btn" type="button" title="Regenerate this lesson with the latest version of Max">↻ Regenerate</button>
+      </div>
+      <div class="lesson-ai-body">
         <div class="typing"><span></span><span></span><span></span></div>
       </div>
     </div>
   `;
 
-  const body = panel.querySelector('.lesson-ai-body');
-  const profile = loadProfile() || {};
-  const studentLine = profile.name
-    ? `Student: ${profile.name}, grade ${profile.grade || '?'}, confidence ${profile.confidence || '?'}/5, pace: ${profile.pace || '?'}.`
-    : '';
-  const prompt = `${studentLine}
+  const bodyEl = panel.querySelector('.lesson-ai-body');
+  const regenBtn = panel.querySelector('.lesson-regen-btn');
 
-Teach the student this section concisely as a mini-lesson they can read in under 90 seconds: **${section.title}** (from the ${book.title} topic in the ${COURSE.title} course).
-
-Format:
-- Start with the core idea in one sentence.
-- Give 2-3 numbered steps or key ideas they need.
-- Give one small worked example.
-- End with a one-sentence "try the quiz when you're ready" nudge using their name.
-
-Use Markdown (headings with ###, bold, lists) and LaTeX (\\( \\) / \\[ \\]) for any math. Keep it around 150-200 words.`;
-
-  let buf = '';
   try {
-    for await (const chunk of AI.streamChat([{ role: 'user', content: prompt }], '')) {
-      buf += chunk;
-      body.innerHTML = mdToHtml(buf);
-      if (window.MathJax) MathJax.typesetPromise([body]);
-    }
+    const payload = {
+      courseId: COURSE.id,
+      bookId: book.id,
+      sectionIdx: sIdx,
+      sectionKind: 'section',
+      courseTitle: COURSE.title,
+      bookTitle: book.title,
+      sectionTitle: section.title,
+      sampleQuestions: (section.questions || []).slice(0, 6).map(q => ({
+        q: q.q, type: q.type || 'regular', answer: q.answer,
+      })),
+      regenerate: !!forceRegenerate,
+    };
+    const res = await fetch('/api/lessons', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Lesson load failed (${res.status})`);
+    bodyEl.innerHTML = mdToHtml(data.content || '');
+    if (window.MathJax) MathJax.typesetPromise([bodyEl]);
+    renderMermaidIn(bodyEl);
   } catch (e) {
-    body.innerHTML = `<div class="ai-err">Lesson unavailable: ${escapeHtml(e.message)}.${section.lesson ? ' Use the written lesson above.' : ''}</div>`;
+    bodyEl.innerHTML = `<div class="ai-err">Lesson unavailable: ${escapeHtml(e.message)}.${section.lesson ? ' Use the written lesson above.' : ''}</div>`;
+  }
+
+  if (regenBtn) {
+    regenBtn.addEventListener('click', async () => {
+      regenBtn.disabled = true;
+      regenBtn.textContent = '↻ Regenerating…';
+      panel.dataset.loaded = '';  // allow re-render
+      await renderCachedLesson(panel, book, section, sIdx, true);
+      panel.dataset.loaded = '1';
+    });
+  }
+}
+
+// Mermaid renders the first time it's needed. We load the library lazily
+// from a CDN so the main bundle stays small and visitors who never open a
+// lesson never download it.
+let _mermaidPromise = null;
+function loadMermaid() {
+  if (_mermaidPromise) return _mermaidPromise;
+  _mermaidPromise = new Promise((resolve, reject) => {
+    if (window.mermaid) return resolve(window.mermaid);
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+    s.async = true;
+    s.onload = () => {
+      try {
+        window.mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'strict' });
+      } catch (_) { /* ignore */ }
+      resolve(window.mermaid);
+    };
+    s.onerror = () => { _mermaidPromise = null; reject(new Error('Failed to load Mermaid')); };
+    document.head.appendChild(s);
+  });
+  return _mermaidPromise;
+}
+
+async function renderMermaidIn(container) {
+  const blocks = container.querySelectorAll('pre > code.language-mermaid, pre > code[class*="language-mermaid"]');
+  if (!blocks.length) return;
+  let mermaid;
+  try { mermaid = await loadMermaid(); }
+  catch (_) { return; /* fall back to raw text */ }
+  let i = 0;
+  for (const code of blocks) {
+    const src = code.textContent || '';
+    const pre = code.parentElement;
+    const id = `mermaid-${Date.now()}-${i++}`;
+    try {
+      const { svg } = await mermaid.render(id, src);
+      const wrap = document.createElement('div');
+      wrap.className = 'mermaid-rendered';
+      wrap.innerHTML = svg;
+      pre.replaceWith(wrap);
+    } catch (e) {
+      // If mermaid can't parse, leave the code block visible so the
+      // student still sees the diagram source.
+      console.warn('mermaid render failed:', e.message);
+    }
   }
 }
 

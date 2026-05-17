@@ -210,9 +210,36 @@ Two or three sentences naming the prerequisite skills the student should already
 Two to four short sentences. Plain conversational English. Define every technical term the first time you use it. Avoid "obviously", "simply", "just", "trivially". Use a concrete metaphor or real-world hook whenever it doesn't damage accuracy. End this section with one sentence that says, in plain words, what the student will be able to do once they get this.
 
 ### A visual you can hold onto
-A single ASCII diagram, drawing, number line, coordinate grid, geometry sketch, or Markdown table — whichever is right for the concept. Always wrap ASCII art in a Markdown code fence (\`\`\`...\`\`\`) so it renders in a fixed-width font. Use Markdown tables for comparisons (e.g. metaphor vs simile, mean vs median). Skip this section ONLY if the concept is purely procedural with no visual referent (rare); in those cases, include a worked-table of "input → step → output" instead.
+Pick the BEST format for the concept. Available choices, ranked by suitability:
 
-For math: prefer number lines for negatives / inequalities, simple coordinate grids for graphs, simple shape sketches for geometry, comparison tables for "this rule vs that rule". For English: a quoted snippet with annotations is a valid "visual" — quote a sentence in a blockquote and mark up its parts.
+**Inline SVG (preferred for any geometric / graph / chart concept).** Write actual SVG markup. The page renders it as a real image. Use this for: geometry shapes with labelled sides + angles, coordinate planes with a plotted line or point, number lines with marked positions, fraction-pies, bar charts, simple geometric proofs, pie-chart probabilities, parallel lines with a transversal. Keep SVG small (under 400px wide, viewBox-based, semantic). Use \`stroke="currentColor"\` and \`fill="none"\` where appropriate so it adapts to dark mode. Add a \`<title>\` element for screen readers. NEVER use \`<script>\`, \`<foreignObject>\`, event handlers (on*), or external URLs in src/href. Example shape (do not copy literally, use as a structural reference):
+
+\`\`\`
+<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="220" height="132" role="img" aria-label="Right triangle with sides 3, 4, 5">
+  <title>Right triangle with sides 3, 4, 5</title>
+  <polygon points="20,100 140,100 20,40" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="78" y="116" font-size="12">4</text>
+  <text x="4" y="74" font-size="12">3</text>
+  <text x="86" y="64" font-size="12">5</text>
+</svg>
+\`\`\`
+
+**Mermaid (for flowcharts, decision trees, concept maps, sequence diagrams, process flows).** Wrap in a Markdown code fence with the language tag \`mermaid\`. The page will render it client-side. Use for: "how to decide which technique applies", "the chain of steps in a proof", "the parts of a sentence as a tree", "the lifecycle of a function call". Example:
+
+\`\`\`mermaid
+graph TD
+  A[Is the number negative?] -->|yes| B[Multiply both sides by -1]
+  A -->|no| C[Continue normally]
+  B --> D[Flip the inequality]
+\`\`\`
+
+**Markdown table (for direct comparisons).** Use for "X vs Y" pairs: metaphor vs simile, median vs mean, definite vs indefinite article.
+
+**ASCII art in a code fence (fallback).** Use when SVG would be overkill and a table doesn't fit. Number lines, simple boxes-and-arrows, very simple sketches.
+
+Pick ONE per lesson. Don't stack multiple visuals.
+
+For English specifically: a quoted snippet in a Markdown blockquote (> ...) with inline annotations is often the right "visual". Quote the sentence, then mark up its parts in prose.
 
 ### Example 1 (the simple one)
 The easiest version of the technique. Number the steps. Show every intermediate calculation — never skip a step that "feels obvious". Use LaTeX inline math (\\\\( ... \\\\)) and display math (\\\\[ ... \\\\]) for any equation. For English, quote the relevant sentence in a blockquote first, then walk through the analysis.
