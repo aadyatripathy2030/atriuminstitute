@@ -283,6 +283,8 @@ function goToCourses() {
   document.getElementById('home').classList.add('hidden');
   document.getElementById('detail').classList.add('hidden');
   document.getElementById('about').classList.add('hidden');
+  const studyEl = document.getElementById('study');
+  if (studyEl) studyEl.classList.add('hidden');
   document.getElementById('courses-home').classList.remove('hidden');
   renderCourses();
   renderProgressPill();
@@ -622,13 +624,129 @@ Use Markdown (headings with ###, bold, lists) and LaTeX (\\( \\) / \\[ \\]) for 
   }
 }
 
-function studyWithMax(book, section) {
+// Pull N evenly-spread questions from the section's question bank.
+function sampleStudyQs(section, n) {
+  const pool = (section.questions || []).slice();
+  if (pool.length <= n) return pool;
+  const out = [];
+  const step = pool.length / n;
+  for (let i = 0; i < n; i++) out.push(pool[Math.floor(i * step)]);
+  return out;
+}
+
+async function studyWithMax(book, section) {
+  const studyEl = document.getElementById('study');
+  if (!studyEl) return;
+
+  // Hide other screens, show the study page.
+  document.getElementById('courses-home').classList.add('hidden');
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('detail').classList.add('hidden');
+  const aboutEl = document.getElementById('about');
+  if (aboutEl) aboutEl.classList.add('hidden');
+  studyEl.classList.remove('hidden');
+  studyEl.style.setProperty('--a1', book.accent);
+  studyEl.style.setProperty('--a2', book.accent2);
+
+  const studyQs = sampleStudyQs(section, 10);
+
+  studyEl.innerHTML = `
+    <button class="back-btn" onclick="backToBookFromStudy('${book.id}')">← Back to ${escapeHtml(book.title)}</button>
+    <header class="study-hero">
+      <div class="study-eyebrow">📖 Study Session · ${escapeHtml(book.title)}</div>
+      <h1 class="study-title-h1">${escapeHtml(section.title)}</h1>
+      <p class="study-blurb">An easy-to-follow walkthrough, worked examples, and ${studyQs.length} practice questions — no grade, no timer. Take your time.</p>
+      <div class="study-cta-row">
+        <button class="cta-secondary" onclick="openChat()">💬 Ask Max anything</button>
+      </div>
+    </header>
+
+    <section class="study-section">
+      <h2 class="study-h2">✨ Max's lesson</h2>
+      <div class="study-lesson" id="studyLessonBody">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>
+    </section>
+
+    <section class="study-section">
+      <h2 class="study-h2">📝 ${studyQs.length} practice questions</h2>
+      <p class="study-section-sub">Each question has the solution hidden. Try first, then reveal. Stuck? Click "Ask Max" to dig in.</p>
+      <div class="study-questions">
+        ${studyQs.map((q, i) => `
+          <div class="study-q-card">
+            <div class="study-q-num">${i + 1}</div>
+            <div class="study-q-body">
+              <div class="study-q-text">${q.q}</div>
+              <details class="study-q-solution">
+                <summary>Show solution</summary>
+                <div class="study-q-answer"><b>Answer:</b> ${q.answer}</div>
+                ${q.solution ? `<div class="study-q-explain">${q.solution}</div>` : ''}
+              </details>
+              <button class="study-q-ask" onclick='askMaxAboutQ(${JSON.stringify({ q: q.q, answer: q.answer, topic: section.title })})'>💬 Ask Max about this</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+
+    <footer class="study-footer">
+      <button class="cta-primary" onclick="backToBookFromStudy('${book.id}')">Finish studying →</button>
+    </footer>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Stream Max's lesson into the lesson body.
+  const lessonBody = document.getElementById('studyLessonBody');
+  const profile = loadProfile() || {};
+  const studentLine = profile.name
+    ? `Student: ${profile.name}, grade ${profile.grade || '?'}, confidence ${profile.confidence || '?'}/5, pace: ${profile.pace || '?'}.`
+    : '';
+  const prompt = `${studentLine}
+
+Write a tight study lesson for the section "${section.title}" inside the topic "${book.title}".
+
+Goal: get a student up to speed quickly so they can confidently tackle practice problems on this section.
+
+Structure:
+1. **The big idea** — one short paragraph in plain language explaining what this section is really about and why it matters.
+2. **Key concepts / definitions** — 2-4 bullets. Define any jargon.
+3. **Worked examples** — at least 2 numbered examples (super-simple → harder), with step-by-step work shown.
+4. **A simple diagram or table** if the topic is visual (number line, coordinate grid, geometry, table comparison, etc.). Use ASCII inside a \`\`\`code fence\`\`\` or a Markdown table.
+5. **Common mistakes** — 1-2 things students often get wrong on this section.
+
+Keep it under ~400 words. Make it easy to read.`;
+
+  let buf = '';
+  try {
+    for await (const chunk of AI.streamChat([{ role: 'user', content: prompt }], '')) {
+      buf += chunk;
+      lessonBody.innerHTML = mdToHtml(buf);
+    }
+    if (window.MathJax) MathJax.typesetPromise([lessonBody]);
+  } catch (e) {
+    lessonBody.innerHTML = `<span class="ai-err">Couldn't load lesson: ${escapeHtml(e.message)}</span>`;
+  }
+
+  if (window.MathJax) MathJax.typesetPromise([studyEl]);
+}
+
+function backToBookFromStudy(bookId) {
+  document.getElementById('study').classList.add('hidden');
+  openBook(bookId);
+}
+
+// Open Max chat seeded with context for a specific practice question.
+function askMaxAboutQ(ctx) {
   openChat();
   const input = document.getElementById('chatInput');
   if (!input) return;
-  input.value = `I want to study **${book.title} → ${section.title}**.
+  input.value = `I'm working on this practice question and need help understanding it:
 
-Can you walk me through the key concepts in this section, then quiz me with a few practice questions one at a time? Wait for my answer before moving on, and give me feedback after each one. Use whichever study technique you think works best (Active Recall, Feynman, etc.).`;
+> ${ctx.q}
+
+The answer is: ${ctx.answer}
+
+Can you walk me through how to get there — using simple language, a worked example, and a diagram or table if it helps? I'm studying the section "${ctx.topic}".`;
   input.focus();
   input.dispatchEvent(new Event('input'));
   if (typeof sendChat === 'function') sendChat();

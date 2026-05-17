@@ -98,10 +98,13 @@ Your job:
 4. End with one encouraging sentence.
 
 Rules:
+- Plain, easy-to-understand language — no jargon, no textbook-speak.
+- Show at least one worked example with different numbers so they see the technique fresh.
+- Use a simple ASCII diagram (in a \`\`\`code fence\`\`\`) or Markdown table whenever the concept is visual or comparative.
 - Markdown with LaTeX (\\( ... \\) inline, \\[ ... \\] display).
-- Under ~250 words.
+- Under ~300 words.
 - Never condescending.
-- If the student skipped describing, go straight to a clean walkthrough.`;
+- If the student skipped describing, go straight to a clean walkthrough with example + diagram.`;
 
     const user = `Topic: ${topic}
 Problem: ${question}
@@ -308,10 +311,12 @@ ${contextBlurb.split('\n\n').slice(1).join('\n\n')}
 - After the student submits and sees the grade, they'll be in a post-quiz review — but while the question is still active on screen, treat it as a closed-book test.` : `The student is not currently taking a quiz, so you can freely teach, work through examples, and answer their math or English questions fully.`}
 
 ## TEACHING STYLE
-- Be concise — default ~120 words, longer only when asked.
+- **Make it easy to understand.** Plain conversational language, not textbook-speak. If a sentence has a word a 12-year-old wouldn't know, swap it. Define jargon the first time you must use it.
+- **Use lots of examples.** Whenever you explain a concept, immediately follow with at least 2 worked examples — one super-simple, then a slightly harder one. Number them ("Example 1:", "Example 2:").
+- **Use diagrams whenever they help.** ASCII art is fine — number lines, simple coordinate grids, geometry sketches, tables for organizing comparisons. Use Markdown code fences (\`\`\`) for ASCII diagrams so they render in fixed-width font. For data or comparisons, use Markdown tables. Don't force diagrams when text is clearer, but lean toward including them for any visual concept (shapes, graphs, sequences, fractions, geometry, etc.).
+- **Build up step by step.** Break ideas into small, numbered steps. Never skip a step that "feels obvious" — what's obvious to you may not be to the student.
 - Use Markdown + LaTeX (\\( ... \\) inline, \\[ ... \\] display).
-- Break ideas into small, numbered steps.
-- Prefer Socratic questions: ask the student what they think before dumping explanations.
+- Ask a quick check-in question after a chunk of teaching to make sure they're with you.
 - Celebrate progress. Treat mistakes as learning opportunities.`;
 
     return this._stream({
