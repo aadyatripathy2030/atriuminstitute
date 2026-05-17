@@ -84,9 +84,9 @@ function clearCookieHeader() {
   return `atrium_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
 
-function currentUser(req) {
+async function currentUser(req) {
   const token = getCookie(req, 'atrium_session');
-  const sess = db.getSession(token);
+  const sess = await db.getSession(token);
   if (!sess) return null;
   return db.getUser(sess.userId);
 }
@@ -121,15 +121,23 @@ function budgetCheck() {
 }
 
 // ---------- Auth routes ----------
+const VALID_ROLES = ['student', 'parent'];
+
 function isValidEmail(e) {
   return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length < 200;
+}
+
+function isValidRole(r) {
+  return typeof r === 'string' && VALID_ROLES.includes(r);
 }
 
 async function handleSignupOrLogin(req, res) {
   const body = await readJSON(req);
   if (!body || !isValidEmail(body.email)) return json(res, 400, { error: 'Invalid email.' });
-  const user = db.upsertUser(body.email);
-  const code = db.createCode(user.email);
+  // Role is only honoured for first-time signups; existing users keep theirs.
+  const role = isValidRole(body.role) ? body.role : 'student';
+  const user = await db.upsertUser(body.email, role);
+  const code = await db.createCode(user.email);
   try {
     await email.sendVerificationCode(user.email, code);
   } catch (e) {
@@ -144,27 +152,27 @@ async function handleVerify(req, res) {
   if (!body || !isValidEmail(body.email) || !body.code) {
     return json(res, 400, { error: 'Email and code required.' });
   }
-  const result = db.verifyCode(body.email, body.code);
+  const result = await db.verifyCode(body.email, body.code);
   if (!result.ok) {
     const msg = result.reason === 'expired' ? 'Code expired. Request a new one.'
               : result.reason === 'used' ? 'Code already used.'
               : 'Invalid code.';
     return json(res, 400, { error: msg });
   }
-  const user = db.findUser(body.email);
+  const user = await db.findUser(body.email);
   if (!user) return json(res, 500, { error: 'User not found.' });
-  db.markVerified(user.id);
-  const token = db.createSession(user.id);
+  await db.markVerified(user.id);
+  const token = await db.createSession(user.id);
   res.writeHead(200, {
     'Content-Type': 'application/json',
     'Set-Cookie': sessionCookieHeader(token)
   });
-  res.end(JSON.stringify({ ok: true, user: { id: user.id, email: user.email } }));
+  res.end(JSON.stringify({ ok: true, user: { id: user.id, email: user.email, role: user.role || 'student' } }));
 }
 
 async function handleLogout(req, res) {
   const token = getCookie(req, 'atrium_session');
-  if (token) db.deleteSession(token);
+  if (token) await db.deleteSession(token);
   res.writeHead(200, {
     'Content-Type': 'application/json',
     'Set-Cookie': clearCookieHeader()
@@ -172,25 +180,25 @@ async function handleLogout(req, res) {
   res.end(JSON.stringify({ ok: true }));
 }
 
-function handleMe(req, res) {
-  const u = currentUser(req);
+async function handleMe(req, res) {
+  const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
-  json(res, 200, { user: { id: u.id, email: u.email } });
+  json(res, 200, { user: { id: u.id, email: u.email, role: u.role || 'student' } });
 }
 
 // ---------- Progress routes ----------
-function handleGetAllProgress(req, res) {
-  const u = currentUser(req);
+async function handleGetAllProgress(req, res) {
+  const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
-  json(res, 200, { progress: db.getAllProgress(u.id) });
+  json(res, 200, { progress: await db.getAllProgress(u.id) });
 }
 
 async function handleSaveProgress(req, res) {
-  const u = currentUser(req);
+  const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
   const body = await readJSON(req);
   if (!body || typeof body.key !== 'string') return json(res, 400, { error: 'Bad payload.' });
-  db.setProgress(u.id, body.key, body.data);
+  await db.setProgress(u.id, body.key, body.data);
   json(res, 200, { ok: true });
 }
 
@@ -282,10 +290,13 @@ const server = http.createServer(async (req, res) => {
 });
 
 // Periodic cleanup of expired codes/sessions
-setInterval(() => db.cleanup(), 60 * 60 * 1000);
+setInterval(() => {
+  db.cleanup().catch(err => console.error('cleanup failed:', err.message));
+}, 60 * 60 * 1000);
 
 server.listen(PORT, () => {
   console.log(`📚 Atrium Institute running at http://localhost:${PORT}`);
+  console.log(`🗄  DB backend: ${db.backend}`);
   console.log(API_KEY ? '✨ Max (AI tutor): enabled' : '⚠️  Max disabled (no ANTHROPIC_API_KEY)');
   console.log(process.env.RESEND_API_KEY ? '📧 Email: Resend' : '📧 Email: console (set RESEND_API_KEY for real email)');
   console.log(`⏱  Rate limit: ${RATE_LIMIT_PER_HOUR} req/hr/IP   💰 Daily cap: ${DAILY_REQUEST_CAP} req/day`);

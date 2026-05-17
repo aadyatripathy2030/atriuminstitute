@@ -1757,3 +1757,50 @@ footer {
 .books-loading-err {
   color: #b00020;
 }
+
+/* Auth role toggle (Student / Parent) on the sign-in card. */
+.auth-role-toggle {
+  margin: 6px 0 18px;
+  text-align: center;
+}
+.auth-role-label {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+  margin-bottom: 8px;
+}
+.auth-role-buttons {
+  display: inline-flex;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 999px;
+  padding: 4px;
+}
+.auth-role-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text, #1e2238);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.auth-role-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.auth-role-btn.active {
+  background: var(--text, #1e2238);
+  color: var(--paper, #fff);
+}
+.auth-role-btn.active:hover {
+  background: var(--text, #1e2238);
+}
+.auth-role-hint {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  margin-top: 8px;
+  line-height: 1.4;
+}

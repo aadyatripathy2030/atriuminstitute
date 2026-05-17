@@ -41,7 +41,8 @@ See `.env.example` for the full list with descriptions. The minimums:
 | `RESEND_API_KEY` | Production only | Sends verification codes by email |
 | `EMAIL_FROM` | Optional | Verified From address (default: Resend sandbox) |
 | `PORT` | Optional | Defaults to 8765 |
-| `DB_PATH` | Optional | Defaults to `./data.json` |
+| `DATABASE_URL` | Production | Postgres connection string (Render Postgres). When unset, the app falls back to a local JSON file at `DB_PATH`. |
+| `DB_PATH` | Optional | JSON-file DB path (only used when `DATABASE_URL` is unset). Default `./data.json`. |
 | `RATE_LIMIT_PER_HOUR` | Optional | Claude requests per IP per hour (default 30) |
 | `DAILY_REQUEST_CAP` | Optional | Site-wide Claude requests per day (default 1000) |
 
@@ -50,9 +51,13 @@ See `.env.example` for the full list with descriptions. The minimums:
 ```
 .
 ├── server.js              # HTTP server, /api routes, Claude proxy
-├── db.js                  # JSON file storage (users, codes, sessions, progress)
+├── db.js                  # Backend switcher: Postgres if DATABASE_URL set, else JSON file
+├── db-postgres.js         # Render Postgres backend (production)
+├── db-jsonfile.js         # JSON-file backend (local dev / fallback)
+├── db/schema.sql          # Schema applied to Postgres via tools/migrate.js
+├── prompts.js             # Server-side AI system prompts (intent-routed, cacheable)
 ├── email.js               # Resend integration + console fallback
-├── auth.js                # Frontend: sign-in modal + progress sync
+├── auth.js                # Frontend: sign-in (email + 6-digit code, role toggle)
 ├── ai.js                  # Frontend: Claude API wrapper
 ├── app.js                 # Frontend: course/quiz UI + state
 ├── study.js               # Frontend: Study Methods panel + Pomodoro
@@ -72,14 +77,11 @@ See `.env.example` for the full list with descriptions. The minimums:
 
 ## Deployment
 
-The server is a tiny zero-dependency Node app — it runs anywhere Node 18+ runs.
+The server runs on any Node 18+ host. In production it needs a Postgres database (Render's disk is ephemeral, so the JSON-file fallback would lose user data on every redeploy).
 
-**Important:** the JSON file database (`data.json`) needs a persistent disk to survive redeploys. Render's free tier has ephemeral disk, so on Render Free your users would lose their accounts on each deploy. Options:
+**Recommended setup: Render web service + Render Postgres.** See `DEPLOY.md` for step-by-step. Other Postgres providers (Neon, Supabase, AWS RDS) work too — just set `DATABASE_URL` to the connection string and run `node tools/migrate.js` once against it.
 
-- **Fly.io** (free tier with persistent volume) — point `DB_PATH` at the mounted volume
-- **Render** + migrate `db.js` to Postgres (Supabase free tier works)
-- **Render** + paid plan with persistent disk
-- Self-hosted VPS
+Local development can skip Postgres entirely: leave `DATABASE_URL` unset and the app uses a `data.json` file in the project directory. Useful for iterating without a real DB, not for anything you want to keep.
 
 `DEPLOY.md` has a step-by-step Render walkthrough. For Fly.io, install `flyctl`, then:
 
