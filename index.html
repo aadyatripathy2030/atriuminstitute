@@ -50,6 +50,7 @@
     <button class="nav-cta hidden" id="navSignInBtn" type="button">Sign in</button>
     <span class="nav-user hidden" id="navUser" title="Sign out">
       <span id="navUserEmail"></span>
+      <button class="nav-link" id="activityNavBtn" type="button">Activity</button>
       <button class="nav-link" id="profileNavBtn" type="button">Profile</button>
       <button class="nav-link" id="signOutBtn" type="button">Sign out</button>
     </span>
@@ -333,6 +334,31 @@
   </section>
 </div>
 
+<!-- Activity page: a student-facing view of their own quiz history,
+     weak topics, and event timeline. -->
+<div id="activityPage" class="activity-page hidden">
+  <button class="back-btn" id="activityBack">← Back</button>
+  <header class="activity-hero">
+    <h1>Your activity</h1>
+    <p class="activity-sub">Everything you've done on Atrium Institute.</p>
+  </header>
+
+  <section class="parent-section">
+    <h2>Weak topics</h2>
+    <div id="activityWeak" class="parent-detail-list"></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>Recent quiz attempts</h2>
+    <div id="activityQuizzes" class="parent-detail-list"></div>
+  </section>
+
+  <section class="parent-section">
+    <h2>Timeline</h2>
+    <div id="activityTimeline" class="parent-detail-list"></div>
+  </section>
+</div>
+
 <!-- Profile page (student or parent — different fields per role) -->
 <div id="profilePage" class="profile-page hidden">
   <button class="back-btn" id="profileBack">← Back</button>
@@ -499,6 +525,7 @@
 <script src="auth.js"></script>
 <script src="parent.js"></script>
 <script src="profile.js"></script>
+<script src="activity.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 </body>

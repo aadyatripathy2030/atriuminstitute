@@ -72,11 +72,17 @@
     const signInBtn = el('navSignInBtn');
     const navUser = el('navUser');
     const navEmail = el('navUserEmail');
+    const activityBtn = el('activityNavBtn');
     if (signInBtn) hide(signInBtn);
     if (navUser) show(navUser);
     if (navEmail) {
       const label = user.role === 'parent' ? `👪 ${user.email}` : user.email;
       navEmail.textContent = label;
+    }
+    // Parents have activity views per-student inside the dashboard; the
+    // student-self "Activity" button only makes sense for student accounts.
+    if (activityBtn) {
+      if (user.role === 'parent') hide(activityBtn); else show(activityBtn);
     }
   }
 

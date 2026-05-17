@@ -2266,3 +2266,18 @@ button.logo:focus-visible {
   outline-offset: 4px;
   border-radius: 6px;
 }
+
+/* Student-facing activity page (re-uses parent-detail row styles). */
+.activity-page {
+  max-width: 880px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+.activity-page.hidden { display: none; }
+.activity-hero h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 28px;
+  margin: 16px 0 4px;
+}
+.activity-sub { color: var(--muted, #6b7280); margin: 0 0 24px; }
