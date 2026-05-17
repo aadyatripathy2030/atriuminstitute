@@ -391,7 +391,7 @@ async function listActivity(userId, opts = {}) {
 }
 
 // ---------- Profiles ----------
-const STUDENT_PROFILE_COLS = 'user_id, display_name, school_name, grade_level, subjects, study_plan_courses, study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local, reminder_content, parent_authorised_reminders, last_reminder_sent_at, updated_at';
+const STUDENT_PROFILE_COLS = 'user_id, display_name, school_name, grade_level, subjects, study_plan_courses, study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local, reminder_content, parent_authorised_reminders, last_reminder_sent_at, ai_model_preference, updated_at';
 const PARENT_PROFILE_COLS = 'user_id, display_name, relationship, timezone, weekly_digest_enabled, weekly_digest_day, weekly_digest_time_local, last_digest_sent_at, updated_at';
 
 async function getStudentProfile(userId) {
@@ -413,10 +413,10 @@ async function upsertStudentProfile(userId, fields) {
     `insert into student_profiles (
        user_id, display_name, school_name, grade_level, subjects, study_plan_courses,
        study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local,
-       reminder_content, parent_authorised_reminders
+       reminder_content, parent_authorised_reminders, ai_model_preference
      ) values ($1,$2,$3,$4,coalesce($5::text[],'{}'),coalesce($6::text[],'{}'),
                $7,$8,coalesce($9,false),coalesce($10,'weekly'),coalesce($11::time,'17:00'),
-               coalesce($12,'generic'),coalesce($13,false))
+               coalesce($12,'generic'),coalesce($13,false),coalesce($14,'balanced'))
      on conflict (user_id) do update set
        display_name = coalesce($2, student_profiles.display_name),
        school_name = coalesce($3, student_profiles.school_name),
@@ -430,6 +430,7 @@ async function upsertStudentProfile(userId, fields) {
        reminder_time_local = coalesce($11::time, student_profiles.reminder_time_local),
        reminder_content = coalesce($12, student_profiles.reminder_content),
        parent_authorised_reminders = coalesce($13, student_profiles.parent_authorised_reminders),
+       ai_model_preference = coalesce($14, student_profiles.ai_model_preference),
        updated_at = now()
      returning ${STUDENT_PROFILE_COLS}`,
     [
@@ -446,6 +447,7 @@ async function upsertStudentProfile(userId, fields) {
       f.reminderTimeLocal ?? null,
       f.reminderContent ?? null,
       f.parentAuthorisedReminders ?? null,
+      f.aiModelPreference ?? null,
     ],
   );
   return rows[0];
@@ -615,6 +617,34 @@ async function summariseAiUsage(opts = {}) {
   };
 }
 
+// ---------- Cached lessons ----------
+async function getCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'section') {
+  const rows = await q(
+    `select content, model, updated_at from cached_lessons
+     where course_id = $1 and book_id = $2 and section_idx = $3 and section_kind = $4 limit 1`,
+    [courseId, bookId, sectionIdx, sectionKind],
+  );
+  return rows[0] || null;
+}
+
+async function saveCachedLesson(courseId, bookId, sectionIdx, sectionKind, content, model) {
+  await q(
+    `insert into cached_lessons (course_id, book_id, section_idx, section_kind, content, model)
+     values ($1, $2, $3, $4, $5, $6)
+     on conflict (course_id, book_id, section_idx, section_kind) do update
+     set content = excluded.content, model = excluded.model, updated_at = now()`,
+    [courseId, bookId, sectionIdx, sectionKind || 'section', content, model || null],
+  );
+}
+
+async function clearCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'section') {
+  await q(
+    `delete from cached_lessons
+     where course_id = $1 and book_id = $2 and section_idx = $3 and section_kind = $4`,
+    [courseId, bookId, sectionIdx, sectionKind],
+  );
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -635,6 +665,7 @@ module.exports = {
   setParentAuthorisedReminders, markReminderSent, markDigestSent,
   listReminderCandidates, listDigestCandidates,
   recordAiUsage, listAiUsage, summariseAiUsage,
+  getCachedLesson, saveCachedLesson, clearCachedLesson,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

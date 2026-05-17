@@ -209,3 +209,31 @@ create index if not exists idx_ai_usage_created_at on ai_usage (created_at desc)
 create index if not exists idx_ai_usage_user on ai_usage (user_id);
 create index if not exists idx_ai_usage_intent on ai_usage (intent);
 create index if not exists idx_ai_usage_model on ai_usage (model);
+
+-- ------------------------------------------------------------------
+-- Cached AI-generated lessons. Generating a section's Learn lesson is
+-- a Sonnet call; storing the result means subsequent views are instant
+-- and cost zero tokens. Keyed by (course_id, book_id, section_idx).
+-- ------------------------------------------------------------------
+
+create table if not exists cached_lessons (
+  id uuid primary key default gen_random_uuid(),
+  course_id text not null,
+  book_id text not null,
+  section_idx integer not null,
+  section_kind text not null default 'section',
+  content text not null,
+  model text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (course_id, book_id, section_idx, section_kind)
+);
+
+create index if not exists idx_cached_lessons_lookup
+  on cached_lessons (course_id, book_id, section_idx, section_kind);
+
+-- AI model preference. Lets a student opt out of the default balanced
+-- model selection and pin every call to Haiku (fast) or Sonnet (best).
+alter table student_profiles
+  add column if not exists ai_model_preference text not null default 'balanced'
+  check (ai_model_preference in ('balanced', 'fast', 'best'));

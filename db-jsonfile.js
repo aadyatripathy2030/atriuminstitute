@@ -24,7 +24,12 @@ function load() {
   if (!state.studentProfiles) state.studentProfiles = {};
   if (!state.parentProfiles) state.parentProfiles = {};
   if (!Array.isArray(state.aiUsage)) state.aiUsage = [];
+  if (!state.cachedLessons) state.cachedLessons = {};
   return state;
+}
+
+function lessonKey(courseId, bookId, sectionIdx, sectionKind) {
+  return `${courseId}|${bookId}|${sectionIdx}|${sectionKind || 'section'}`;
 }
 
 function save() {
@@ -439,6 +444,7 @@ function defaultStudentProfile(userId) {
     reminder_content: 'generic',
     parent_authorised_reminders: false,
     last_reminder_sent_at: null,
+    ai_model_preference: 'balanced',
     updated_at: new Date().toISOString(),
   };
 }
@@ -485,6 +491,7 @@ async function upsertStudentProfile(userId, fields) {
     reminder_time_local: f.reminderTimeLocal ?? existing.reminder_time_local,
     reminder_content: f.reminderContent ?? existing.reminder_content,
     parent_authorised_reminders: f.parentAuthorisedReminders ?? existing.parent_authorised_reminders,
+    ai_model_preference: f.aiModelPreference ?? existing.ai_model_preference ?? 'balanced',
     updated_at: new Date().toISOString(),
   };
   state.studentProfiles[userId] = merged;
@@ -652,6 +659,24 @@ async function summariseAiUsage(opts = {}) {
   return { totals, byIntent, byModel, byDay };
 }
 
+// ---------- Cached lessons ----------
+async function getCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'section') {
+  load();
+  return state.cachedLessons[lessonKey(courseId, bookId, sectionIdx, sectionKind)] || null;
+}
+async function saveCachedLesson(courseId, bookId, sectionIdx, sectionKind, content, model) {
+  load();
+  state.cachedLessons[lessonKey(courseId, bookId, sectionIdx, sectionKind)] = {
+    content, model: model || null, updated_at: new Date().toISOString(),
+  };
+  save();
+}
+async function clearCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'section') {
+  load();
+  delete state.cachedLessons[lessonKey(courseId, bookId, sectionIdx, sectionKind)];
+  save();
+}
+
 module.exports = {
   backend: 'jsonfile',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -666,6 +691,7 @@ module.exports = {
   setParentAuthorisedReminders, markReminderSent, markDigestSent,
   listReminderCandidates, listDigestCandidates,
   recordAiUsage, listAiUsage, summariseAiUsage,
+  getCachedLesson, saveCachedLesson, clearCachedLesson,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
