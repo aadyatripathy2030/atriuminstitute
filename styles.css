@@ -2717,3 +2717,40 @@ button.logo:focus-visible {
   color: var(--muted, #6b7280);
   cursor: not-allowed;
 }
+
+/* Study Methods picker — second action button + hint. */
+.picker-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.picker-actions .start-method-btn,
+.picker-actions .open-topic-btn {
+  flex: 1;
+  min-width: 160px;
+  background: var(--accent, #4a6fa5);
+  color: var(--paper, #fff);
+  border: 1px solid var(--accent, #4a6fa5);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.picker-actions .open-topic-btn {
+  background: var(--paper, #fff);
+  color: var(--accent, #4a6fa5);
+}
+.picker-actions .start-method-btn:hover { filter: brightness(0.92); }
+.picker-actions .open-topic-btn:hover {
+  background: var(--accent-soft, rgba(74, 111, 165, 0.1));
+}
+.picker-hint {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  margin-top: 8px;
+  line-height: 1.4;
+}

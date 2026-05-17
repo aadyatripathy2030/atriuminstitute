@@ -72,7 +72,11 @@
       <div class="picker-label">📖 Study a topic with this method:</div>
       <select class="picker-select course-select" data-idx="${idx}">${courseOpts}</select>
       <select class="picker-select book-select" data-idx="${idx}"></select>
-      <button class="start-method-btn" data-idx="${idx}" data-method="${methodTitle.replace(/"/g, '&quot;')}">Start with Max →</button>
+      <div class="picker-actions">
+        <button class="start-method-btn" data-idx="${idx}" data-method="${methodTitle.replace(/"/g, '&quot;')}">💬 Start with Max</button>
+        <button class="open-topic-btn" data-idx="${idx}">📖 Open this topic</button>
+      </div>
+      <div class="picker-hint">"Open this topic" jumps to the book overview where you can pick any section to read a Max lesson on, or take its quiz.</div>
     </div>`;
   }
 
@@ -120,6 +124,26 @@ Which section should we focus on? Once I pick, please walk me through it using t
           // Auto-send so Max responds and asks which section.
           if (typeof sendChat === 'function') sendChat();
         }
+      });
+    });
+
+    // "Open this topic" button: close the Study Methods panel, navigate to
+    // the selected course's book overview so the user can pick any section
+    // and use the existing Learn / Start Quiz / Study with Max buttons.
+    document.querySelectorAll('.open-topic-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const idx = btn.getAttribute('data-idx');
+        const courseSel = document.querySelector(`.course-select[data-idx="${idx}"]`);
+        const bookSel = document.querySelector(`.book-select[data-idx="${idx}"]`);
+        if (!courseSel || !bookSel) return;
+        const courseId = courseSel.value;
+        const bookId = bookSel.value;
+        document.getElementById('studyPanel').classList.remove('open');
+        if (typeof openCourse === 'function') {
+          await openCourse(courseId);
+        }
+        if (typeof openBook === 'function') openBook(bookId);
       });
     });
   }
