@@ -351,48 +351,6 @@
 
 </div>
 
-<!-- Site-wide footer. Lives outside #landing so it shows on every page
-     (courses home, profile, activity, lessons, etc.). The full-screen
-     gates (auth, consent) are position:fixed so they sit above this
-     naturally. -->
-<footer class="site-footer" id="siteFooter">
-  <div class="footer-grid">
-    <div class="footer-col footer-brand">
-      <div class="footer-logo">
-        <div class="footer-logo-dot">∑</div>
-        <div class="footer-logo-text">Atrium Institute</div>
-      </div>
-      <p class="footer-tagline">A calm place to learn math &amp; English. Free for any student, anywhere.</p>
-      <div class="footer-social" aria-label="Social media">
-        <a href="mailto:hello@atriuminstitute.ai" title="Email" aria-label="Email">✉️ Email us</a>
-      </div>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Learn</div>
-      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('arithmetic'); return false;">Arithmetic</a>
-      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('algebra'); return false;">Algebra</a>
-      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('geometry'); return false;">Geometry</a>
-      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('calculus'); return false;">Calculus</a>
-      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('eng9'); return false;">English (9th)</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Company</div>
-      <a href="#" onclick="showAbout(); return false;">About</a>
-      <a href="#" onclick="showContact(); return false;">Contact</a>
-      <a href="mailto:hello@atriuminstitute.ai">hello@atriuminstitute.ai</a>
-    </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Legal</div>
-      <a href="#" onclick="showPrivacy(); return false;">Privacy Policy</a>
-      <a href="#" onclick="showTerms(); return false;">Terms of Use</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <div class="footer-copy">© 2026 Atrium Institute · A calm place to learn.</div>
-    <div class="footer-secure">🔒 HTTPS · No ads · No tracking pixels</div>
-  </div>
-</footer>
-
 <div id="onboard" class="onboard hidden"></div>
 
 <!-- Consent gate: under-13 student waiting for a parent to link -->
@@ -915,6 +873,48 @@
 
 <div id="modalBackdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
 <div id="modal" class="modal hidden"></div>
+
+<!-- Site-wide footer. Placed last so it always renders at the bottom of
+     the page regardless of which top-level view is currently visible.
+     The full-screen gates (auth, consent) are position:fixed so they
+     cover this naturally when active. -->
+<footer class="site-footer" id="siteFooter">
+  <div class="footer-grid">
+    <div class="footer-col footer-brand">
+      <div class="footer-logo">
+        <div class="footer-logo-dot">∑</div>
+        <div class="footer-logo-text">Atrium Institute</div>
+      </div>
+      <p class="footer-tagline">A calm place to learn math &amp; English. Free for any student, anywhere.</p>
+      <div class="footer-social" aria-label="Social media">
+        <a href="mailto:hello@atriuminstitute.ai" title="Email" aria-label="Email">✉️ Email us</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Learn</div>
+      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('arithmetic'); return false;">Arithmetic</a>
+      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('algebra'); return false;">Algebra</a>
+      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('geometry'); return false;">Geometry</a>
+      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('calculus'); return false;">Calculus</a>
+      <a href="#" onclick="document.getElementById('landing').classList.add('hidden'); openCourse('eng9'); return false;">English (9th)</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Company</div>
+      <a href="#" onclick="showAbout(); return false;">About</a>
+      <a href="#" onclick="showContact(); return false;">Contact</a>
+      <a href="mailto:hello@atriuminstitute.ai">hello@atriuminstitute.ai</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Legal</div>
+      <a href="#" onclick="showPrivacy(); return false;">Privacy Policy</a>
+      <a href="#" onclick="showTerms(); return false;">Terms of Use</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Atrium Institute · A calm place to learn.</div>
+    <div class="footer-secure">🔒 HTTPS · No ads · No tracking pixels</div>
+  </div>
+</footer>
 
 <script src="arithmetic-data.js"></script>
 <script src="prealgebra-data.js"></script>
