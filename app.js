@@ -695,6 +695,16 @@ async function studyWithMax(book, section) {
   `;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
+  // Typeset questions IMMEDIATELY so fractions/equations render before the lesson finishes streaming.
+  if (window.MathJax) MathJax.typesetPromise([studyEl]);
+
+  // Re-typeset solutions when their <details> is opened (some LaTeX in hidden content can be finicky).
+  studyEl.querySelectorAll('.study-q-solution').forEach(d => {
+    d.addEventListener('toggle', () => {
+      if (d.open && window.MathJax) MathJax.typesetPromise([d]);
+    });
+  });
+
   // Stream Max's lesson into the lesson body.
   const lessonBody = document.getElementById('studyLessonBody');
   const profile = loadProfile() || {};
