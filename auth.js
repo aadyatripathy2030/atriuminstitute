@@ -218,6 +218,12 @@
     if (studyFab) {
       if (user.role === 'parent') hide(studyFab); else show(studyFab);
     }
+    // Swap the landing hero's CTAs from "Sign up / Sign in" to
+    // "Continue learning →" so a signed-in user who lands here never sees
+    // the public-visitor buttons.
+    hide(el('landingCtaSignedOut'));
+    hide(el('landingCtaSubSignedOut'));
+    show(el('landingCtaSignedIn'));
   }
 
   function setNavSignedOut() {
@@ -232,6 +238,10 @@
     if (navUser) hide(navUser);
     if (studyFab) hide(studyFab);
     if (menu) hide(menu);
+    // Restore the public CTAs for signed-out visitors.
+    show(el('landingCtaSignedOut'));
+    show(el('landingCtaSubSignedOut'));
+    hide(el('landingCtaSignedIn'));
   }
 
   function toggleMyDetailsMenu(force) {
@@ -623,13 +633,11 @@
     const user = await checkSession();
     if (user) {
       setNavSignedIn(user);
-      // If the user is mid-flow (parent or consent-gated), drop them on the
-      // right view immediately rather than waiting for a CTA click.
-      if (user.role === 'parent') {
-        enterAppAfterAuth(user);
-      } else if (user.consent_required && !user.consent_granted_at) {
-        showConsentGate(user);
-      }
+      // Signed-in users get routed straight to their app home rather than
+      // staring at a marketing landing. Role-aware: parents → dashboard,
+      // gated minors → consent gate, everyone else → courses home (or
+      // onboarding if no profile yet).
+      enterAppAfterAuth(user);
     } else {
       setNavSignedOut();
     }

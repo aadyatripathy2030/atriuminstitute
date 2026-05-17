@@ -126,11 +126,14 @@
     <div class="landing-eyebrow">📚 Interactive math &amp; English · grades 6–12</div>
     <h1 class="landing-h1">Learn math and English<br><em>like you mean it.</em></h1>
     <p class="landing-lede">A calm, focused place to study — without streaks, ads, or noise. 113 topics, nearly 10,000 questions, and an AI tutor named Max who actually teaches.</p>
-    <div class="landing-cta-row">
+    <div class="landing-cta-row" id="landingCtaSignedOut">
       <button class="cta-primary" onclick="openAuth('signup')">Sign up free</button>
       <button class="cta-secondary" onclick="openAuth('signin')">Sign in</button>
     </div>
-    <div class="landing-cta-sub">Free · email + 6-digit code, no passwords to remember</div>
+    <div class="landing-cta-sub" id="landingCtaSubSignedOut">Free · email + 6-digit code, no passwords to remember</div>
+    <div class="landing-cta-row hidden" id="landingCtaSignedIn">
+      <button class="cta-primary" onclick="goHome()">Continue learning →</button>
+    </div>
   </section>
 
   <section class="landing-stats">
