@@ -17,16 +17,22 @@
     return code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code;
   }
 
-  function activityLabel(a) {
-    const meta = a.meta || {};
-    switch (a.kind) {
-      case 'signin': return 'Signed in';
-      case 'quiz_pass': return `Passed a quiz · ${meta.courseId || ''} ${meta.bookId || ''} (${meta.score}/${meta.total})`;
-      case 'quiz_fail': return `Did not pass a quiz · ${meta.courseId || ''} ${meta.bookId || ''} (${meta.score}/${meta.total})`;
-      case 'link_created': return 'Linked an account';
-      case 'link_removed': return 'Removed a link';
-      default: return a.kind;
-    }
+  function describe(a) {
+    if (typeof window.describeActivity === 'function') return window.describeActivity(a);
+    return { icon: '•', title: a.kind, detail: '', when: a.created_at || '' };
+  }
+  function activityRow(a) {
+    const d = describe(a);
+    return `
+      <div class="activity-event">
+        <div class="activity-icon">${d.icon}</div>
+        <div class="activity-body">
+          <div class="activity-title">${escapeHTML(d.title)}</div>
+          ${d.detail ? `<div class="activity-detail">${escapeHTML(d.detail)}</div>` : ''}
+        </div>
+        <div class="activity-when">${escapeHTML(d.when)}</div>
+      </div>
+    `;
   }
 
   async function fetchJSON(url) {
@@ -161,13 +167,8 @@
         : '<div class="parent-empty">No quiz attempts yet.</div>';
 
       activityEl.innerHTML = activity.length
-        ? activity.slice(0, 50).map(a => `
-            <div class="parent-detail-row">
-              <div>${escapeHTML(activityLabel(a))}</div>
-              <div class="muted">${fmtDate(a.created_at)}</div>
-            </div>
-          `).join('')
-        : '<div class="parent-empty">No activity yet.</div>';
+        ? activity.slice(0, 50).map(activityRow).join('')
+        : '<div class="parent-empty">No activity yet for this student.</div>';
     } catch (e) {
       const msg = `<div class="parent-empty err">Could not load: ${escapeHTML(e.message)}</div>`;
       weakEl.innerHTML = msg; quizEl.innerHTML = msg; activityEl.innerHTML = msg;

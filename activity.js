@@ -15,17 +15,22 @@
     if (!s) return '—';
     try { return new Date(s).toLocaleString(); } catch { return s; }
   }
-  function activityLabel(a) {
-    const meta = a.meta || {};
-    switch (a.kind) {
-      case 'signin': return 'Signed in';
-      case 'quiz_pass': return `Passed a quiz · ${meta.courseId || ''} ${meta.bookId || ''} (${meta.score}/${meta.total})`;
-      case 'quiz_fail': return `Did not pass a quiz · ${meta.courseId || ''} ${meta.bookId || ''} (${meta.score}/${meta.total})`;
-      case 'link_created': return 'Linked an account';
-      case 'link_removed': return 'Removed a link';
-      case 'reminder_sent': return 'Reminder email sent to you';
-      default: return a.kind;
-    }
+  function describe(a) {
+    if (typeof window.describeActivity === 'function') return window.describeActivity(a);
+    return { icon: '•', title: a.kind, detail: '', when: a.created_at || '' };
+  }
+  function activityRow(a) {
+    const d = describe(a);
+    return `
+      <div class="activity-event">
+        <div class="activity-icon">${d.icon}</div>
+        <div class="activity-body">
+          <div class="activity-title">${esc(d.title)}</div>
+          ${d.detail ? `<div class="activity-detail">${esc(d.detail)}</div>` : ''}
+        </div>
+        <div class="activity-when">${esc(d.when)}</div>
+      </div>
+    `;
   }
 
   async function fetchJSON(url) {
@@ -95,13 +100,8 @@
         : '<div class="parent-empty">No quiz attempts yet. Once you finish a quiz, it shows up here.</div>';
 
       timelineEl.innerHTML = activity.length
-        ? activity.slice(0, 100).map(a => `
-            <div class="parent-detail-row">
-              <div>${esc(activityLabel(a))}</div>
-              <div class="muted">${fmtDate(a.created_at)}</div>
-            </div>
-          `).join('')
-        : '<div class="parent-empty">No activity yet.</div>';
+        ? activity.slice(0, 100).map(activityRow).join('')
+        : '<div class="parent-empty">No activity yet. Once you take a quiz or sign in again, it shows up here.</div>';
     } catch (e) {
       const msg = `<div class="parent-empty err">Could not load: ${esc(e.message)}</div>`;
       weakEl.innerHTML = msg; quizEl.innerHTML = msg; timelineEl.innerHTML = msg;
