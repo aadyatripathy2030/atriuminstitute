@@ -35,7 +35,7 @@
       <span class="logo-dot">∑</span>
       Atrium Institute
     </button>
-    <button class="study-nav-btn" id="studyFab" title="Study methods & timers">
+    <button class="study-nav-btn hidden" id="studyFab" title="Study methods & timers">
       <span class="fab-icon">📚</span>
       <span class="fab-label">Study Methods</span>
     </button>
@@ -52,10 +52,19 @@
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
     <button class="nav-cta hidden" id="navSignInBtn" type="button">Sign in</button>
-    <span class="nav-user hidden" id="navUser" title="Sign out">
-      <span id="navUserEmail"></span>
-      <button class="nav-link" id="activityNavBtn" type="button">Activity</button>
-      <button class="nav-link" id="profileNavBtn" type="button">Profile</button>
+    <span class="nav-user hidden" id="navUser">
+      <div class="nav-menu">
+        <button class="nav-link" id="myDetailsBtn" type="button" aria-haspopup="menu" aria-expanded="false">My Details ▾</button>
+        <div class="nav-menu-items hidden" id="myDetailsMenu" role="menu">
+          <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
+          <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
+          <div class="nav-menu-divider" aria-hidden="true"></div>
+          <div class="nav-menu-footer">
+            <div class="nav-menu-label">Logged in as</div>
+            <div class="nav-menu-email" id="navUserEmail"></div>
+          </div>
+        </div>
+      </div>
       <button class="nav-link" id="signOutBtn" type="button">Sign out</button>
     </span>
   </div>
@@ -453,6 +462,20 @@
     <h1>Your activity</h1>
     <p class="activity-sub">Everything you've done on Atrium Institute.</p>
   </header>
+
+  <section class="activity-summary-card" id="activitySummaryCard">
+    <div class="activity-summary-head">
+      <div class="activity-summary-avatar">🧙</div>
+      <div>
+        <div class="activity-summary-name">Where you stand</div>
+        <div class="activity-summary-sub">Max read your activity and put together a quick read.</div>
+      </div>
+      <button class="activity-summary-refresh" id="activitySummaryRefresh" title="Regenerate summary" aria-label="Regenerate summary">↻</button>
+    </div>
+    <div class="activity-summary-body" id="activitySummaryBody">
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>
+  </section>
 
   <section class="parent-section">
     <h2>Weak topics</h2>

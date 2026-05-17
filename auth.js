@@ -107,6 +107,7 @@
     const navUser = el('navUser');
     const navEmail = el('navUserEmail');
     const activityBtn = el('activityNavBtn');
+    const studyFab = el('studyFab');
     if (signInBtn) hide(signInBtn);
     if (navUser) show(navUser);
     if (navEmail) {
@@ -118,14 +119,36 @@
     if (activityBtn) {
       if (user.role === 'parent') hide(activityBtn); else show(activityBtn);
     }
+    // Study Methods is a learner tool — only show after sign-in.
+    if (studyFab) {
+      if (user.role === 'parent') hide(studyFab); else show(studyFab);
+    }
   }
 
   function setNavSignedOut() {
     currentUser = null;
     const signInBtn = el('navSignInBtn');
     const navUser = el('navUser');
+    const studyFab = el('studyFab');
+    const menu = el('myDetailsMenu');
     if (signInBtn) show(signInBtn);
     if (navUser) hide(navUser);
+    if (studyFab) hide(studyFab);
+    if (menu) hide(menu);
+  }
+
+  function toggleMyDetailsMenu(force) {
+    const btn = el('myDetailsBtn');
+    const menu = el('myDetailsMenu');
+    if (!btn || !menu) return;
+    const willShow = (typeof force === 'boolean') ? force : menu.classList.contains('hidden');
+    if (willShow) {
+      menu.classList.remove('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+    } else {
+      menu.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
+    }
   }
 
   // Role toggle is injected once into the auth card. The HTML in index.html
@@ -450,6 +473,26 @@
     if (signOutBtn) signOutBtn.addEventListener('click', handleSignOut);
     const logoBtn = el('logoHome');
     if (logoBtn) logoBtn.addEventListener('click', () => window.goHome());
+    const myDetailsBtn = el('myDetailsBtn');
+    if (myDetailsBtn) {
+      myDetailsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMyDetailsMenu();
+      });
+    }
+    const myDetailsMenu = el('myDetailsMenu');
+    if (myDetailsMenu) {
+      myDetailsMenu.addEventListener('click', (e) => {
+        // Close the menu when an item is picked. The item's own handler
+        // (in profile.js / activity.js) still runs.
+        if (e.target && e.target.tagName === 'BUTTON') toggleMyDetailsMenu(false);
+      });
+    }
+    // Close the dropdown on outside click + Escape.
+    document.addEventListener('click', () => toggleMyDetailsMenu(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') toggleMyDetailsMenu(false);
+    });
     // Consent gate buttons
     const consentRefresh = el('consentRefreshBtn');
     if (consentRefresh) consentRefresh.addEventListener('click', handleConsentRefresh);

@@ -62,6 +62,8 @@
     else show(el('courses-home'));
   }
 
+  let lastLoaded = { attempts: [], weak: [], activity: [] };
+
   async function openActivity() {
     captureCurrentView();
     hideAllTopLevel();
@@ -72,6 +74,7 @@
     weakEl.innerHTML = '<div class="parent-empty">Loading…</div>';
     quizEl.innerHTML = '<div class="parent-empty">Loading…</div>';
     timelineEl.innerHTML = '<div class="parent-empty">Loading…</div>';
+    resetSummary();
 
     try {
       const [{ sections }, { attempts }, { activity }] = await Promise.all([
@@ -79,6 +82,9 @@
         fetchJSON('/api/me/quiz-attempts'),
         fetchJSON('/api/me/activity'),
       ]);
+      lastLoaded = { attempts, weak: sections, activity };
+      // Kick off the AI summary asynchronously; don't block the page render.
+      streamSummary({ attempts, weakSections: sections, activity });
 
       weakEl.innerHTML = sections.length
         ? sections.map(s => `
@@ -108,6 +114,83 @@
     }
   }
 
+  function resetSummary() {
+    const body = el('activitySummaryBody');
+    if (!body) return;
+    body.classList.remove('err');
+    body.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  }
+
+  function resolveCourseBookSection(courseId, bookId, sectionIdx) {
+    if (typeof COURSES === 'undefined' || !COURSES) return { course: courseId, book: bookId, section: `Section ${sectionIdx + 1}` };
+    const c = COURSES[courseId];
+    if (!c) return { course: courseId, book: bookId, section: `Section ${sectionIdx + 1}` };
+    const b = (c.books || []).find(x => x.id === bookId);
+    return {
+      course: c.title,
+      book: b ? b.title : bookId,
+      section: b && b.sections && b.sections[sectionIdx] ? b.sections[sectionIdx].title : `Section ${sectionIdx + 1}`,
+    };
+  }
+
+  async function fetchSelfContext() {
+    // Pull the rich profile (if any) so Max can use the student's name,
+    // study goal, etc. Tolerate a missing profile gracefully.
+    try {
+      const r = await fetchJSON('/api/me/rich-profile');
+      return r.profile || {};
+    } catch { return {}; }
+  }
+
+  async function streamSummary({ attempts, weakSections, activity }) {
+    if (typeof AI === 'undefined' || !AI || typeof AI.streamActivitySummary !== 'function') return;
+    const body = el('activitySummaryBody');
+    if (!body) return;
+
+    const profile = await fetchSelfContext();
+    const courseTitles = (typeof COURSES !== 'undefined' && COURSES)
+      ? Object.values(COURSES).map(c => c.title)
+      : [];
+
+    const attemptsForAi = attempts.map(a => {
+      const { course, book, section } = resolveCourseBookSection(a.course_id, a.book_id, a.section_idx);
+      return { course, book, section, score: a.score, total: a.total, passed: a.passed };
+    });
+
+    const weakForAi = weakSections.map(w => {
+      const { course, book, section } = resolveCourseBookSection(w.course_id, w.book_id, w.section_idx);
+      return { course, book, section, failures: Number(w.failures) };
+    });
+
+    const recentKinds = (activity || []).slice(0, 12).map(a => a.kind);
+
+    const payload = {
+      studentName: profile.display_name || null,
+      gradeLevel: profile.grade_level || null,
+      subjects: profile.subjects || [],
+      studyGoal: profile.study_goal || null,
+      studyPlanCourses: profile.study_plan_courses || [],
+      attempts: attemptsForAi,
+      weakSections: weakForAi,
+      recentEvents: recentKinds,
+      availableCourses: courseTitles,
+    };
+
+    body.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    body.classList.remove('err');
+    let buf = '';
+    try {
+      for await (const chunk of AI.streamActivitySummary(payload)) {
+        buf += chunk;
+        body.innerHTML = (typeof mdToHtml === 'function') ? mdToHtml(buf) : esc(buf);
+      }
+      if (!buf.trim()) body.innerHTML = '<p>No summary right now. Take a quiz or two and refresh.</p>';
+    } catch (e) {
+      body.classList.add('err');
+      body.innerHTML = `Couldn't generate a summary just now: ${esc(e.message)}.`;
+    }
+  }
+
   function wireOnce() {
     if (wireOnce._done) return;
     wireOnce._done = true;
@@ -115,6 +198,10 @@
     if (navBtn) navBtn.addEventListener('click', openActivity);
     const back = el('activityBack');
     if (back) back.addEventListener('click', goBack);
+    const refresh = el('activitySummaryRefresh');
+    if (refresh) refresh.addEventListener('click', () => {
+      streamSummary({ attempts: lastLoaded.attempts, weakSections: lastLoaded.weak, activity: lastLoaded.activity });
+    });
   }
 
   if (document.readyState === 'loading') {

@@ -248,6 +248,58 @@ Return ONLY the JSON array.`;
     }
   },
 
+  // Generates the "where you stand" summary shown at the top of the
+  // Activity page. The caller pre-builds the structured data block.
+  streamActivitySummary(payload) {
+    const lines = [];
+    if (payload.studentName) lines.push(`Student: ${payload.studentName}`);
+    if (payload.gradeLevel) lines.push(`Grade: ${payload.gradeLevel}`);
+    if (payload.subjects && payload.subjects.length) lines.push(`Subjects of focus: ${payload.subjects.join(', ')}`);
+    if (payload.studyGoal) lines.push(`Personal goal: ${payload.studyGoal}`);
+    if (payload.studyPlanCourses && payload.studyPlanCourses.length) lines.push(`Courses in their study plan: ${payload.studyPlanCourses.join(', ')}`);
+
+    const a = payload.attempts || [];
+    if (a.length === 0) {
+      lines.push('Quiz attempts: none yet.');
+    } else {
+      const passed = a.filter(x => x.passed).length;
+      const failed = a.length - passed;
+      const recent = a.slice(0, 8);
+      lines.push(`Quiz attempts (last ${a.length}): ${passed} passed, ${failed} did not pass.`);
+      lines.push('Recent attempts (newest first):');
+      for (const r of recent) {
+        const tag = r.passed ? 'pass' : 'fail';
+        lines.push(`  - ${r.course} → ${r.book} → ${r.section}: ${r.score}/${r.total} (${tag})`);
+      }
+    }
+
+    const weak = payload.weakSections || [];
+    if (weak.length) {
+      lines.push('Weak topics (failed 2+ times):');
+      for (const w of weak.slice(0, 6)) lines.push(`  - ${w.course} → ${w.book} → ${w.section} (${w.failures} fails)`);
+    }
+
+    const events = payload.recentEvents || [];
+    if (events.length) {
+      lines.push(`Recent activity events (last ${events.length}): ${events.join(', ')}`);
+    }
+
+    const availableCourses = payload.availableCourses || [];
+    if (availableCourses.length && a.length === 0) {
+      lines.push(`Available courses to recommend a start from: ${availableCourses.slice(0, 15).join(', ')}`);
+    }
+
+    const user = lines.join('\n') + '\n\nWrite the 3-4 sentence "where you stand" summary now.';
+
+    return this._stream({
+      intent: 'activity_summary',
+      model: MODEL_FAST,
+      messages: [{ role: 'user', content: user }],
+      max_tokens: 400,
+      temperature: 0.4,
+    });
+  },
+
   streamRecommendation(profile, courseTitles) {
     const user = `Student profile:
 Name: ${profile.name || 'unknown'}
