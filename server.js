@@ -197,8 +197,7 @@ async function handleSaveProgress(req, res) {
 async function proxyClaude(req, res) {
   if (req.method !== 'POST') { res.writeHead(405); return res.end('method'); }
   if (!API_KEY) return json(res, 503, { error: { message: 'Server has no API key configured.' } });
-  const u = currentUser(req);
-  if (!u) return json(res, 401, { error: { message: 'Sign in to use Max.' } });
+  // No auth required — open access. Cost is still bounded by per-IP + daily cap.
   const ip = ipOf(req);
   if (!rateLimitCheck(ip)) return json(res, 429, { error: { message: `Rate limit: ${RATE_LIMIT_PER_HOUR} requests/hour per IP.` } });
   if (!budgetCheck()) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
