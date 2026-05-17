@@ -232,6 +232,22 @@ create table if not exists cached_lessons (
 create index if not exists idx_cached_lessons_lookup
   on cached_lessons (course_id, book_id, section_idx, section_kind);
 
+-- ------------------------------------------------------------------
+-- Goal-based study plan. Each student can have one active plan with a
+-- goal description, a target date, the course they're working toward,
+-- and an AI-generated week-by-week section schedule stored as JSONB.
+-- ------------------------------------------------------------------
+
+create table if not exists study_plans (
+  user_id uuid primary key references users (id) on delete cascade,
+  goal_text text not null,
+  target_date date,
+  course_id text,
+  plan_json jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- AI model preference. Lets a student opt out of the default balanced
 -- model selection and pin every call to Haiku (fast) or Sonnet (best).
 alter table student_profiles

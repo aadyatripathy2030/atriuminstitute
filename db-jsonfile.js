@@ -25,6 +25,7 @@ function load() {
   if (!state.parentProfiles) state.parentProfiles = {};
   if (!Array.isArray(state.aiUsage)) state.aiUsage = [];
   if (!state.cachedLessons) state.cachedLessons = {};
+  if (!state.studyPlans) state.studyPlans = {};
   return state;
 }
 
@@ -677,6 +678,33 @@ async function clearCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'se
   save();
 }
 
+// ---------- Study plan ----------
+async function getStudyPlan(userId) {
+  load();
+  return state.studyPlans[userId] || null;
+}
+async function upsertStudyPlan(userId, fields) {
+  load();
+  const existing = state.studyPlans[userId] || { user_id: userId, created_at: new Date().toISOString() };
+  const merged = {
+    ...existing,
+    user_id: userId,
+    goal_text: fields.goalText || existing.goal_text || '',
+    target_date: fields.targetDate || existing.target_date || null,
+    course_id: fields.courseId || existing.course_id || null,
+    plan_json: fields.planJson || existing.plan_json || {},
+    updated_at: new Date().toISOString(),
+  };
+  state.studyPlans[userId] = merged;
+  save();
+  return merged;
+}
+async function deleteStudyPlan(userId) {
+  load();
+  delete state.studyPlans[userId];
+  save();
+}
+
 module.exports = {
   backend: 'jsonfile',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -692,6 +720,7 @@ module.exports = {
   listReminderCandidates, listDigestCandidates,
   recordAiUsage, listAiUsage, summariseAiUsage,
   getCachedLesson, saveCachedLesson, clearCachedLesson,
+  getStudyPlan, upsertStudyPlan, deleteStudyPlan,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

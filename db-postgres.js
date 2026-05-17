@@ -645,6 +645,35 @@ async function clearCachedLesson(courseId, bookId, sectionIdx, sectionKind = 'se
   );
 }
 
+// ---------- Study plan ----------
+async function getStudyPlan(userId) {
+  const rows = await q(
+    'select user_id, goal_text, target_date, course_id, plan_json, created_at, updated_at from study_plans where user_id = $1 limit 1',
+    [userId],
+  );
+  return rows[0] || null;
+}
+
+async function upsertStudyPlan(userId, fields) {
+  const rows = await q(
+    `insert into study_plans (user_id, goal_text, target_date, course_id, plan_json)
+     values ($1, $2, $3::date, $4, $5::jsonb)
+     on conflict (user_id) do update set
+       goal_text = excluded.goal_text,
+       target_date = excluded.target_date,
+       course_id = excluded.course_id,
+       plan_json = excluded.plan_json,
+       updated_at = now()
+     returning user_id, goal_text, target_date, course_id, plan_json, created_at, updated_at`,
+    [userId, fields.goalText || '', fields.targetDate || null, fields.courseId || null, JSON.stringify(fields.planJson || {})],
+  );
+  return rows[0];
+}
+
+async function deleteStudyPlan(userId) {
+  await q('delete from study_plans where user_id = $1', [userId]);
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -666,6 +695,7 @@ module.exports = {
   listReminderCandidates, listDigestCandidates,
   recordAiUsage, listAiUsage, summariseAiUsage,
   getCachedLesson, saveCachedLesson, clearCachedLesson,
+  getStudyPlan, upsertStudyPlan, deleteStudyPlan,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,
