@@ -133,17 +133,32 @@ Which section should we focus on? Once I pick, please walk me through it using t
     document.querySelectorAll('.open-topic-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const idx = btn.getAttribute('data-idx');
-        const courseSel = document.querySelector(`.course-select[data-idx="${idx}"]`);
-        const bookSel = document.querySelector(`.book-select[data-idx="${idx}"]`);
-        if (!courseSel || !bookSel) return;
-        const courseId = courseSel.value;
-        const bookId = bookSel.value;
-        document.getElementById('studyPanel').classList.remove('open');
-        if (typeof openCourse === 'function') {
-          await openCourse(courseId);
+        e.preventDefault();
+        const original = btn.textContent;
+        btn.textContent = 'Opening…';
+        btn.disabled = true;
+        try {
+          const idx = btn.getAttribute('data-idx');
+          const courseSel = document.querySelector(`.course-select[data-idx="${idx}"]`);
+          const bookSel = document.querySelector(`.book-select[data-idx="${idx}"]`);
+          if (!courseSel || !bookSel) throw new Error('Course/book selectors not found.');
+          const courseId = courseSel.value;
+          const bookId = bookSel.value;
+          if (!courseId || !bookId) throw new Error('Pick a course and a topic first.');
+
+          if (typeof window.openCourse !== 'function') throw new Error('openCourse is unavailable.');
+          if (typeof window.openBook !== 'function') throw new Error('openBook is unavailable.');
+
+          document.getElementById('studyPanel').classList.remove('open');
+          await window.openCourse(courseId);
+          window.openBook(bookId);
+        } catch (err) {
+          console.error('[Open this topic] failed:', err);
+          alert(`Could not open the topic: ${err.message}`);
+        } finally {
+          btn.textContent = original;
+          btn.disabled = false;
         }
-        if (typeof openBook === 'function') openBook(bookId);
       });
     });
   }
