@@ -550,6 +550,7 @@
     <button class="admin-tab active" data-tab="overview" role="tab">Overview</button>
     <button class="admin-tab" data-tab="users" role="tab">Users</button>
     <button class="admin-tab" data-tab="activity" role="tab">Activity</button>
+    <button class="admin-tab" data-tab="rollup" role="tab">Rollup</button>
     <button class="admin-tab" data-tab="quiz" role="tab">Quiz analytics</button>
     <button class="admin-tab" data-tab="cost" role="tab">Cost</button>
     <button class="admin-tab" data-tab="sessions" role="tab">Sessions</button>
@@ -593,6 +594,38 @@
     <div class="token-table-wrap"><table class="token-table" id="adminActivityTable"><thead><tr>
       <th>When</th><th>User</th><th>Kind</th><th>Meta</th>
     </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="admin-tab-panel hidden" data-panel="rollup">
+    <div class="summary-head">
+      <h2>Activity rollup — all students</h2>
+      <div class="summary-range-tabs" id="adminRollupTabs">
+        <button class="summary-tab active" data-range="daily">Daily</button>
+        <button class="summary-tab" data-range="weekly">Weekly</button>
+        <button class="summary-tab" data-range="monthly">Monthly</button>
+        <button class="summary-tab" data-range="quarterly">Quarterly</button>
+      </div>
+    </div>
+    <div class="summary-range-note" id="adminRollupRange"></div>
+    <div class="summary-table-wrap">
+      <table class="summary-table" id="adminRollupTable">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Subject</th>
+            <th class="num">Sign-ins</th>
+            <th class="num">Lessons started</th>
+            <th class="num">Quizzes started</th>
+            <th class="num">Passed</th>
+            <th class="num">Failed</th>
+            <th class="num">Avg score</th>
+            <th class="num">Hints used</th>
+            <th class="num">Time spent</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="admin-tab-panel hidden" data-panel="quiz">

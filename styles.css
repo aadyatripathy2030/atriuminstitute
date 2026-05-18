@@ -4093,3 +4093,6 @@ body > .site-footer {
 .summary-table tbody tr:last-child td { border-bottom: none; }
 .summary-table .empty { text-align: center; padding: 18px; color: var(--text-muted, #4a4d63); }
 .summary-table .empty.err { color: #c43c5b; }
+
+.rollup-student { font-weight: 500; }
+.rollup-student-role { font-size: 11px; color: var(--text-muted, #4a4d63); text-transform: capitalize; }

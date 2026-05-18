@@ -88,8 +88,77 @@
     if (name === 'sessions') loadSessions(); // refresh every time
     if (name === 'links' && !switchTab._loaded.links) { switchTab._loaded.links = true; loadLinks(); }
     if (name === 'lessons' && !switchTab._loaded.lessons) { switchTab._loaded.lessons = true; loadLessons(); }
+    if (name === 'rollup') {
+      if (!switchTab._loaded.rollup) { switchTab._loaded.rollup = true; _wireRollupTabs(); }
+      loadRollup();
+    }
   }
   switchTab._loaded = {};
+
+  // ---------- Rollup (activity summary across all students) ----------
+  let _rollupRange = 'daily';
+  function _wireRollupTabs() {
+    document.querySelectorAll('#adminRollupTabs .summary-tab').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('#adminRollupTabs .summary-tab').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        _rollupRange = b.dataset.range || 'daily';
+        loadRollup();
+      });
+    });
+  }
+  function _fmtMin(seconds) {
+    const m = Math.round((seconds || 0) / 60);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), mm = m % 60;
+    return mm === 0 ? h + ' hr' : `${h}h ${mm}m`;
+  }
+  function _fmtRangeLabel(range, from, to) {
+    const r = (range || 'daily').toLowerCase();
+    const label = { daily: 'Today', weekly: 'Last 7 days', monthly: 'Last 30 days', quarterly: 'Last 90 days' }[r] || 'Today';
+    if (!from || !to) return label;
+    return `${label} (${from} → ${to})`;
+  }
+  async function loadRollup() {
+    const tbody = document.querySelector('#adminRollupTable tbody');
+    const note = el('adminRollupRange');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">Loading…</td></tr>';
+    try {
+      const data = await fetchJSON('/api/admin/activity-summary?range=' + encodeURIComponent(_rollupRange));
+      if (note) note.textContent = _fmtRangeLabel(data.range, data.from, data.to);
+      const students = data.students || [];
+      if (!students.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="empty">No student activity in this range yet.</td></tr>';
+        return;
+      }
+      // Two rows per student (Math first, then Language Arts) using
+      // rowspan on the Student column so the email shows once.
+      const rows = [];
+      for (const s of students) {
+        const subjects = s.subjects || [];
+        subjects.forEach((sub, i) => {
+          rows.push(`
+            <tr>
+              ${i === 0 ? `<td rowspan="${subjects.length}"><div class="rollup-student">${esc(s.email)}</div><div class="rollup-student-role">${esc(s.role || '')}</div></td>` : ''}
+              <td>${esc(sub.subject_title)}</td>
+              <td class="num">${sub.signins}</td>
+              <td class="num">${sub.lessons_started}</td>
+              <td class="num">${sub.quizzes_started}</td>
+              <td class="num ok">${sub.quizzes_passed}</td>
+              <td class="num warn">${sub.quizzes_failed}</td>
+              <td class="num">${sub.avg_score_pct || 0}%</td>
+              <td class="num">${sub.hints_used}</td>
+              <td class="num">${_fmtMin(sub.time_spent_seconds)}</td>
+            </tr>
+          `);
+        });
+      }
+      tbody.innerHTML = rows.join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty err">Could not load: ${esc(e.message)}</td></tr>`;
+    }
+  }
 
   // ---------- Overview ----------
   function renderStats(stats) {

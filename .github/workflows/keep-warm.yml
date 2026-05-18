@@ -2,16 +2,14 @@ name: keep-warm
 
 # Render free tier spins the web service down after ~15 minutes of
 # inactivity, so the first request after a quiet stretch can take
-# 30-60 seconds. Hit a lightweight endpoint on a schedule to keep the
-# instance warm.
-#
-# Pings every 10 minutes between 7am and 11pm Eastern (1100-0300 UTC).
-# That covers the hours a student is likely to use the site without
-# burning GitHub Actions minutes overnight when nobody's awake.
+# 30-60 seconds. Hit a lightweight endpoint every 5 minutes, 24x7,
+# so the site never goes cold. GitHub's scheduler can be a little
+# late under load (sometimes 10-15 min) so 5 min is the realistic
+# floor to "never sleeps".
 
 on:
   schedule:
-    - cron: '*/10 11-23,0-3 * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch: {}
 
 jobs:

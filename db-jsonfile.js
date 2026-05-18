@@ -877,6 +877,7 @@ async function saveCurriculumQuiz() { /* no-op in jsonfile dev */ }
 
 // ---------- Time tracking + summary (Postgres-only) ----------
 async function recordHeartbeat() { /* no-op in jsonfile dev */ }
+async function getActivitySummaryAll() { return []; }
 async function getActivitySummary() {
   return [
     { subject: 'math', subject_title: 'Math', signins: 0, lessons_started: 0, quizzes_started: 0, quizzes_passed: 0, quizzes_failed: 0, avg_score_pct: 0, study_sessions: 0, hints_used: 0, time_spent_seconds: 0 },
@@ -936,7 +937,7 @@ module.exports = {
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   listFavorites, addFavorite, removeFavorite,
   getCurriculumQuiz, saveCurriculumQuiz,
-  recordHeartbeat, getActivitySummary,
+  recordHeartbeat, getActivitySummary, getActivitySummaryAll,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

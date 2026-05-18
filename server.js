@@ -1143,6 +1143,15 @@ async function handleGetMyActivitySummary(req, res) {
   json(res, 200, { range, from, to, subjects });
 }
 
+async function handleGetAdminActivitySummary(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  const url = new URL(req.url, 'http://localhost');
+  const range = url.searchParams.get('range') || 'daily';
+  const [from, to] = _rangeBounds(range);
+  const students = await db.getActivitySummaryAll(from, to);
+  json(res, 200, { range, from, to, students });
+}
+
 async function handleGetParentStudentSummary(req, res, studentId) {
   if (!await requireLinkedStudent(req, res, studentId)) return;
   const url = new URL(req.url, 'http://localhost');
@@ -1972,6 +1981,7 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/admin/stats' && req.method === 'GET') return await handleAdminStats(req, res);
     if (url === '/api/admin/users' && req.method === 'GET') return await handleAdminUsers(req, res);
     if (url === '/api/admin/activity' && req.method === 'GET') return await handleAdminActivity(req, res);
+    if (url === '/api/admin/activity-summary' && req.method === 'GET') return await handleGetAdminActivitySummary(req, res);
     if (url === '/api/admin/quiz-analytics' && req.method === 'GET') return await handleAdminQuizAnalytics(req, res);
     if (url === '/api/admin/cost-chart' && req.method === 'GET') return await handleAdminCostChart(req, res);
     if (url === '/api/admin/sessions' && req.method === 'GET') return await handleAdminSessions(req, res);

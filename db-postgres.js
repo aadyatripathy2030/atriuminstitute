@@ -1108,6 +1108,91 @@ async function getActivitySummary(userId, fromDate, toDate) {
   return [subjects.math, subjects.language_arts];
 }
 
+// Admin variant: same rollup but for every student with any activity
+// in the range. Returns one entry per (user, subject) pair so the
+// admin sees rows grouped by student with Math first, LA second.
+async function getActivitySummaryAll(fromDate, toDate) {
+  const subjectExpr = `
+    case
+      when meta->>'courseId' like 'eng%' then 'language_arts'
+      when meta->>'courseId' like 'la-%' then 'language_arts'
+      when meta->>'courseId' like 'curr:la-%' then 'language_arts'
+      else 'math'
+    end`;
+  const subjectQuiz = `
+    case
+      when course_id like 'eng%' then 'language_arts'
+      when course_id like 'la-%' then 'language_arts'
+      when course_id like 'curr:la-%' then 'language_arts'
+      else 'math'
+    end`;
+  const activityRows = await q(
+    `select user_id, ${subjectExpr} as subject, kind, count(*)::int as n
+     from activity_log
+     where created_at >= $1::date and created_at < ($2::date + interval '1 day')
+     group by 1, 2, 3`,
+    [fromDate, toDate]
+  );
+  const quizRows = await q(
+    `select user_id, ${subjectQuiz} as subject,
+            count(*) filter (where passed = true)::int as passed,
+            count(*) filter (where passed = false)::int as failed,
+            coalesce(avg(score::float / nullif(total, 0)), 0)::float as avg_pct
+     from quiz_attempts
+     where completed_at >= $1::date and completed_at < ($2::date + interval '1 day')
+     group by 1, 2`,
+    [fromDate, toDate]
+  );
+  const timeRows = await q(
+    `select user_id, subject, coalesce(sum(seconds), 0)::int as seconds
+     from user_time_tracking
+     where day >= $1::date and day <= $2::date
+     group by 1, 2`,
+    [fromDate, toDate]
+  );
+  // Build per-user per-subject map. Only include users with any signal
+  // in any of the three sources.
+  const userIds = new Set();
+  for (const r of activityRows) userIds.add(r.user_id);
+  for (const r of quizRows) userIds.add(r.user_id);
+  for (const r of timeRows) userIds.add(r.user_id);
+  if (userIds.size === 0) return [];
+  const ids = Array.from(userIds);
+  const userMap = new Map();
+  for (const u of (await q(`select id, email, role from users where id = any($1::uuid[])`, [ids]))) {
+    userMap.set(u.id, { user: u, math: _emptySubject('Math'), language_arts: _emptySubject('Language Arts') });
+  }
+  for (const r of activityRows) {
+    const b = userMap.get(r.user_id); if (!b) continue;
+    const sub = b[r.subject] || b.math;
+    if (r.kind === 'signin') sub.signins += r.n;
+    else if (r.kind === 'lesson_started') sub.lessons_started += r.n;
+    else if (r.kind === 'quiz_started') sub.quizzes_started += r.n;
+    else if (r.kind === 'study_started') sub.study_sessions += r.n;
+    else if (r.kind === 'hint_used') sub.hints_used += r.n;
+  }
+  for (const r of quizRows) {
+    const b = userMap.get(r.user_id); if (!b) continue;
+    const sub = b[r.subject] || b.math;
+    sub.quizzes_passed = r.passed;
+    sub.quizzes_failed = r.failed;
+    sub.avg_score_pct = Math.round(100 * r.avg_pct);
+  }
+  for (const r of timeRows) {
+    const b = userMap.get(r.user_id); if (!b) continue;
+    const sub = b[r.subject] || b.math;
+    sub.time_spent_seconds = r.seconds;
+  }
+  // Output: array sorted by email, with math row + LA row per student.
+  const list = Array.from(userMap.values()).sort((a, b) => (a.user.email || '').localeCompare(b.user.email || ''));
+  return list.map(b => ({
+    user_id: b.user.id,
+    email: b.user.email,
+    role: b.user.role,
+    subjects: [b.math, b.language_arts],
+  }));
+}
+
 function _emptySubject(title) {
   return {
     subject: title === 'Math' ? 'math' : 'language_arts',
@@ -1182,7 +1267,7 @@ module.exports = {
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   listFavorites, addFavorite, removeFavorite,
   getCurriculumQuiz, saveCurriculumQuiz,
-  recordHeartbeat, getActivitySummary,
+  recordHeartbeat, getActivitySummary, getActivitySummaryAll,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,
