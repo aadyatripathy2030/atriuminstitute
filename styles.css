@@ -4169,3 +4169,53 @@ body > .site-footer {
   border: 1px solid var(--border, #e6e2d7); border-radius: 10px;
   margin-bottom: 14px; font-size: 14px;
 }
+
+/* =============== Practice-by-question-type buttons =============== */
+.practice-row {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 10px 16px 0; font-size: 13px;
+}
+.practice-label {
+  font-size: 12px; color: var(--text-muted, #4a4d63);
+  text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600;
+  margin-right: 4px;
+}
+.practice-btn, .study-section-link {
+  font: inherit; font-size: 13px; padding: 5px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text, #1e2238); cursor: pointer;
+  border-radius: 999px;
+  transition: background 0.1s, border-color 0.1s;
+}
+.practice-btn:hover, .study-section-link:hover {
+  background: rgba(74, 111, 165, 0.08);
+  border-color: var(--accent, #4a6fa5);
+}
+
+/* =============== Multi-child parent grid =============== */
+.multi-child-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.multi-child-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.multi-child-head { display: flex; gap: 12px; align-items: center; }
+.multi-child-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #4a6fa5, #9fb8d6);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 18px;
+}
+.multi-child-email { font-weight: 600; font-size: 14px; word-break: break-all; }
+.multi-child-meta { font-size: 12px; color: var(--text-muted, #4a4d63); margin-top: 2px; }
+.multi-child-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mc-stat { text-align: center; padding: 8px; background: rgba(0, 0, 0, 0.02); border-radius: 8px; }
+.mc-stat-num { font-weight: 700; font-size: 18px; color: var(--text, #1e2238); }
+.mc-stat-label { font-size: 11px; color: var(--text-muted, #4a4d63); margin-top: 2px; }
+.mc-view-btn { margin-top: auto; }

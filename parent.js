@@ -77,6 +77,13 @@
     show(n);
   }
 
+  function _fmtMin(seconds) {
+    const m = Math.round((seconds || 0) / 60);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), mm = m % 60;
+    return mm === 0 ? h + ' hr' : `${h}h ${mm}m`;
+  }
+
   async function renderStudentList() {
     const wrap = el('parentStudentList');
     if (!wrap) return;
@@ -87,29 +94,62 @@
         wrap.innerHTML = '<div class="parent-empty">No students linked yet. Use the form below to add one with their code.</div>';
         return;
       }
-      wrap.innerHTML = '';
+      // Multi-child summary cards: fetch this week's activity for each
+      // student in parallel so the parent gets a one-glance view of all
+      // their kids before drilling into any single one.
+      wrap.innerHTML = `<div class="multi-child-grid" id="parentMultiChildGrid"></div>`;
+      const grid = el('parentMultiChildGrid');
+      // Render placeholder cards first so the page paints fast.
       for (const s of students) {
-        const row = document.createElement('div');
-        row.className = 'parent-student-row';
+        const card = document.createElement('div');
+        card.className = 'multi-child-card';
+        card.dataset.studentId = s.id;
+        const initial = (s.email || '?').trim()[0].toUpperCase();
         const consentBadge = s.consent_required
           ? (s.consent_granted_at ? '<span class="badge ok">Consent granted</span>' : '<span class="badge warn">Awaiting consent</span>')
           : '';
-        row.innerHTML = `
-          <div class="parent-student-main">
-            <div class="parent-student-email">${escapeHTML(s.email)}</div>
-            <div class="parent-student-meta">
-              ${s.age ? `Age ${s.age}` : ''}
-              ${s.state ? ` · ${escapeHTML(s.state)}` : ''}
-              ${consentBadge ? ` · ${consentBadge}` : ''}
+        card.innerHTML = `
+          <div class="multi-child-head">
+            <div class="multi-child-avatar">${escapeHTML(initial)}</div>
+            <div>
+              <div class="multi-child-email">${escapeHTML(s.email)}</div>
+              <div class="multi-child-meta">
+                ${s.age ? `Age ${s.age}` : ''}${s.country || s.state ? ` · ${escapeHTML(s.country || s.state)}` : ''}
+                ${consentBadge ? ` · ${consentBadge}` : ''}
+              </div>
             </div>
           </div>
-          <div class="parent-student-actions">
-            <button class="cta-secondary" data-student-id="${s.id}">View progress</button>
+          <div class="multi-child-stats">
+            <div class="mc-stat"><div class="mc-stat-num" data-stat="quizzes">…</div><div class="mc-stat-label">Quizzes this week</div></div>
+            <div class="mc-stat"><div class="mc-stat-num" data-stat="lessons">…</div><div class="mc-stat-label">Lessons</div></div>
+            <div class="mc-stat"><div class="mc-stat-num" data-stat="time">…</div><div class="mc-stat-label">Time</div></div>
           </div>
+          <button class="cta-secondary cta-full mc-view-btn" type="button">View progress →</button>
         `;
-        row.querySelector('button[data-student-id]').addEventListener('click', () => openStudentDetail(s));
-        wrap.appendChild(row);
+        card.querySelector('.mc-view-btn').addEventListener('click', () => openStudentDetail(s));
+        grid.appendChild(card);
       }
+      // Hydrate each card's stats in parallel.
+      await Promise.all(students.map(async (s) => {
+        const card = grid.querySelector(`.multi-child-card[data-student-id="${s.id}"]`);
+        if (!card) return;
+        try {
+          const summary = await fetchJSON(`/api/parent/students/${s.id}/activity-summary?range=weekly`);
+          const subjects = summary.subjects || [];
+          const totals = subjects.reduce((a, x) => ({
+            q: a.q + (x.quizzes_started || 0),
+            l: a.l + (x.lessons_started || 0),
+            t: a.t + (x.time_spent_seconds || 0),
+          }), { q: 0, l: 0, t: 0 });
+          card.querySelector('[data-stat="quizzes"]').textContent = totals.q;
+          card.querySelector('[data-stat="lessons"]').textContent = totals.l;
+          card.querySelector('[data-stat="time"]').textContent = _fmtMin(totals.t);
+        } catch (e) {
+          card.querySelector('[data-stat="quizzes"]').textContent = '—';
+          card.querySelector('[data-stat="lessons"]').textContent = '—';
+          card.querySelector('[data-stat="time"]').textContent = '—';
+        }
+      }));
     } catch (e) {
       wrap.innerHTML = `<div class="parent-empty err">Could not load students: ${escapeHTML(e.message)}</div>`;
     }
