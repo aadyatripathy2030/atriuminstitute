@@ -1144,6 +1144,23 @@
 </aside>
 
 <div id="modalBackdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
+
+<!-- Big-popup Learn modal: opens when the student clicks "Learn" on any
+     section card. Contains the same 5-step walker / Feynman / inline
+     Ask Max experience, just in a focused full-screen-ish view. -->
+<div id="lessonModal" class="lesson-modal hidden" aria-hidden="true" role="dialog">
+  <div class="lesson-modal-backdrop"></div>
+  <div class="lesson-modal-dialog">
+    <button class="lesson-modal-close" type="button" aria-label="Close lesson">×</button>
+    <div class="lesson-modal-head">
+      <div class="lesson-modal-eyebrow">✨ Max's lesson</div>
+      <div class="lesson-modal-title">Lesson</div>
+    </div>
+    <div class="lesson-modal-body">
+      <div class="lesson-panel"></div>
+    </div>
+  </div>
+</div>
 <div id="modal" class="modal hidden"></div>
 
 <!-- Site-wide footer. Placed last so it always renders at the bottom of
