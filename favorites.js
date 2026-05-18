@@ -216,7 +216,7 @@
             <div class="course-title">${esc(unit.unit_title)}</div>
             <div class="course-subtitle">${esc(cc.title)}${grades ? ' · ' + esc(grades) : ''}</div>
             <div class="course-meta">
-              <span>${unit.lesson_count || 0} lessons${unit.weeks ? ' · ' + unit.weeks + ' weeks' : ''}</span>
+              <span>${(unit.lessons || []).length || unit.lesson_count || 0} lessons${unit.weeks ? ' · ' + unit.weeks + ' weeks' : ''}</span>
             </div>
             <div class="course-cta">Open unit →</div>
           </div>
