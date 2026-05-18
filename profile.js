@@ -67,9 +67,21 @@
     }).join('');
   }
 
+  function stateOptions(selected) {
+    const list = Array.isArray(window.ATRIUM_US_STATES) ? window.ATRIUM_US_STATES : [];
+    return list.map(([code, name]) =>
+      `<option value="${esc(code)}"${code === selected ? ' selected' : ''}>${esc(name)}</option>`
+    ).join('');
+  }
+
   function accountFieldset(userInfo) {
     const age = (userInfo && userInfo.age != null) ? userInfo.age : null;
     const country = (userInfo && userInfo.country) || '';
+    const stateCode = (userInfo && userInfo.state_code) || '';
+    const schoolName = (userInfo && userInfo.school_name) || '';
+    const schoolDistrict = (userInfo && userInfo.school_district) || '';
+    const isPrivate = !!(userInfo && userInfo.is_private_school);
+    const isUS = country === 'United States';
     return `
       <fieldset>
         <legend>Account</legend>
@@ -79,11 +91,30 @@
             : `<input type="text" value="(not set)" disabled> <small class="profile-hint">If you signed up before we asked, contact us to add it.</small>`}
         </label>
         <label>Country
-          <select name="country">
+          <select name="country" id="profileCountry">
             <option value="">${country ? 'Keep current value' : 'Select country…'}</option>
             ${countryOptions(country)}
           </select>
           ${country ? `<small class="profile-hint">Current: ${esc(country)}</small>` : ''}
+        </label>
+        <label class="profile-us-only${isUS ? '' : ' hidden'}" id="profileStateLabel">
+          State
+          <select name="stateCode" id="profileState">
+            <option value="">Select state…</option>
+            ${stateOptions(stateCode)}
+          </select>
+        </label>
+        <label>School name
+          <input type="text" name="schoolName" id="profileSchoolName" value="${esc(schoolName)}" maxlength="200" placeholder="e.g. Lincoln Middle School" required>
+        </label>
+        <label class="profile-private-check${isUS ? '' : ' hidden'}" id="profilePrivateWrap">
+          <input type="checkbox" name="isPrivateSchool" id="profilePrivate"${isPrivate ? ' checked' : ''}>
+          This is a private school (no district)
+        </label>
+        <label class="profile-us-only${isUS && !isPrivate ? '' : ' hidden'}" id="profileDistrictLabel">
+          School district
+          <input type="text" name="schoolDistrict" id="profileDistrict" value="${esc(schoolDistrict)}" maxlength="200" placeholder="Start typing your district…" autocomplete="off">
+          <div id="profileDistrictSuggest" class="auth-suggest hidden" role="listbox"></div>
         </label>
       </fieldset>
     `;
@@ -124,7 +155,6 @@
       <fieldset>
         <legend>About you</legend>
         <label>Display name <input type="text" name="displayName" value="${esc(p.display_name || '')}" maxlength="200"></label>
-        <label>School name <input type="text" name="schoolName" value="${esc(p.school_name || '')}" maxlength="200"></label>
         <label>Grade level
           <select name="gradeLevel">
             <option value="">Choose grade</option>
@@ -279,9 +309,82 @@
         form.innerHTML = studentForm(profile, courses, isUnder13, userInfo);
         el('profileTitle').textContent = 'Your profile';
       }
+      wireSchoolFields();
     } catch (e) {
       form.innerHTML = `<div class="profile-loading err">Could not load: ${esc(e.message)}</div>`;
     }
+  }
+
+  // Country -> state -> district behaviour on the profile page. Mirrors
+  // the signup form. Only the visible fields are submitted; collectFormValues
+  // already picks them up by name.
+  function wireSchoolFields() {
+    const countrySel = el('profileCountry');
+    const stateLabel = el('profileStateLabel');
+    const districtLabel = el('profileDistrictLabel');
+    const privateWrap = el('profilePrivateWrap');
+    const stateSel = el('profileState');
+    const districtInput = el('profileDistrict');
+    const privBox = el('profilePrivate');
+    if (!countrySel) return;
+    function refreshVisibility() {
+      const isUS = countrySel.value === 'United States';
+      if (stateLabel) stateLabel.classList.toggle('hidden', !isUS);
+      if (privateWrap) privateWrap.classList.toggle('hidden', !isUS);
+      const showDistrict = isUS && !(privBox && privBox.checked);
+      if (districtLabel) districtLabel.classList.toggle('hidden', !showDistrict);
+    }
+    countrySel.addEventListener('change', refreshVisibility);
+    if (privBox) privBox.addEventListener('change', refreshVisibility);
+    if (stateSel) stateSel.addEventListener('change', () => {
+      if (districtInput) districtInput.value = '';
+      hideProfileDistrictSuggest();
+    });
+    if (districtInput) {
+      let timer = null;
+      districtInput.addEventListener('input', () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(refreshProfileDistrictSuggest, 180);
+      });
+      districtInput.addEventListener('focus', refreshProfileDistrictSuggest);
+      districtInput.addEventListener('blur', () => setTimeout(hideProfileDistrictSuggest, 200));
+    }
+    refreshVisibility();
+  }
+
+  function hideProfileDistrictSuggest() {
+    const box = el('profileDistrictSuggest');
+    if (box) { box.innerHTML = ''; box.classList.add('hidden'); }
+  }
+
+  async function refreshProfileDistrictSuggest() {
+    const input = el('profileDistrict');
+    const box = el('profileDistrictSuggest');
+    const stateSel = el('profileState');
+    if (!input || !box) return;
+    const q = (input.value || '').trim();
+    const stateCode = (stateSel && stateSel.value) || '';
+    if (q.length < 2 || !stateCode) { hideProfileDistrictSuggest(); return; }
+    try {
+      const r = await fetch(`/api/school-districts/search?q=${encodeURIComponent(q)}&state=${encodeURIComponent(stateCode)}`, { credentials: 'same-origin' });
+      if (!r.ok) { hideProfileDistrictSuggest(); return; }
+      const data = await r.json();
+      const list = (data && data.results) || [];
+      if (!list.length) {
+        box.innerHTML = '<div class="auth-suggest-empty">No match. Your entry will be saved so others in your district can find it.</div>';
+        box.classList.remove('hidden');
+        return;
+      }
+      box.innerHTML = list.map(r => `<button type="button" class="auth-suggest-item" data-name="${(r.name || '').replace(/"/g, '&quot;')}">${esc(r.name)}</button>`).join('');
+      box.classList.remove('hidden');
+      box.querySelectorAll('.auth-suggest-item').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          input.value = btn.dataset.name || '';
+          hideProfileDistrictSuggest();
+        });
+      });
+    } catch (_e) { hideProfileDistrictSuggest(); }
   }
 
   function wireStudentReminderToggles() {

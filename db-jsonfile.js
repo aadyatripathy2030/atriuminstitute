@@ -169,7 +169,7 @@ async function markVerified(userId) {
   return u;
 }
 
-async function updateUserProfile(userId, { age, country, gradeLevel }) {
+async function updateUserProfile(userId, { age, country, gradeLevel, schoolName, schoolDistrict, isPrivateSchool, stateCode }) {
   load();
   const u = state.users.find(x => x.id === userId);
   if (!u) return null;
@@ -182,6 +182,18 @@ async function updateUserProfile(userId, { age, country, gradeLevel }) {
   }
   if (typeof gradeLevel === 'number' && gradeLevel >= 1 && gradeLevel <= 12) {
     u.grade_level = Math.floor(gradeLevel);
+  }
+  if (typeof schoolName === 'string' && schoolName.trim()) {
+    u.school_name = schoolName.trim().slice(0, 200);
+  }
+  if (typeof schoolDistrict === 'string' && schoolDistrict.trim()) {
+    u.school_district = schoolDistrict.trim().slice(0, 200);
+  }
+  if (typeof isPrivateSchool === 'boolean') {
+    u.is_private_school = isPrivateSchool;
+  }
+  if (typeof stateCode === 'string' && /^[A-Za-z]{2}$/.test(stateCode)) {
+    u.state_code = stateCode.toUpperCase();
   }
   save();
   return u;
@@ -890,6 +902,8 @@ async function savePOD() { /* no-op */ }
 async function getMyPODAttempt() { return null; }
 async function recordPODAttempt() { /* no-op */ }
 async function getPODStats() { return { total: 0, solved: 0 }; }
+async function searchSchoolDistricts() { return []; }
+async function recordUserDistrict() { /* no-op */ }
 async function getActivitySummary() {
   return [
     { subject: 'math', subject_title: 'Math', signins: 0, lessons_started: 0, quizzes_started: 0, quizzes_passed: 0, quizzes_failed: 0, avg_score_pct: 0, study_sessions: 0, hints_used: 0, time_spent_seconds: 0 },
@@ -953,6 +967,7 @@ module.exports = {
   getUserStreaks, getUserAchievements,
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
+  searchSchoolDistricts, recordUserDistrict,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

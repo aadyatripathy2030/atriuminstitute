@@ -128,6 +128,27 @@
             <option value="">Select country…</option>
           </select>
         </label>
+        <label class="auth-field auth-field-state hidden">
+          <span>State</span>
+          <select id="authState">
+            <option value="">Select state…</option>
+          </select>
+        </label>
+      </div>
+      <div class="auth-school-row">
+        <label class="auth-field auth-field-full">
+          <span>School name</span>
+          <input type="text" id="authSchool" placeholder="e.g. Lincoln Middle School" autocomplete="off" required>
+        </label>
+        <label class="auth-field auth-field-full auth-field-district hidden">
+          <span>School district</span>
+          <input type="text" id="authDistrict" placeholder="Start typing your district…" autocomplete="off">
+          <div id="authDistrictSuggest" class="auth-suggest hidden" role="listbox"></div>
+        </label>
+        <label class="auth-private-check hidden" id="authPrivateCheckWrap">
+          <input type="checkbox" id="authPrivate">
+          <span>This is a private school (no district)</span>
+        </label>
       </div>
       <details class="auth-linkcode-wrap">
         <summary>Have a link code?</summary>

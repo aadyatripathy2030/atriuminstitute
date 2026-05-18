@@ -60,6 +60,7 @@ Live at https://atriuminstitute.ai. GitHub: `aadyatripathy2030/atriuminstitute`.
     ├── expand-quizzes.js           Pads each section to 20 questions via Claude
     ├── generate-english-topics.js  Builds english-extras.js
     ├── list-users.js               Print users table
+    ├── import-school-districts.js  Load US school districts from a CSV into school_districts
     └── ping-cron.js                Posts to /api/cron/send-reminders (for Render Cron Jobs)
 ```
 
@@ -270,6 +271,27 @@ npm run set-admin you@example.com other@example.com
 npm run set-admin -- --list
 npm run set-admin -- --revoke you@example.com
 ```
+
+### Load US school districts
+
+The signup form's school-district autocomplete reads from the `school_districts` table. A starter set of major districts ships in `db/seed-school-districts.csv` (~500 of the largest districts across all 50 states + DC). The full US dataset has roughly 13,000 districts; that file comes from the NCES Common Core of Data.
+
+To load the bundled seed:
+```
+$env:DATABASE_URL = "external-url"
+node tools/import-school-districts.js
+```
+
+To load the full NCES list:
+1. Visit https://nces.ed.gov/ccd/elsi/ (ELSI tableGenerator) or https://nces.ed.gov/ccd/files.asp (raw data files).
+2. Build / download a CSV with two columns: state postal code (e.g. "TX") and agency / district name. The importer accepts these column headers: `state_code` or `State`; `district_name` or `Agency Name`.
+3. Save the file (any name, e.g. `nces-districts.csv`) and run:
+```
+$env:DATABASE_URL = "external-url"
+node tools/import-school-districts.js --file=nces-districts.csv
+```
+
+Re-runs are idempotent. Seed rows that have been overwritten by a user signup keep their `source = 'user'` tag, so importing again won't reset the user-contributed count.
 
 ### Pre-generate cached lessons
 Easiest: sign in as admin, go to `/admin` -> Lessons tab -> Start prebuild. Server runs in-process, polls every 2 seconds, idempotent.

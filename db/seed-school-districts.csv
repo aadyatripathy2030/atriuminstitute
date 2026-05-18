@@ -1,0 +1,573 @@
+state_code,district_name
+AL,Mobile County Public Schools
+AL,Jefferson County Schools
+AL,Baldwin County Public Schools
+AL,Madison City Schools
+AL,Huntsville City Schools
+AL,Birmingham City Schools
+AL,Montgomery Public Schools
+AL,Tuscaloosa City Schools
+AL,Shelby County Schools
+AL,Auburn City Schools
+AK,Anchorage School District
+AK,Matanuska-Susitna Borough School District
+AK,Fairbanks North Star Borough School District
+AK,Kenai Peninsula Borough School District
+AK,Juneau School District
+AK,Lower Kuskokwim School District
+AK,Lower Yukon School District
+AK,North Slope Borough School District
+AZ,Mesa Public Schools
+AZ,Tucson Unified School District
+AZ,Chandler Unified School District
+AZ,Gilbert Public Schools
+AZ,Scottsdale Unified School District
+AZ,Peoria Unified School District
+AZ,Deer Valley Unified School District
+AZ,Paradise Valley Unified School District
+AZ,Phoenix Union High School District
+AZ,Dysart Unified School District
+AZ,Higley Unified School District
+AZ,Kyrene School District
+AZ,Tempe Union High School District
+AR,Little Rock School District
+AR,Springdale Public Schools
+AR,Bentonville Public Schools
+AR,Rogers Public Schools
+AR,Fort Smith Public Schools
+AR,Pulaski County Special School District
+AR,Conway Public Schools
+AR,Cabot Public Schools
+AR,Fayetteville Public Schools
+CA,Los Angeles Unified School District
+CA,San Diego Unified School District
+CA,Long Beach Unified School District
+CA,Fresno Unified School District
+CA,Elk Grove Unified School District
+CA,San Francisco Unified School District
+CA,Capistrano Unified School District
+CA,Santa Ana Unified School District
+CA,Corona-Norco Unified School District
+CA,San Bernardino City Unified School District
+CA,Riverside Unified School District
+CA,Sacramento City Unified School District
+CA,Garden Grove Unified School District
+CA,Oakland Unified School District
+CA,Clovis Unified School District
+CA,San Juan Unified School District
+CA,Fremont Unified School District
+CA,Moreno Valley Unified School District
+CA,Stockton Unified School District
+CA,Irvine Unified School District
+CA,Chula Vista Elementary School District
+CA,Poway Unified School District
+CA,Sweetwater Union High School District
+CA,Anaheim Union High School District
+CA,Pasadena Unified School District
+CA,Cupertino Union School District
+CA,Palmdale School District
+CA,Compton Unified School District
+CA,Mt. Diablo Unified School District
+CO,Denver Public Schools
+CO,Jefferson County Public Schools
+CO,Cherry Creek School District
+CO,Douglas County School District
+CO,Aurora Public Schools
+CO,Adams 12 Five Star Schools
+CO,Boulder Valley School District
+CO,Saint Vrain Valley Schools
+CO,Poudre School District
+CO,Colorado Springs School District 11
+CO,Academy School District 20
+CO,Falcon School District 49
+CO,Mesa County Valley School District 51
+CT,Hartford Public Schools
+CT,Bridgeport Public Schools
+CT,New Haven Public Schools
+CT,Stamford Public Schools
+CT,Waterbury Public Schools
+CT,Norwalk Public Schools
+CT,Greenwich Public Schools
+CT,Fairfield Public Schools
+CT,Danbury Public Schools
+DE,Christina School District
+DE,Red Clay Consolidated School District
+DE,Brandywine School District
+DE,Colonial School District
+DE,Indian River School District
+DE,Caesar Rodney School District
+DE,Capital School District
+DE,Appoquinimink School District
+DC,District of Columbia Public Schools
+FL,Miami-Dade County Public Schools
+FL,Broward County Public Schools
+FL,Hillsborough County Public Schools
+FL,Orange County Public Schools
+FL,Palm Beach County School District
+FL,Duval County Public Schools
+FL,Pinellas County Schools
+FL,Polk County Public Schools
+FL,Lee County School District
+FL,Brevard Public Schools
+FL,Pasco County Schools
+FL,Volusia County Schools
+FL,Seminole County Public Schools
+FL,Sarasota County Schools
+FL,Collier County Public Schools
+FL,Manatee County School District
+FL,Marion County Public Schools
+FL,Lake County Schools
+FL,St. Johns County School District
+FL,Osceola County School District
+GA,Gwinnett County Public Schools
+GA,Cobb County School District
+GA,Fulton County Schools
+GA,DeKalb County School District
+GA,Atlanta Public Schools
+GA,Cherokee County School District
+GA,Clayton County Public Schools
+GA,Forsyth County Schools
+GA,Henry County Schools
+GA,Houston County School District
+GA,Hall County Schools
+GA,Paulding County School District
+GA,Fayette County Public Schools
+GA,Bibb County School District
+GA,Richmond County School System
+GA,Muscogee County School District
+GA,Savannah-Chatham County Public Schools
+HI,Hawaii Department of Education
+ID,West Ada School District
+ID,Boise School District
+ID,Nampa School District
+ID,Coeur d'Alene School District
+ID,Idaho Falls School District
+ID,Pocatello-Chubbuck School District
+ID,Caldwell School District
+ID,Twin Falls School District
+ID,Vallivue School District
+IL,Chicago Public Schools
+IL,Township High School District 214
+IL,Elgin School District U-46
+IL,Plainfield Community Consolidated School District 202
+IL,Indian Prairie School District 204
+IL,Naperville Community Unit School District 203
+IL,Township High School District 211
+IL,Consolidated High School District 230
+IL,Rockford Public Schools
+IL,Aurora West School District 129
+IL,Aurora East School District 131
+IL,Wheaton Warrenville School District 200
+IL,Glenbrook High School District 225
+IL,Schaumburg School District 54
+IL,District 87 Bloomington
+IL,Lake Park Community High School District 108
+IN,Indianapolis Public Schools
+IN,Fort Wayne Community Schools
+IN,Hamilton Southeastern Schools
+IN,Carmel Clay Schools
+IN,Evansville Vanderburgh School Corporation
+IN,Fishers Public Schools
+IN,South Bend Community School Corporation
+IN,Wayne Township Metropolitan School District
+IN,Lawrence Township Metropolitan School District
+IN,Warren Township Metropolitan School District
+IN,Pike Township Metropolitan School District
+IA,Des Moines Public Schools
+IA,Cedar Rapids Community School District
+IA,Iowa City Community School District
+IA,Davenport Community Schools
+IA,Sioux City Community School District
+IA,Waukee Community School District
+IA,Dubuque Community School District
+IA,Ankeny Community School District
+IA,Council Bluffs Community School District
+IA,West Des Moines Community Schools
+KS,Wichita Public Schools
+KS,Olathe Public Schools
+KS,Shawnee Mission School District
+KS,Blue Valley School District
+KS,Kansas City Kansas Public Schools
+KS,Topeka Public Schools
+KS,Lawrence Public Schools
+KS,Lee's Summit R-7 School District
+KS,Gardner Edgerton School District
+KS,Auburn-Washburn USD 437
+KY,Jefferson County Public Schools
+KY,Fayette County Public Schools
+KY,Boone County Schools
+KY,Hardin County Schools
+KY,Warren County Public Schools
+KY,Kenton County School District
+KY,Bullitt County Public Schools
+KY,Madison County Schools
+KY,Daviess County Public Schools
+KY,Oldham County Schools
+LA,Jefferson Parish Public Schools
+LA,East Baton Rouge Parish Schools
+LA,Caddo Parish Public Schools
+LA,Calcasieu Parish Public Schools
+LA,Lafayette Parish School System
+LA,St. Tammany Parish Public School System
+LA,Orleans Parish School Board
+LA,Rapides Parish School District
+LA,Ascension Parish Public Schools
+LA,Livingston Parish Public Schools
+ME,Portland Public Schools
+ME,Lewiston Public Schools
+ME,Bangor School Department
+ME,South Portland Schools
+ME,Scarborough Public Schools
+ME,Auburn Public Schools
+ME,Westbrook Public Schools
+ME,Saco Public Schools
+MD,Montgomery County Public Schools
+MD,Prince George's County Public Schools
+MD,Baltimore County Public Schools
+MD,Baltimore City Public Schools
+MD,Anne Arundel County Public Schools
+MD,Howard County Public Schools
+MD,Frederick County Public Schools
+MD,Harford County Public Schools
+MD,Carroll County Public Schools
+MD,Charles County Public Schools
+MA,Boston Public Schools
+MA,Springfield Public Schools
+MA,Worcester Public Schools
+MA,Lowell Public Schools
+MA,Lynn Public Schools
+MA,Brockton Public Schools
+MA,Newton Public Schools
+MA,Cambridge Public Schools
+MA,Lawrence Public Schools
+MA,Quincy Public Schools
+MA,Brookline Public Schools
+MA,Framingham Public Schools
+MA,Wellesley Public Schools
+MI,Detroit Public Schools Community District
+MI,Utica Community Schools
+MI,Dearborn Public Schools
+MI,Plymouth-Canton Community Schools
+MI,Walled Lake Consolidated Schools
+MI,Ann Arbor Public Schools
+MI,Rochester Community Schools
+MI,Troy School District
+MI,Grand Rapids Public Schools
+MI,Livonia Public Schools
+MI,Forest Hills Public Schools
+MI,Northville Public Schools
+MI,Novi Community School District
+MI,West Bloomfield School District
+MN,Minneapolis Public Schools
+MN,Anoka-Hennepin School District
+MN,Saint Paul Public Schools
+MN,Rosemount-Apple Valley-Eagan School District
+MN,Osseo Area Schools
+MN,Lakeville Area Schools
+MN,Edina Public Schools
+MN,Wayzata Public Schools
+MN,Hopkins Public Schools
+MN,Eden Prairie Schools
+MN,Bloomington Public Schools
+MN,Stillwater Area Public Schools
+MS,Desoto County Schools
+MS,Rankin County School District
+MS,Jackson Public Schools
+MS,Harrison County School District
+MS,Madison County Schools
+MS,Pearl Public School District
+MS,Gulfport School District
+MS,Tupelo Public School District
+MO,Springfield Public Schools
+MO,Saint Louis Public Schools
+MO,Rockwood R-VI School District
+MO,Park Hill School District
+MO,Liberty Public Schools
+MO,Lee's Summit R-VII School District
+MO,Blue Springs School District
+MO,Columbia Public Schools
+MO,Francis Howell School District
+MO,Fort Zumwalt School District
+MT,Billings Public Schools
+MT,Missoula County Public Schools
+MT,Bozeman Public Schools
+MT,Helena Public Schools
+MT,Great Falls Public Schools
+MT,Kalispell Public Schools
+MT,Butte Public Schools
+NE,Omaha Public Schools
+NE,Lincoln Public Schools
+NE,Millard Public Schools
+NE,Papillion La Vista Community Schools
+NE,Westside Community Schools
+NE,Bellevue Public Schools
+NE,Elkhorn Public Schools
+NE,Grand Island Public Schools
+NV,Clark County School District
+NV,Washoe County School District
+NV,Carson City School District
+NV,Lyon County School District
+NV,Elko County School District
+NV,Douglas County School District
+NV,Nye County School District
+NH,Manchester School District
+NH,Nashua School District
+NH,Concord School District
+NH,Salem School District
+NH,Derry Cooperative School District
+NH,Bedford School District
+NH,Pinkerton Academy
+NJ,Newark Public Schools
+NJ,Jersey City Public Schools
+NJ,Paterson Public Schools
+NJ,Elizabeth Public Schools
+NJ,Edison Township Public Schools
+NJ,Toms River Regional Schools
+NJ,Cherry Hill Public Schools
+NJ,Brick Township Public Schools
+NJ,Woodbridge Township School District
+NJ,Camden City School District
+NJ,Trenton Public Schools
+NJ,Hamilton Township School District
+NJ,Middletown Township Public Schools
+NM,Albuquerque Public Schools
+NM,Las Cruces Public Schools
+NM,Rio Rancho Public Schools
+NM,Gadsden Independent Schools
+NM,Santa Fe Public Schools
+NM,Farmington Municipal Schools
+NM,Roswell Independent School District
+NY,New York City Department of Education
+NY,Buffalo Public Schools
+NY,Rochester City School District
+NY,Yonkers Public Schools
+NY,Syracuse City School District
+NY,Brentwood Union Free School District
+NY,Sachem Central School District
+NY,Williamsville Central School District
+NY,Wappingers Central School District
+NY,Shenendehowa Central School District
+NY,Greece Central School District
+NY,Half Hollow Hills Central School District
+NY,Smithtown Central School District
+NY,Commack Union Free School District
+NY,Sewanhaka Central High School District
+NY,Bethlehem Central School District
+NY,Spackenkill Union Free School District
+NC,Wake County Public School System
+NC,Charlotte-Mecklenburg Schools
+NC,Guilford County Schools
+NC,Winston-Salem/Forsyth County Schools
+NC,Cumberland County Schools
+NC,Union County Public Schools
+NC,Gaston County Schools
+NC,Johnston County Public Schools
+NC,Durham Public Schools
+NC,Pitt County Schools
+NC,Cabarrus County Schools
+NC,New Hanover County Schools
+NC,Buncombe County Schools
+ND,Fargo Public Schools
+ND,West Fargo Public Schools
+ND,Bismarck Public Schools
+ND,Grand Forks Public Schools
+ND,Minot Public Schools
+ND,Mandan Public School District
+OH,Columbus City Schools
+OH,Cleveland Metropolitan School District
+OH,Cincinnati Public Schools
+OH,Toledo Public Schools
+OH,Akron Public Schools
+OH,South-Western City Schools
+OH,Hilliard City School District
+OH,Westerville City Schools
+OH,Olentangy Local School District
+OH,Lakota Local School District
+OH,Mason City Schools
+OH,Sycamore Community Schools
+OH,Dublin City Schools
+OH,Pickerington Local School District
+OK,Oklahoma City Public Schools
+OK,Tulsa Public Schools
+OK,Putnam City Schools
+OK,Edmond Public Schools
+OK,Moore Public Schools
+OK,Broken Arrow Public Schools
+OK,Norman Public Schools
+OK,Mustang Public Schools
+OK,Union Public Schools
+OK,Owasso Public Schools
+OK,Lawton Public Schools
+OR,Portland Public Schools
+OR,Salem-Keizer Public Schools
+OR,Beaverton School District
+OR,Hillsboro School District
+OR,Eugene School District 4J
+OR,Tigard-Tualatin School District
+OR,North Clackamas Schools
+OR,Bend-La Pine Schools
+OR,Gresham-Barlow School District
+OR,Medford School District
+PA,Philadelphia School District
+PA,Pittsburgh Public Schools
+PA,Central Bucks School District
+PA,North Penn School District
+PA,Council Rock School District
+PA,Reading School District
+PA,Allentown School District
+PA,Bethlehem Area School District
+PA,Lower Merion School District
+PA,Pennsbury School District
+PA,Erie Public Schools
+PA,Downingtown Area School District
+PA,West Chester Area School District
+PA,Neshaminy School District
+PA,Cumberland Valley School District
+RI,Providence Public Schools
+RI,Cranston Public Schools
+RI,Warwick Public Schools
+RI,Pawtucket School District
+RI,East Providence School District
+RI,Cumberland School District
+RI,North Kingstown School District
+SC,Greenville County Schools
+SC,Charleston County School District
+SC,Berkeley County School District
+SC,Richland County School District One
+SC,Richland County School District Two
+SC,Lexington County School District One
+SC,Horry County Schools
+SC,Beaufort County School District
+SC,Spartanburg County School District Seven
+SC,Dorchester School District Two
+SD,Sioux Falls School District
+SD,Rapid City Area Schools
+SD,Aberdeen School District
+SD,Watertown School District
+SD,Brandon Valley School District
+SD,Harrisburg School District
+TN,Memphis-Shelby County Schools
+TN,Metropolitan Nashville Public Schools
+TN,Knox County Schools
+TN,Hamilton County Schools
+TN,Williamson County Schools
+TN,Rutherford County Schools
+TN,Sumner County Schools
+TN,Wilson County Schools
+TN,Montgomery County Schools
+TN,Bartlett City Schools
+TX,Houston Independent School District
+TX,Dallas Independent School District
+TX,Cypress-Fairbanks Independent School District
+TX,Northside Independent School District
+TX,Austin Independent School District
+TX,Fort Worth Independent School District
+TX,Katy Independent School District
+TX,Conroe Independent School District
+TX,Fort Bend Independent School District
+TX,North East Independent School District
+TX,Plano Independent School District
+TX,Frisco Independent School District
+TX,Arlington Independent School District
+TX,Aldine Independent School District
+TX,Klein Independent School District
+TX,Garland Independent School District
+TX,El Paso Independent School District
+TX,Lewisville Independent School District
+TX,Pasadena Independent School District
+TX,Mansfield Independent School District
+TX,Brownsville Independent School District
+TX,Round Rock Independent School District
+TX,Spring Branch Independent School District
+TX,Pearland Independent School District
+TX,McKinney Independent School District
+TX,Allen Independent School District
+TX,Leander Independent School District
+TX,Eagle Mountain-Saginaw Independent School District
+TX,Birdville Independent School District
+TX,Humble Independent School District
+TX,Killeen Independent School District
+TX,Alief Independent School District
+TX,Galena Park Independent School District
+TX,Spring Independent School District
+TX,Socorro Independent School District
+TX,Ysleta Independent School District
+TX,Clear Creek Independent School District
+TX,Tomball Independent School District
+TX,Comal Independent School District
+UT,Granite School District
+UT,Davis School District
+UT,Jordan School District
+UT,Alpine School District
+UT,Canyons School District
+UT,Weber School District
+UT,Washington County School District
+UT,Salt Lake City School District
+UT,Nebo School District
+UT,Tooele County School District
+UT,Cache County School District
+UT,Murray City School District
+VT,Burlington School District
+VT,South Burlington School District
+VT,Champlain Valley School District
+VT,Essex Westford School District
+VT,Colchester School District
+VT,Rutland City Public Schools
+VA,Fairfax County Public Schools
+VA,Prince William County Public Schools
+VA,Loudoun County Public Schools
+VA,Virginia Beach City Public Schools
+VA,Chesterfield County Public Schools
+VA,Henrico County Public Schools
+VA,Norfolk Public Schools
+VA,Chesapeake Public Schools
+VA,Newport News Public Schools
+VA,Stafford County Public Schools
+VA,Spotsylvania County Public Schools
+VA,Hanover County Public Schools
+VA,Richmond Public Schools
+VA,Albemarle County Public Schools
+VA,Roanoke County Public Schools
+WA,Seattle Public Schools
+WA,Spokane Public Schools
+WA,Tacoma Public Schools
+WA,Vancouver Public Schools
+WA,Lake Washington School District
+WA,Federal Way Public Schools
+WA,Kent School District
+WA,Edmonds School District
+WA,Puyallup School District
+WA,Northshore School District
+WA,Evergreen Public Schools
+WA,Bellevue School District
+WA,Issaquah School District
+WA,Renton School District
+WA,Highline Public Schools
+WA,Auburn School District
+WV,Kanawha County Schools
+WV,Berkeley County Schools
+WV,Monongalia County Schools
+WV,Cabell County Schools
+WV,Wood County Schools
+WV,Raleigh County Schools
+WV,Harrison County Schools
+WV,Marion County Schools
+WI,Milwaukee Public Schools
+WI,Madison Metropolitan School District
+WI,Kenosha Unified School District
+WI,Green Bay Area Public Schools
+WI,Racine Unified School District
+WI,Appleton Area School District
+WI,Waukesha School District
+WI,Eau Claire Area School District
+WI,Janesville School District
+WI,Sheboygan Area School District
+WI,Wausau School District
+WI,Oshkosh Area School District
+WI,Stevens Point Area Public Schools
+WY,Laramie County School District 1
+WY,Natrona County School District 1
+WY,Campbell County School District 1
+WY,Sweetwater County School District 1
+WY,Albany County School District 1
+WY,Sheridan County School District 2

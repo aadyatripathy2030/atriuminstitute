@@ -200,6 +200,10 @@ async function handleSignupOrLogin(req, res) {
       ? Math.floor(body.gradeLevel) : null,
     country: typeof body.country === 'string' ? body.country : (typeof body.state === 'string' ? body.state : null),
     linkCode: typeof body.linkCode === 'string' ? body.linkCode : null,
+    schoolName: typeof body.schoolName === 'string' ? body.schoolName.slice(0, 200) : null,
+    schoolDistrict: typeof body.schoolDistrict === 'string' ? body.schoolDistrict.slice(0, 200) : null,
+    isPrivateSchool: typeof body.isPrivateSchool === 'boolean' ? body.isPrivateSchool : null,
+    stateCode: (typeof body.stateCode === 'string' && /^[A-Za-z]{2}$/.test(body.stateCode)) ? body.stateCode.toUpperCase() : null,
     expiresAt: Date.now() + PENDING_META_TTL_MS,
   });
 
@@ -233,6 +237,10 @@ function userPublic(u) {
     consent_required: !!u.consent_required,
     consent_granted_at: u.consent_granted_at || null,
     is_admin: !!u.is_admin,
+    school_name: u.school_name || null,
+    school_district: u.school_district || null,
+    is_private_school: !!u.is_private_school,
+    state_code: u.state_code || null,
     subscription_status: u.subscription_status || null,
     subscription_plan: u.subscription_plan || null,
     current_period_end: u.current_period_end || null,
@@ -266,11 +274,17 @@ async function handleVerify(req, res) {
   const meta = pendingSignupMeta.get(user.email);
   if (meta) {
     pendingSignupMeta.delete(user.email);
-    if (meta.age != null || meta.country != null || meta.gradeLevel != null) {
+    if (meta.age != null || meta.country != null || meta.gradeLevel != null
+        || meta.schoolName != null || meta.schoolDistrict != null || meta.isPrivateSchool != null
+        || meta.stateCode != null) {
       user = await db.updateUserProfile(user.id, {
         age: meta.age,
         country: meta.country,
         gradeLevel: meta.gradeLevel,
+        schoolName: meta.schoolName,
+        schoolDistrict: meta.schoolDistrict,
+        isPrivateSchool: meta.isPrivateSchool,
+        stateCode: meta.stateCode,
       }) || user;
     }
     if (meta.linkCode) {
@@ -371,7 +385,15 @@ async function handleGetRichProfile(req, res) {
   json(res, 200, {
     role: u.role,
     profile,
-    user: { age: u.age == null ? null : Number(u.age), country: u.country || null },
+    user: {
+      age: u.age == null ? null : Number(u.age),
+      country: u.country || null,
+      state_code: u.state_code || null,
+      grade_level: u.grade_level == null ? null : Number(u.grade_level),
+      school_name: u.school_name || null,
+      school_district: u.school_district || null,
+      is_private_school: !!u.is_private_school,
+    },
   });
 }
 
@@ -397,6 +419,18 @@ async function handleSaveRichProfile(req, res) {
   } else if (typeof body.gradeLevel === 'string' && body.gradeLevel) {
     const n = parseInt(body.gradeLevel, 10);
     if (Number.isInteger(n) && n >= 1 && n <= 12) userUpdates.gradeLevel = n;
+  }
+  if (typeof body.schoolName === 'string') {
+    userUpdates.schoolName = body.schoolName.trim().slice(0, 200);
+  }
+  if (typeof body.schoolDistrict === 'string') {
+    userUpdates.schoolDistrict = body.schoolDistrict.trim().slice(0, 200);
+  }
+  if (typeof body.isPrivateSchool === 'boolean') {
+    userUpdates.isPrivateSchool = body.isPrivateSchool;
+  }
+  if (typeof body.stateCode === 'string' && /^[A-Za-z]{2}$/.test(body.stateCode)) {
+    userUpdates.stateCode = body.stateCode.toUpperCase();
   }
   if (Object.keys(userUpdates).length) {
     await db.updateUserProfile(u.id, userUpdates);
@@ -1231,6 +1265,28 @@ async function handleGetMyPoints(req, res) {
   if (!u) return json(res, 401, { error: 'Not signed in.' });
   const summary = await db.getMyPointsSummary(u.id);
   json(res, 200, summary);
+}
+
+// US school-district autocomplete. Anonymous-readable because the signup
+// form needs it before the user has a session. The dataset is just
+// publicly available district names + the names other signups have
+// entered, so there is nothing sensitive to gate behind auth.
+async function handleSearchSchoolDistricts(req, res) {
+  const u = new URL(req.url, 'http://localhost');
+  const query = u.searchParams.get('q') || '';
+  const stateCode = u.searchParams.get('state') || '';
+  if (!query || query.trim().length < 2) {
+    return json(res, 200, { results: [] });
+  }
+  const rows = await db.searchSchoolDistricts(query, stateCode, 12);
+  json(res, 200, {
+    results: rows.map(r => ({
+      state: r.state_code,
+      name: r.district_name,
+      source: r.source,
+      users: r.user_count || 0,
+    })),
+  });
 }
 
 async function handleGetLeaderboard(req, res) {
@@ -2123,6 +2179,7 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/streaks' && req.method === 'GET') return await handleGetMyStreaks(req, res);
     if (url === '/api/me/achievements' && req.method === 'GET') return await handleGetMyAchievements(req, res);
     if (url === '/api/me/points' && req.method === 'GET') return await handleGetMyPoints(req, res);
+    if (url.startsWith('/api/school-districts/search') && req.method === 'GET') return await handleSearchSchoolDistricts(req, res);
     if (url === '/api/leaderboard' && req.method === 'GET') return await handleGetLeaderboard(req, res);
     if (url === '/api/problem-of-day' && req.method === 'GET') return await handleGetPOD(req, res);
     if (url === '/api/problem-of-day/attempt' && req.method === 'POST') return await handlePostPODAttempt(req, res);

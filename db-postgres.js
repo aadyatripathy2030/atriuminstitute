@@ -40,7 +40,7 @@ function normalizeRole(r) {
   return r === 'parent' ? 'parent' : 'student';
 }
 
-const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, grade_level, consent_required, consent_granted_at, is_admin, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_plan, current_period_end';
+const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, grade_level, consent_required, consent_granted_at, is_admin, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_plan, current_period_end, school_name, school_district, is_private_school, state_code';
 
 // 8-character link code from an unambiguous alphabet (no 0/O, 1/I/L).
 // Formatted as XXXX-XXXX for display; stored without the dash.
@@ -121,22 +121,41 @@ async function markVerified(userId) {
   return getUser(userId);
 }
 
-async function updateUserProfile(userId, { age, country, gradeLevel }) {
+async function updateUserProfile(userId, { age, country, gradeLevel, schoolName, schoolDistrict, isPrivateSchool, stateCode }) {
   const cleanAge = (typeof age === 'number' && age >= 4 && age <= 120) ? Math.floor(age) : null;
   const cleanCountry = isValidCountry(country) ? country.trim() : null;
   const cleanGrade = (typeof gradeLevel === 'number' && gradeLevel >= 1 && gradeLevel <= 12) ? Math.floor(gradeLevel) : null;
+  const cleanSchool = (typeof schoolName === 'string' && schoolName.trim().length) ? schoolName.trim().slice(0, 200) : null;
+  const cleanDistrict = (typeof schoolDistrict === 'string' && schoolDistrict.trim().length) ? schoolDistrict.trim().slice(0, 200) : null;
+  // is_private_school is tri-state at the call site (true / false / undefined-no-change).
+  // Pass null when the caller doesn't want to touch it.
+  const cleanPrivate = (typeof isPrivateSchool === 'boolean') ? isPrivateSchool : null;
+  const cleanState = (typeof stateCode === 'string' && /^[A-Za-z]{2}$/.test(stateCode)) ? stateCode.toUpperCase() : null;
   const consentRequired = consentRequiredForAge(cleanAge);
   const rows = await q(
     `update users
      set age = coalesce($2, age),
          country = coalesce($3, country),
          grade_level = coalesce($4, grade_level),
-         consent_required = case when $5::boolean then true else consent_required end
+         school_name = coalesce($5, school_name),
+         school_district = coalesce($6, school_district),
+         is_private_school = coalesce($7, is_private_school),
+         state_code = coalesce($8, state_code),
+         consent_required = case when $9::boolean then true else consent_required end
      where id = $1
      returning ${USER_COLS}`,
-    [userId, cleanAge, cleanCountry, cleanGrade, consentRequired],
+    [userId, cleanAge, cleanCountry, cleanGrade, cleanSchool, cleanDistrict, cleanPrivate, cleanState, consentRequired],
   );
-  return rows[0] || null;
+  const u = rows[0] || null;
+  // Bookkeeping: if the user typed a US district that isn't in our seed
+  // list, add it as a user-sourced row so the next person typing the
+  // same district sees it in the autocomplete.
+  if (u && cleanDistrict && cleanCountry && /^united states$/i.test(cleanCountry) && !cleanPrivate) {
+    // Best-effort. Never fail the profile update because of a district
+    // bookkeeping write.
+    try { await recordUserDistrict(cleanDistrict, u); } catch (_e) {}
+  }
+  return u;
 }
 
 async function grantConsent(studentUserId) {
@@ -1525,6 +1544,73 @@ async function removeFavorite(userId, courseId, bookId) {
   );
 }
 
+// ---------- School districts ----------
+
+function normalizeDistrict(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Fuzzy autocomplete. Caller passes the partial string the user has typed
+// and (optionally) a 2-letter state postal code. We do prefix matching
+// first (cheapest, most relevant), then substring matching, capped at
+// `limit`. State filtering is applied when provided; otherwise we
+// search across all 50 states.
+async function searchSchoolDistricts(query, stateCode, limit) {
+  const norm = normalizeDistrict(query);
+  if (norm.length < 2) return [];
+  const lim = Math.min(Math.max(parseInt(limit, 10) || 12, 1), 25);
+  const params = [`${norm}%`, `%${norm}%`];
+  let stateClause = '';
+  if (typeof stateCode === 'string' && /^[A-Za-z]{2}$/.test(stateCode)) {
+    params.push(stateCode.toUpperCase());
+    stateClause = `and state_code = $${params.length}`;
+  }
+  params.push(lim);
+  // Two-stage ranking: prefix matches first (rank 1), other substring
+  // matches second (rank 2). Within each rank, prefer rows with a real
+  // user_count (i.e. some user has picked this district before).
+  const rows = await q(
+    `select id, state_code, district_name, source, user_count,
+            case when normalized_name like $1 then 1 else 2 end as rank
+       from school_districts
+      where (normalized_name like $1 or normalized_name like $2)
+            ${stateClause}
+      order by rank asc, user_count desc, district_name asc
+      limit $${params.length}`,
+    params,
+  );
+  return rows;
+}
+
+// When a user types a district that doesn't match any seed row, save it
+// so the next person typing the same name sees a suggestion. State
+// is derived from the user's country/state field; for now we only do
+// this for US users and tag the row with a placeholder state code if
+// we can't determine the state. The user_count column counts how many
+// distinct users have referenced this district.
+async function recordUserDistrict(districtName, user) {
+  const norm = normalizeDistrict(districtName);
+  if (norm.length < 3) return null;
+  // The user's state_code (e.g. "CA") drives which state we save this
+  // user-entered district under. The signup form requires a state when
+  // country = United States, so this should always be set for US users.
+  const stateCode = (user && typeof user.state_code === 'string' && /^[A-Za-z]{2}$/.test(user.state_code))
+    ? user.state_code.toUpperCase()
+    : 'XX';
+  await q(
+    `insert into school_districts (state_code, district_name, normalized_name, source, user_count)
+     values ($1, $2, $3, 'user', 1)
+     on conflict (state_code, normalized_name)
+       do update set user_count = school_districts.user_count + 1`,
+    [stateCode, districtName.trim().slice(0, 200), norm],
+  );
+  return true;
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -1559,6 +1645,7 @@ module.exports = {
   getUserStreaks, getUserAchievements,
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
+  searchSchoolDistricts, recordUserDistrict,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

@@ -39,6 +39,25 @@
   // Surface the country list so profile.js can offer the same dropdown.
   window.ATRIUM_COUNTRIES = COUNTRIES;
 
+  // US state postal codes (50 states + DC). Used when country = United States
+  // so the school-district autocomplete can filter to one state.
+  const US_STATES = [
+    ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
+    ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
+    ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'],
+    ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'],
+    ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
+    ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'],
+    ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'],
+    ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'],
+    ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'],
+    ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
+    ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'],
+    ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
+    ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
+  ];
+  window.ATRIUM_US_STATES = US_STATES;
+
   let selectedRole = 'student';
   let authMode = 'signin'; // 'signin' | 'signup' — only signup collects age/country/role/linkCode
   let pendingEmail = null;
@@ -46,8 +65,13 @@
   let pendingGrade = null;
   let pendingCountry = null;
   let pendingLinkCode = null;
+  let pendingSchool = null;
+  let pendingDistrict = null;
+  let pendingIsPrivate = null;
+  let pendingState = null;
   let currentUser = null;
   let resendCooldownTimer = null;
+  let districtSuggestTimer = null;
 
   function el(id) { return document.getElementById(id); }
   function show(node) { node && node.classList.remove('hidden'); }
@@ -157,19 +181,95 @@
     const roleToggle = el('authRoleToggle');
     const fieldRow = document.querySelector('#authEmailForm .auth-field-row');
     const linkWrap = document.querySelector('#authEmailForm .auth-linkcode-wrap');
+    const schoolRow = document.querySelector('#authEmailForm .auth-school-row');
     const ageInput = el('authAge');
     const countryInput = el('authCountry');
+    const schoolInput = el('authSchool');
     const ageLabel = ageInput && ageInput.closest('label');
 
     if (roleToggle) roleToggle.style.display = isSignup ? '' : 'none';
     if (fieldRow) fieldRow.style.display = isSignup ? '' : 'none';
     if (linkWrap) linkWrap.style.display = isSignup ? '' : 'none';
+    if (schoolRow) schoolRow.style.display = isSignup ? '' : 'none';
 
     // Age is only meaningful for students, and only when creating an account.
     const showAge = isSignup && selectedRole === 'student';
     if (ageLabel) ageLabel.style.display = showAge ? '' : 'none';
     if (ageInput) ageInput.required = showAge;
     if (countryInput) countryInput.required = isSignup;
+    if (schoolInput) schoolInput.required = isSignup;
+    applyUsOnlyVisibility();
+  }
+
+  // State + district fields only apply when country is United States.
+  // Private-school checkbox + district share visibility because the
+  // district field is only mandatory when the user is in a US public
+  // school. Private school hides the district picker entirely.
+  function applyUsOnlyVisibility() {
+    const countrySel = el('authCountry');
+    const stateLabel = document.querySelector('#authEmailForm .auth-field-state');
+    const districtLabel = document.querySelector('#authEmailForm .auth-field-district');
+    const privateWrap = el('authPrivateCheckWrap');
+    const stateSel = el('authState');
+    const districtInput = el('authDistrict');
+    const privateBox = el('authPrivate');
+    const isUS = countrySel && countrySel.value === 'United States';
+    const isSignup = authMode === 'signup';
+    if (stateLabel) stateLabel.classList.toggle('hidden', !(isSignup && isUS));
+    if (privateWrap) privateWrap.classList.toggle('hidden', !(isSignup && isUS));
+    // Populate state dropdown lazily.
+    if (isSignup && isUS && stateSel && stateSel.options.length <= 1) {
+      for (const [code, name] of US_STATES) {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = name;
+        stateSel.appendChild(opt);
+      }
+    }
+    // District visibility depends on country = US AND not private school.
+    const showDistrict = isSignup && isUS && !(privateBox && privateBox.checked);
+    if (districtLabel) districtLabel.classList.toggle('hidden', !showDistrict);
+    if (stateSel) stateSel.required = isSignup && isUS;
+    if (districtInput) districtInput.required = showDistrict;
+  }
+
+  function hideDistrictSuggest() {
+    const box = el('authDistrictSuggest');
+    if (box) { box.innerHTML = ''; box.classList.add('hidden'); }
+  }
+
+  async function refreshDistrictSuggest() {
+    const input = el('authDistrict');
+    const box = el('authDistrictSuggest');
+    const stateSel = el('authState');
+    if (!input || !box) return;
+    const q = (input.value || '').trim();
+    const stateCode = (stateSel && stateSel.value) || '';
+    if (q.length < 2 || !stateCode) { hideDistrictSuggest(); return; }
+    try {
+      const r = await fetch(`/api/school-districts/search?q=${encodeURIComponent(q)}&state=${encodeURIComponent(stateCode)}`, { credentials: 'same-origin' });
+      if (!r.ok) { hideDistrictSuggest(); return; }
+      const data = await r.json();
+      const list = (data && data.results) || [];
+      if (!list.length) {
+        box.innerHTML = '<div class="auth-suggest-empty">No match. We\'ll save your entry to help the next family in your district.</div>';
+        box.classList.remove('hidden');
+        return;
+      }
+      box.innerHTML = list.map(r => `<button type="button" class="auth-suggest-item" data-name="${(r.name || '').replace(/"/g, '&quot;')}">${escapeHTML(r.name)}</button>`).join('');
+      box.classList.remove('hidden');
+      box.querySelectorAll('.auth-suggest-item').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          input.value = btn.dataset.name || '';
+          hideDistrictSuggest();
+        });
+      });
+    } catch (_e) { hideDistrictSuggest(); }
+  }
+
+  function escapeHTML(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
   function populateCountryOptions() {
@@ -452,6 +552,27 @@
         return showError('Link codes are 8 characters (e.g. ABCD-EFGH).');
       }
     }
+    // School fields (added 2026-05-18). Mandatory school name for all
+    // signups; state + district are mandatory for US users who aren't
+    // marking themselves as private school.
+    let schoolName = null;
+    let schoolDistrict = null;
+    let isPrivate = null;
+    let stateVal = null;
+    if (authMode === 'signup') {
+      schoolName = (el('authSchool').value || '').trim();
+      if (!schoolName) return showError('Enter your school name.');
+      if (schoolName.length > 200) schoolName = schoolName.slice(0, 200);
+      if (countryVal === 'United States') {
+        stateVal = (el('authState').value || '').trim().toUpperCase();
+        if (!stateVal) return showError('Pick your state.');
+        isPrivate = !!(el('authPrivate') && el('authPrivate').checked);
+        if (!isPrivate) {
+          schoolDistrict = (el('authDistrict').value || '').trim();
+          if (!schoolDistrict) return showError('Enter your school district, or tick "Private school" if you don\'t have one.');
+        }
+      }
+    }
 
     const btn = el('authEmailBtn');
     btn.disabled = true;
@@ -466,6 +587,10 @@
         if (gradeNum != null) body.gradeLevel = gradeNum;
         if (countryVal) body.country = countryVal;
         if (linkCode) body.linkCode = linkCode;
+        if (schoolName) body.schoolName = schoolName;
+        if (schoolDistrict) body.schoolDistrict = schoolDistrict;
+        if (isPrivate !== null) body.isPrivateSchool = isPrivate;
+        if (stateVal) body.stateCode = stateVal;
       }
       const result = await postJSON('/api/auth/signup', body);
       pendingEmail = email;
@@ -473,6 +598,10 @@
       pendingGrade = gradeNum;
       pendingCountry = countryVal;
       pendingLinkCode = linkCode;
+      pendingSchool = schoolName;
+      pendingDistrict = schoolDistrict;
+      pendingIsPrivate = isPrivate;
+      pendingState = stateVal;
       const show2 = el('authEmailShow');
       // If the user picked "Create account" but the email already
       // exists, the server still sent a sign-in code. Flip the UI
@@ -528,6 +657,10 @@
         if (pendingGrade != null) body.gradeLevel = pendingGrade;
         if (pendingCountry) body.country = pendingCountry;
         if (pendingLinkCode) body.linkCode = pendingLinkCode;
+        if (pendingSchool) body.schoolName = pendingSchool;
+        if (pendingDistrict) body.schoolDistrict = pendingDistrict;
+        if (pendingIsPrivate !== null) body.isPrivateSchool = pendingIsPrivate;
+        if (pendingState) body.stateCode = pendingState;
       }
       await postJSON('/api/auth/signup', body);
       setResendStatus(`A new code has been sent to ${pendingEmail}. Check your inbox (and spam).`, 'ok');
@@ -715,6 +848,33 @@
     if (emailForm) emailForm.addEventListener('submit', handleEmailSubmit);
     const codeForm = el('authCodeForm');
     if (codeForm) codeForm.addEventListener('submit', handleCodeSubmit);
+    // Country picks drive whether state + district fields appear.
+    const countrySel = el('authCountry');
+    if (countrySel) countrySel.addEventListener('change', () => {
+      applyUsOnlyVisibility();
+      // Clear district when state changes / country swaps off US.
+      const di = el('authDistrict');
+      if (di) di.value = '';
+      hideDistrictSuggest();
+    });
+    const stateSel = el('authState');
+    if (stateSel) stateSel.addEventListener('change', () => {
+      const di = el('authDistrict');
+      if (di) di.value = '';
+      hideDistrictSuggest();
+    });
+    const privBox = el('authPrivate');
+    if (privBox) privBox.addEventListener('change', applyUsOnlyVisibility);
+    // District autocomplete: debounced fetch as the user types.
+    const districtInput = el('authDistrict');
+    if (districtInput) {
+      districtInput.addEventListener('input', () => {
+        if (districtSuggestTimer) clearTimeout(districtSuggestTimer);
+        districtSuggestTimer = setTimeout(refreshDistrictSuggest, 180);
+      });
+      districtInput.addEventListener('focus', refreshDistrictSuggest);
+      districtInput.addEventListener('blur', () => setTimeout(hideDistrictSuggest, 200));
+    }
     const resend = el('authResend');
     if (resend) resend.addEventListener('click', handleResendDifferentEmail);
     const resendCode = el('authResendCode');

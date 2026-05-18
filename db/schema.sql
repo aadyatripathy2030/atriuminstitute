@@ -624,3 +624,60 @@ create index if not exists idx_points_day_total
 
 create index if not exists idx_points_user_day
   on user_points_daily (user_id, day desc);
+
+-- ------------------------------------------------------------------
+-- School information (added May 2026). Every account is asked for a
+-- school name at signup. US users are also asked for their public
+-- school district (mandatory unless they tick "Private school").
+-- Non-US users provide school name only — district is US-specific.
+--
+-- The canonical list of US public school districts comes from the
+-- NCES Common Core of Data (https://nces.ed.gov/ccd/). The
+-- school_districts table is seeded with the largest districts per
+-- state from db/seed-school-districts.csv (load via
+-- `node tools/import-school-districts.js`); user-entered districts
+-- that don't match anything in the table are recorded with
+-- source = 'user' so the next person typing the same district sees
+-- it in the autocomplete dropdown.
+-- ------------------------------------------------------------------
+
+alter table users add column if not exists school_name text;
+alter table users add column if not exists school_district text;
+alter table users add column if not exists is_private_school boolean not null default false;
+-- US state postal code (2 letters). Only set when country = United States.
+-- Drives the school-district autocomplete: only districts whose
+-- state_code matches the user's state are suggested.
+alter table users add column if not exists state_code char(2)
+  check (state_code is null or state_code ~ '^[A-Z]{2}$');
+
+create table if not exists school_districts (
+  id uuid primary key default gen_random_uuid(),
+  state_code char(2) not null,
+  district_name text not null,
+  normalized_name text not null,
+  source text not null default 'seed' check (source in ('seed', 'user', 'nces')),
+  created_at timestamptz not null default now(),
+  -- How many users have ended up associated with this district. Tracked
+  -- so the autocomplete can lightly bias towards districts that real
+  -- users have picked.
+  user_count integer not null default 0,
+  unique (state_code, normalized_name)
+);
+
+create index if not exists idx_school_districts_state_norm
+  on school_districts (state_code, normalized_name);
+-- ILIKE prefix searches benefit from a trigram index. pg_trgm is
+-- available on Render Postgres; if it isn't, the LIKE fallback in
+-- searchSchoolDistricts still works (just slower).
+do $$
+begin
+  begin
+    create extension if not exists pg_trgm;
+    create index if not exists idx_school_districts_name_trgm
+      on school_districts using gin (normalized_name gin_trgm_ops);
+  exception when others then
+    -- pg_trgm not available; skip the trigram index. The state+norm
+    -- index above still serves prefix searches via btree.
+    null;
+  end;
+end$$;

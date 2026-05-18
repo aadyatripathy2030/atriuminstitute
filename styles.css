@@ -4440,3 +4440,92 @@ body > .site-footer {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* ---------- Signup: school + district fields ---------- */
+
+.auth-school-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 6px;
+  position: relative;
+}
+.auth-field-full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+.auth-field-full > span {
+  font-size: 13px;
+  color: var(--text-muted, #4a4d63);
+  font-weight: 600;
+}
+.auth-field-full > input {
+  height: 44px;
+  border: 1px solid rgba(30, 34, 56, 0.18);
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 15px;
+  background: #fff;
+  box-sizing: border-box;
+}
+.auth-field-full > input:focus {
+  outline: none;
+  border-color: rgba(184, 132, 43, 0.55);
+  box-shadow: 0 0 0 3px rgba(184, 132, 43, 0.15);
+}
+.auth-private-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text, #1e2238);
+  cursor: pointer;
+}
+.auth-private-check input { width: 16px; height: 16px; }
+
+/* Floating autocomplete panel for school district search. */
+.auth-suggest {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid rgba(30, 34, 56, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.auth-suggest-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text, #1e2238);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(30, 34, 56, 0.06);
+}
+.auth-suggest-item:last-child { border-bottom: 0; }
+.auth-suggest-item:hover { background: rgba(184, 132, 43, 0.08); }
+.auth-suggest-empty {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-muted, #4a4d63);
+  font-style: italic;
+}
+
+/* Profile page school fields share the autocomplete styles above. The
+   .hidden class hides the optional US-only rows. */
+.profile-us-only.hidden,
+.profile-private-check.hidden,
+.auth-field-state.hidden,
+.auth-field-district.hidden {
+  display: none !important;
+}
