@@ -84,7 +84,7 @@
   const TOP_LEVEL_IDS = [
     'landing', 'authGate', 'consentGate',
     'courses-home', 'home', 'detail', 'study', 'onboard',
-    'about', 'contact', 'privacy', 'terms',
+    'about', 'whyAtrium', 'faq', 'contact', 'privacy', 'terms',
     'parentHome', 'parentStudentDetail',
     'profilePage', 'activityPage', 'tokenUsagePage', 'adminPage',
     'curriculumPage', 'favoritesPage', 'achievementsPage', 'leaderboardPage',
@@ -959,6 +959,33 @@
       myDetailsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleMyDetailsMenu();
+      });
+    }
+    // "About Atrium" dropdown: Why Atrium, FAQ, About us. Always
+    // visible (signed-in or not).
+    const aboutBtn = el('aboutAtriumBtn');
+    const aboutMenu = el('aboutAtriumMenu');
+    if (aboutBtn && aboutMenu) {
+      aboutBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willShow = aboutMenu.classList.contains('hidden');
+        aboutMenu.classList.toggle('hidden', !willShow);
+        aboutBtn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+      });
+      // Close on item click or outside click.
+      aboutMenu.querySelectorAll('.nav-menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          aboutMenu.classList.add('hidden');
+          aboutBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+      document.addEventListener('click', (e) => {
+        if (!aboutMenu.classList.contains('hidden')
+            && !aboutMenu.contains(e.target)
+            && e.target !== aboutBtn) {
+          aboutMenu.classList.add('hidden');
+          aboutBtn.setAttribute('aria-expanded', 'false');
+        }
       });
     }
     const myDetailsMenu = el('myDetailsMenu');

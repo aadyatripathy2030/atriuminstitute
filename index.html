@@ -65,7 +65,14 @@
   </div>
   <div class="nav-right">
     <input type="search" class="nav-search" id="navSearch" placeholder="Search courses…" aria-label="Search courses">
-    <button class="nav-link" id="aboutLink" onclick="showAbout()">About</button>
+    <div class="nav-menu">
+      <button class="nav-link" id="aboutAtriumBtn" type="button" aria-haspopup="menu" aria-expanded="false">About Atrium ▾</button>
+      <div class="nav-menu-items hidden" id="aboutAtriumMenu" role="menu">
+        <button class="nav-menu-item" type="button" role="menuitem" onclick="showWhyAtrium()">Why Atrium</button>
+        <button class="nav-menu-item" type="button" role="menuitem" onclick="showFAQ()">FAQ</button>
+        <button class="nav-menu-item" type="button" role="menuitem" onclick="showAbout()">About us</button>
+      </div>
+    </div>
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <button type="button" class="streak-chip hidden" id="streakChip" title="Your activity streak">🔥 <span id="streakChipCount">0</span></button>
@@ -187,6 +194,7 @@
     <div class="landing-cta-row" id="landingCtaSignedOut">
       <button class="cta-primary" onclick="openAuth('signup')">Sign up free</button>
       <button class="cta-secondary" onclick="openAuth('signin')">Sign in</button>
+      <button class="cta-link" onclick="showWhyAtrium()">Why Atrium →</button>
     </div>
     <div class="landing-cta-sub" id="landingCtaSubSignedOut">Free · email + 6-digit code, no passwords to remember</div>
     <div class="landing-cta-row hidden" id="landingCtaSignedIn">
@@ -1381,6 +1389,269 @@
 
 <!-- Dedicated Study page (concept lesson + ~10 practice questions, no grading) -->
 <div id="study" class="study-page hidden"></div>
+
+<!-- Why Atrium: card-based pitch page. Visible to signed-out and
+     signed-in visitors. -->
+<div id="whyAtrium" class="why-page hidden">
+  <button class="back-btn" onclick="goToCourses()">← Back</button>
+  <header class="why-hero">
+    <div class="why-eyebrow">📚 Why families choose Atrium Institute</div>
+    <h1>Real tutoring. <em>Without the $100-an-hour bill.</em></h1>
+    <p class="why-lede">Personalised math &amp; English for grades 6 through 12. Free for every student. An AI tutor named Max walks every kid through every lesson, every quiz, every mistake. Parents see what's happening. Students build real confidence.</p>
+    <div class="why-cta-row">
+      <button class="cta-primary" onclick="openAuth('signup')">Sign up free</button>
+      <button class="cta-secondary" onclick="openAuth('signin')">Sign in</button>
+    </div>
+  </header>
+
+  <section class="why-cards">
+    <div class="why-card">
+      <div class="why-card-icon">🎯</div>
+      <h3>Personalised to your student</h3>
+      <p>Max adapts to the kid in front of him. A six-question onboarding survey captures learning style, study time, hobbies, and what they want to be when they grow up. Lessons and Problem of the Day examples lean on what motivates that particular student.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">📡</div>
+      <h3>Real-time activity monitoring</h3>
+      <p>Every lesson started, quiz attempted, hint used, and minute on site lands on a parent dashboard the moment it happens. No 'we'll discuss it at parent-teacher night' lag. You see what's working and what's not, today.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">👪</div>
+      <h3>Parents get a 360 view</h3>
+      <p>For each linked student: daily / weekly / monthly / quarterly rollups by subject, time spent, strongest topics, weak areas, recent quiz scores, and an AI-generated activity summary you can read in under a minute. Two-sided link approval keeps the wrong child from ever being attached to the wrong parent.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">💸</div>
+      <h3>No $100-an-hour tutor</h3>
+      <p>A private tutor typically costs $60 to $150 per hour. Atrium is free. Max teaches the same lesson, grades the same way, and is available at 6am, 11pm, or in the middle of homework on a Sunday. The maths: one hour of tutoring a week is about $5,200 a year. Atrium is zero.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">⏱️</div>
+      <h3>Time used well</h3>
+      <p>No commuting to a learning centre. No waiting for a tutor's availability. A student can run a focused 25-minute Pomodoro between dinner and homework and finish a whole section. Time-tracking shows exactly where the minutes went, by subject and by day, so wasted study habits get fixed instead of becoming permanent.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">💪</div>
+      <h3>Confidence, the real kind</h3>
+      <p>Confidence comes from small wins, not pep talks. Every quiz passed, every problem of the day solved, every lesson finished gets a point reward and counts towards a badge. Streaks reward consistency. Locked badges show a progress bar so kids can see exactly how close they are. The system is designed for steady reinforcement.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">🧙</div>
+      <h3>An AI tutor that actually teaches</h3>
+      <p>Max writes each lesson in five steps with worked examples, "watch out for" callouts, and a built-in "explain it back" prompt so the student has to think, not just nod along. Get a quiz answer wrong and he walks through the underlying concept, not just the right answer. He's available inside every quiz, every lesson, anywhere in the app.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">📐</div>
+      <h3>Full curriculum, one place</h3>
+      <p>21 courses: math from Arithmetic through Real Analysis and Differential Equations, English Language Arts grades 6 through 12, AP Calculus, AP Statistics. 150+ topics. 10,000+ practice questions. Aligned to Common Core. One sign-in, no separate maths app vs reading app.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">🔒</div>
+      <h3>Built for minors. Privacy taken seriously.</h3>
+      <p>COPPA-aware: students under 13 can't use the service until a parent links. We don't sell student data. We don't run ads at students. School and district are captured so administrators can later see usage at their level (opt-in) without ever exposing per-student data they shouldn't.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">⚡</div>
+      <h3>Daily Problem of the Day</h3>
+      <p>One curated problem a day, every day, picked from the curriculum bank with deterministic rotation so every student sees the same one. Solving it earns +20 points and contributes to the daily streak. A tiny ritual that keeps the habit going on days a student wouldn't otherwise log in.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">🏆</div>
+      <h3>Leaderboards that reward effort</h3>
+      <p>Daily, weekly, and monthly leaderboards based on points earned, not raw test scores. A kid who shows up every day and grinds through three lessons can rank above one who passed one quiz on a Friday. Effort gets recognised because effort is what builds skill.</p>
+    </div>
+
+    <div class="why-card">
+      <div class="why-card-icon">🎓</div>
+      <h3>Self-paced, but never alone</h3>
+      <p>Students set their own pace, but the system nudges them. Optional reminder emails. Study Methods coach for techniques like Pomodoro, spaced repetition, and active recall. A study plan with weekly goals and tracked time. The structure of a class without a class's rigid schedule.</p>
+    </div>
+  </section>
+
+  <section class="why-cta-card">
+    <h2>Start free. No card. No commitment.</h2>
+    <p>Email + a 6-digit code. That's the whole signup. You're learning in under two minutes.</p>
+    <div class="why-cta-row">
+      <button class="cta-primary" onclick="openAuth('signup')">Create your free account</button>
+    </div>
+  </section>
+</div>
+
+<!-- FAQ: grouped, accordion-style, with quick search. -->
+<div id="faq" class="faq-page hidden">
+  <button class="back-btn" onclick="goToCourses()">← Back</button>
+  <header class="faq-hero">
+    <h1>Frequently asked questions</h1>
+    <p class="faq-sub">Can't find what you're looking for? Email <a href="mailto:hello@atriuminstitute.ai">hello@atriuminstitute.ai</a>.</p>
+    <div class="faq-search">
+      <input type="search" id="faqSearch" placeholder="Search questions…" aria-label="Search FAQs">
+    </div>
+  </header>
+
+  <section class="faq-group" data-group="getting-started">
+    <h2>Getting started</h2>
+    <details><summary>What is Atrium Institute?</summary>
+      <p>A free online learning platform for students in grades 6 through 12. We cover math from Pre-Algebra through Calculus and English Language Arts grades 6 to 12, with an AI tutor named Max who walks every student through lessons, quizzes, and mistakes.</p>
+    </details>
+    <details><summary>How much does it cost?</summary>
+      <p>Nothing. Atrium is free for every student. There's no card on file, no trial that converts, no paywall on lessons.</p>
+    </details>
+    <details><summary>Do I need to download anything?</summary>
+      <p>No. It runs in any modern web browser on a laptop, tablet, or phone. No app to install.</p>
+    </details>
+    <details><summary>How do I sign up?</summary>
+      <p>Open atriuminstitute.ai, click <strong>Sign up free</strong>, enter your email, and we send you a 6-digit code. Paste the code and you're in. No passwords.</p>
+    </details>
+    <details><summary>What if my verification code never arrives?</summary>
+      <p>Check your spam or junk folder first. The email comes from <code>hello@atriuminstitute.ai</code>. School and district email systems often flag verification codes on first delivery. Mark it as "Not spam" and future codes go to your inbox. If it's truly missing, click <strong>Send a new code</strong> on the verification screen.</p>
+    </details>
+    <details><summary>What grades and subjects are covered?</summary>
+      <p>21 courses total: math from Arithmetic and Pre-Algebra through Algebra 1, Geometry, Algebra 2, Trigonometry, Pre-Calculus, Calculus (AP), Statistics, Finite Math, Linear Algebra, Differential Equations, Abstract Algebra, and Real Analysis. English Language Arts is split by grade from 6 through 12. Over 150 topics and 10,000+ practice questions.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="for-students">
+    <h2>For students</h2>
+    <details><summary>How does the AI tutor work?</summary>
+      <p>Max is built into every lesson and quiz. Click <strong>Learn</strong> on any topic and he writes a 5-step lesson with worked examples, "watch out for" callouts, and a check-your-understanding prompt. Inside a quiz, he can explain why an answer is wrong, give a hint without giving away the answer, or answer any maths or English question you type at him.</p>
+    </details>
+    <details><summary>What's the Problem of the Day?</summary>
+      <p>One curated maths problem picked from the curriculum every day. Every student sees the same problem. Solving it earns +20 points and contributes to your streak.</p>
+    </details>
+    <details><summary>How do streaks work?</summary>
+      <p>A streak counts the number of consecutive days you completed at least one activity (a lesson, a quiz, or the Problem of the Day). Miss a day and the streak resets. Streak chips show at the top of the screen.</p>
+    </details>
+    <details><summary>How are points earned?</summary>
+      <p>+50 for passing a quiz, +10 for attempting one, +5 for starting a lesson, +2 for using a hint, +20 for solving the Problem of the Day, +50 for unlocking an achievement. Points fuel the daily / weekly / monthly leaderboards.</p>
+    </details>
+    <details><summary>What are achievements and badges?</summary>
+      <p>13 badges you can earn for steady progress: first quiz passed, weekly streak, 50 quizzes passed, full-marks streak, Problem of the Day streak, and others. Locked badges show a progress bar so you can see exactly how close you are.</p>
+    </details>
+    <details><summary>Can I see how I'm doing over time?</summary>
+      <p>Yes. The Activity page shows quiz history, weak topics, and an AI-written summary of your last week. The Achievements page shows points by day/week/month/all-time and where you stand on each badge.</p>
+    </details>
+    <details><summary>What if I get an answer wrong?</summary>
+      <p>Max walks you through the underlying concept and shows the right approach. The goal is to actually understand the mistake, not just memorise the right answer. Past mistakes appear on the Activity page so you can review them.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="for-parents">
+    <h2>For parents</h2>
+    <details><summary>How do I link to my child's account?</summary>
+      <p>Both of you sign up. On your parent dashboard, paste your child's 8-character link code (or the other way around). The request goes to the OTHER side as a pending invitation. Once they approve, the link goes live. This two-sided check stops anyone who happens to know the link code from silently linking to the wrong child.</p>
+    </details>
+    <details><summary>What can I see as a parent?</summary>
+      <p>Daily / weekly / monthly / quarterly activity rollups by subject, time spent on the platform, recent quiz scores, weak topics, study habits, and an AI-generated weekly summary. You can drill into a per-student 360 view that includes the entire activity timeline.</p>
+    </details>
+    <details><summary>Can I get a weekly email digest?</summary>
+      <p>Yes. From the parent profile page, toggle the weekly digest on and pick the day and time. The digest summarises every linked student's activity from the past week.</p>
+    </details>
+    <details><summary>My child is under 13. How does that work?</summary>
+      <p>We comply with COPPA. Under-13 students can sign up but their account is gated on a parent linking and approving the connection. Once that happens, the kid's account unlocks. Email reminders for under-13 students stay off until you (the parent) explicitly authorise them on the parent profile page.</p>
+    </details>
+    <details><summary>Can my child use Atrium without me linking?</summary>
+      <p>Students 13 and older can use it on their own. Under 13, a parent link is required before any learning happens. We strongly recommend parental supervision for ages 13 to 17 regardless.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="privacy">
+    <h2>Privacy and safety</h2>
+    <details><summary>Do you sell student data?</summary>
+      <p>No. We don't sell student data, ever. We don't run third-party advertising at students. Curriculum personalisation is done in-house; data does not leave Atrium for that purpose.</p>
+    </details>
+    <details><summary>What data do you collect?</summary>
+      <p>Email, age, country, grade level, school name, school district (US only), and the activity you generate inside Atrium (lessons started, quiz attempts and scores, time on site, points earned). For under-13 students, an additional parental-consent flag.</p>
+    </details>
+    <details><summary>Where is data stored?</summary>
+      <p>Render Postgres in the US. Email is sent through Resend. AI lesson and chat content is generated by Anthropic Claude. Each provider sees only the data needed to do its job.</p>
+    </details>
+    <details><summary>Can I delete my account?</summary>
+      <p>Yes. Email <a href="mailto:hello@atriuminstitute.ai">hello@atriuminstitute.ai</a> from the account's email address and we'll permanently delete the user record, the linked profile, and all derived activity within 30 days.</p>
+    </details>
+    <details><summary>How do you handle children's data under COPPA?</summary>
+      <p>Sign-ups under 13 are tagged with consent_required = true. The kid can browse but can't generate activity until a parent has linked the account. Reminder emails for under-13 students are gated on parent authorisation. Activity data is treated as restricted and not used for any commercial purpose.</p>
+    </details>
+    <details><summary>Do you support Single Sign-On for schools?</summary>
+      <p>Not yet. We plan to add Google Workspace for Education SSO; it's not the highest priority because the email-only signup already works inside school email systems.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="school">
+    <h2>Schools and districts</h2>
+    <details><summary>Why do you ask for my school district?</summary>
+      <p>So we can later let school administrators see aggregate usage from their district (opt-in, no per-student data exposed). It also helps us roll up regional usage stats for our own product decisions.</p>
+    </details>
+    <details><summary>My district isn't in the dropdown. What do I do?</summary>
+      <p>Type it in anyway. Your entry is saved so the next family in the same district sees it as a suggestion. Over time the autocomplete grows. We also seed the dropdown from the NCES Common Core of Data list of US public school districts (~13,000 entries).</p>
+    </details>
+    <details><summary>What if I'm in a private school?</summary>
+      <p>Tick the "Private school" checkbox at signup. That skips the district question entirely. You still provide the school name.</p>
+    </details>
+    <details><summary>I'm not in the US.</summary>
+      <p>School name only. State and district are US-specific and don't appear for non-US users.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="ai">
+    <h2>About Max (the AI tutor)</h2>
+    <details><summary>What model is Max?</summary>
+      <p>Most of Max's heavy thinking (lessons, chat, mistake review, study plans) runs on Anthropic Claude Sonnet 4.5. Lighter tasks (grading, hints, weekly summaries) run on Claude Haiku 4.5 for speed and cost.</p>
+    </details>
+    <details><summary>Is Max always right?</summary>
+      <p>No. AI tutors hallucinate occasionally. We pre-generate and cache lessons so the same Sonnet answer is served to everyone (no per-student drift), and we run validation on critical paths. Max marks his own work and explains his reasoning so students can spot a wrong step. If you find a mistake, email us.</p>
+    </details>
+    <details><summary>Can I choose which model Max uses?</summary>
+      <p>Yes. On the Profile page there's an AI model preference: <strong>fast</strong> (Haiku), <strong>best</strong> (Sonnet), or <strong>balanced</strong> (default routing). Most students should leave it on balanced.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="technical">
+    <h2>Technical</h2>
+    <details><summary>What browsers are supported?</summary>
+      <p>Recent Chrome, Edge, Firefox, Safari, and Brave. Mobile Safari and Chrome Android both work. The maths renderer uses MathJax with a built-in fallback so equations look right even when MathJax fails to load.</p>
+    </details>
+    <details><summary>Why is the page slow on my first visit?</summary>
+      <p>We host on Render's free tier, which sleeps the server after 15 minutes of inactivity. A cold start takes ~15 seconds. We hit the site every 5 minutes from a keep-warm cron to keep it warm during the day, but a truly idle period can still cause one slow page load.</p>
+    </details>
+    <details><summary>Will Atrium work for me without the internet?</summary>
+      <p>No. Lessons are generated on demand by Claude and quizzes are loaded from our server. An offline mode isn't on the roadmap.</p>
+    </details>
+    <details><summary>Is there a mobile app?</summary>
+      <p>Not yet. The web app is responsive and works on phones; a native app isn't a priority.</p>
+    </details>
+  </section>
+
+  <section class="faq-group" data-group="account">
+    <h2>Account</h2>
+    <details><summary>How do I sign out?</summary>
+      <p>Top right of the nav, hover your menu and click <strong>Sign out</strong>. Your session cookie gets revoked.</p>
+    </details>
+    <details><summary>I forgot my password.</summary>
+      <p>There are no passwords. Every sign-in uses a 6-digit code emailed to you. If your email no longer works, contact us.</p>
+    </details>
+    <details><summary>How do I change my email?</summary>
+      <p>Right now, email us. Self-serve email change is on the roadmap.</p>
+    </details>
+    <details><summary>I'm getting a "no account found" error when I try to sign in.</summary>
+      <p>That email doesn't have an Atrium account yet. Switch to <strong>Create account</strong>. The form offers this switch automatically if it detects the situation.</p>
+    </details>
+  </section>
+
+  <section class="faq-cta-card">
+    <h2>Still have questions?</h2>
+    <p>Email <a href="mailto:hello@atriuminstitute.ai">hello@atriuminstitute.ai</a> and we'll get back to you within a day.</p>
+  </section>
+</div>
 
 <!-- About page -->
 <div id="about" class="about-page hidden">
