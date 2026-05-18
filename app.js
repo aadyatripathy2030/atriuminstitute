@@ -95,7 +95,16 @@ function localCheck(user, correct) {
 function mdToHtml(md) {
   if (!md) return '';
   let h = md;
-  // Code blocks first (skip latex in them is not a concern here)
+  // Code blocks first. Preserve the optional language tag as a class on
+  // the <code> element so the Mermaid pass (and any future syntax-highlight
+  // pass) can find blocks by language. Without this, ```mermaid\n... ends up
+  // with the literal word "mermaid" as the first line of the code block and
+  // renderMermaidIn can never match it.
+  h = h.replace(/```([a-zA-Z0-9_+\-]+)?\n([\s\S]*?)```/g, (_, lang, c) => {
+    const cls = lang ? ` class="language-${escapeHtml(lang)}"` : '';
+    return `<pre><code${cls}>${escapeHtml(c)}</code></pre>`;
+  });
+  // Fallback for single-line fences without a trailing newline.
   h = h.replace(/```([\s\S]*?)```/g, (_, c) => `<pre><code>${escapeHtml(c)}</code></pre>`);
   h = h.replace(/`([^`]+)`/g, (_, c) => `<code>${escapeHtml(c)}</code>`);
   // Headings
