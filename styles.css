@@ -4293,3 +4293,23 @@ body > .site-footer {
   font-size: 22px;
   margin: 0 0 12px;
 }
+
+/* Spam-folder hint inside the verification step. */
+.auth-help-spam {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted, #4a4d63);
+  background: rgba(255, 200, 80, 0.10);
+  border: 1px solid rgba(220, 160, 30, 0.30);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0 10px;
+}
+.auth-help-spam code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+.auth-help-spam strong { color: var(--text, #1e2238); }
