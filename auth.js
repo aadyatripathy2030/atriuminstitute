@@ -188,11 +188,25 @@
   }
 
   function showApp() {
+    console.log('[showApp] entry');
     hideAllTopLevel();
-    show(el('courses-home'));
-    if (typeof renderCourses === 'function') renderCourses();
+    const ch = el('courses-home');
+    if (!ch) {
+      console.warn('[showApp] #courses-home not in DOM');
+      return;
+    }
+    show(ch);
+    if (typeof renderCourses === 'function') {
+      try {
+        const r = renderCourses();
+        if (r && typeof r.then === 'function') r.catch(e => console.warn('[showApp] renderCourses (async) threw:', e && e.message));
+      } catch (e) { console.warn('[showApp] renderCourses threw:', e && e.message); }
+    } else {
+      console.warn('[showApp] renderCourses is not a function');
+    }
     if (typeof renderProgressPill === 'function') renderProgressPill();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    console.log('[showApp] done. courses-home hidden?', ch.classList.contains('hidden'));
   }
 
   function setNavSignedIn(user) {
@@ -563,17 +577,24 @@
   // falling through to the landing — keeps the logo click from silently
   // doing nothing on a slow page load. Doesn't bypass the consent gate.
   window.goHome = async function () {
+    console.log('[goHome] entry. currentUser?', currentUser ? currentUser.email : null);
     let u = currentUser;
     if (!u) {
-      try { u = await checkSession(); } catch (_) { u = null; }
+      console.log('[goHome] no cached user, calling checkSession');
+      try { u = await checkSession(); } catch (e) { console.log('[goHome] checkSession threw:', e && e.message); u = null; }
+      console.log('[goHome] checkSession result:', u ? u.email : null);
       if (u) setNavSignedIn(u);
     }
     if (u) {
-      enterAppAfterAuth(u);
+      console.log('[goHome] calling enterAppAfterAuth');
+      try { enterAppAfterAuth(u); }
+      catch (e) { console.log('[goHome] enterAppAfterAuth threw:', e && e.message); }
     } else {
+      console.log('[goHome] no user, showing landing');
       showLanding();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    console.log('[goHome] done');
   };
 
   // Exposed so other code (e.g. app.js) can ask who the user is.
@@ -612,7 +633,18 @@
     const signOutBtn = el('signOutBtn');
     if (signOutBtn) signOutBtn.addEventListener('click', handleSignOut);
     const logoBtn = el('logoHome');
-    if (logoBtn) logoBtn.addEventListener('click', () => window.goHome());
+    if (logoBtn) {
+      logoBtn.addEventListener('click', () => {
+        console.log('[logo] click. typeof window.goHome=', typeof window.goHome);
+        if (typeof window.goHome === 'function') {
+          window.goHome();
+        } else {
+          console.warn('[logo] window.goHome is not a function — something overwrote it.');
+        }
+      });
+    } else {
+      console.warn('[logo] #logoHome button not found in DOM at wireOnce time.');
+    }
     const myDetailsBtn = el('myDetailsBtn');
     if (myDetailsBtn) {
       myDetailsBtn.addEventListener('click', (e) => {
