@@ -2163,19 +2163,27 @@ footer {
   color: #b00020;
 }
 
-/* Auth signup extras: age + state row + collapsible link code field. */
+/* Auth signup extras: age + grade + country row + collapsible link code field. */
 .auth-field-row {
   display: flex;
   gap: 12px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 .auth-field {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 100px;
   display: flex;
   flex-direction: column;
   text-align: left;
   font-size: 12px;
   color: var(--muted, #6b7280);
+}
+.auth-field:first-child { min-width: 110px; }    /* age */
+.auth-field-grade { min-width: 130px; flex: 1.2 1 0; }
+.auth-field:last-child { flex: 2.5 1 0; min-width: 180px; } /* country -- widest */
+@media (max-width: 520px) {
+  .auth-field { flex: 1 1 100%; }
 }
 .auth-field span {
   margin-bottom: 4px;
@@ -4222,8 +4230,8 @@ body > .site-footer {
 
 .auth-field-optional {
   font-size: 11px; color: var(--text-muted, #4a4d63); font-weight: 400;
+  margin-left: 4px;
 }
-.auth-field-grade { min-width: 110px; }
 
 /* Achievements page "How to earn more" panel. */
 .ach-howto {
