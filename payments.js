@@ -173,6 +173,41 @@
       if (e.target === ov) closeUpgradeModal();
     });
 
+    // ---- Email-us modal (footer button) ----
+    const emailOpen = el('footerEmailBtn');
+    const emailOv = el('emailOverlay');
+    const emailClose = el('emailClose');
+    const emailCopy = el('emailCopyBtn');
+    const emailHint = el('emailCopyHint');
+    if (emailOpen && emailOv) {
+      emailOpen.addEventListener('click', (e) => {
+        e.preventDefault();
+        emailOv.classList.remove('hidden');
+      });
+    }
+    if (emailClose && emailOv) {
+      emailClose.addEventListener('click', () => emailOv.classList.add('hidden'));
+    }
+    if (emailOv) {
+      emailOv.addEventListener('click', (e) => { if (e.target === emailOv) emailOv.classList.add('hidden'); });
+    }
+    if (emailCopy && emailHint) {
+      emailCopy.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText('hello@atriuminstitute.ai');
+          emailHint.classList.remove('hidden');
+          setTimeout(() => emailHint.classList.add('hidden'), 1500);
+        } catch (_) {
+          alert('hello@atriuminstitute.ai');
+        }
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && emailOv && !emailOv.classList.contains('hidden')) {
+        emailOv.classList.add('hidden');
+      }
+    });
+
     handleReturnFromStripe();
   }
 

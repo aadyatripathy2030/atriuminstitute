@@ -1460,6 +1460,22 @@
   </div>
 </div>
 
+<!-- "Email us" modal — opens when the footer button is clicked -->
+<div class="email-overlay hidden" id="emailOverlay" role="dialog" aria-modal="true" aria-labelledby="emailOverlayTitle">
+  <div class="email-card">
+    <button class="email-close" id="emailClose" aria-label="Close">✕</button>
+    <div class="email-emoji" aria-hidden="true">✉️</div>
+    <h2 id="emailOverlayTitle" class="email-title">Email us</h2>
+    <p class="email-sub">We read every message. Usually reply within 1–2 days.</p>
+    <a class="email-address" href="mailto:hello@atriuminstitute.ai" id="emailAddress">hello@atriuminstitute.ai</a>
+    <div class="email-actions">
+      <button type="button" class="cta-secondary" id="emailCopyBtn">Copy address</button>
+      <a class="cta-primary" href="mailto:hello@atriuminstitute.ai">Open in mail app</a>
+    </div>
+    <div class="email-copy-hint hidden" id="emailCopyHint">Copied ✓</div>
+  </div>
+</div>
+
 <button class="back-to-top hidden" id="backToTop" title="Back to top" aria-label="Back to top">↑</button>
 
 <!-- Dedicated Study page (concept lesson + ~10 practice questions, no grading) -->
@@ -1827,7 +1843,10 @@
       </div>
       <p class="footer-tagline">A calm place to learn math &amp; English. Free for any student, anywhere.</p>
       <div class="footer-social" aria-label="Social media">
-        <a href="mailto:hello@atriuminstitute.ai" title="Email" aria-label="Email">✉️ Email us</a>
+        <button type="button" class="footer-email-btn" id="footerEmailBtn" aria-label="Email us">
+          <span class="footer-email-icon" aria-hidden="true">✉️</span>
+          <span class="footer-email-text">Email us</span>
+        </button>
       </div>
     </div>
     <div class="footer-col">

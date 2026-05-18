@@ -1274,7 +1274,7 @@ footer {
   font-size: 14px; line-height: 1.6; margin: 0 0 18px;
   max-width: 320px; color: var(--text-soft);
 }
-.footer-social { display: flex; gap: 10px; }
+.footer-social { display: flex; gap: 10px; flex-wrap: wrap; }
 .footer-social a {
   display: grid; place-items: center;
   width: 36px; height: 36px; border-radius: 50%;
@@ -1286,6 +1286,75 @@ footer {
   background: var(--accent); border-color: var(--accent);
   transform: translateY(-2px);
 }
+
+/* "Email us" button — a pill with icon-left, text-right (vs the round
+   social icons next to it). Lives inside .footer-social. */
+.footer-email-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 16px 0 12px;
+  border-radius: 999px;
+  background: var(--paper); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; line-height: 1;
+  transition: background .15s, border-color .15s, transform .15s, color .15s;
+}
+.footer-email-btn:hover {
+  background: var(--accent); border-color: var(--accent); color: var(--paper);
+  transform: translateY(-2px);
+}
+.footer-email-icon { font-size: 15px; line-height: 1; }
+.footer-email-text { font-weight: 500; }
+
+/* ===== Email-us modal ===== */
+.email-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.email-overlay.hidden { display: none; }
+.email-card {
+  background: var(--paper); border: 1px solid var(--border-strong);
+  border-radius: 18px; padding: 36px 32px 28px;
+  width: 100%; max-width: 400px;
+  box-shadow: var(--shadow-lg);
+  text-align: center; position: relative;
+}
+.email-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: transparent; border: none;
+  font-size: 16px; color: var(--muted); cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.email-close:hover { background: var(--bg2); color: var(--text); }
+.email-emoji { font-size: 40px; margin-bottom: 8px; }
+.email-title {
+  font-family: var(--serif); font-weight: 500; font-size: 24px;
+  color: var(--text); margin: 0 0 6px;
+}
+.email-sub {
+  color: var(--muted); font-size: 13.5px; line-height: 1.5;
+  margin: 0 0 20px;
+}
+.email-address {
+  display: block; padding: 14px 18px;
+  background: var(--card-hi); border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Courier New', monospace; font-size: 17px; font-weight: 600;
+  color: var(--text); text-decoration: none;
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+.email-address:hover { background: var(--accent-soft); border-color: var(--accent); }
+.email-actions { display: flex; gap: 8px; }
+.email-actions > * { flex: 1; padding-left: 14px; padding-right: 14px; font-size: 13px; }
+.email-copy-hint {
+  margin-top: 12px; font-size: 12px; color: var(--good); font-weight: 600;
+}
+.email-copy-hint.hidden { display: none; }
 .footer-bottom {
   max-width: 1100px; margin: 40px auto 0; padding: 24px 24px 0;
   border-top: 1px solid var(--border);
