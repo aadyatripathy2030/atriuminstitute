@@ -951,6 +951,104 @@ async function handleAdminLessons(req, res) {
   json(res, 200, { courses });
 }
 
+// ---------- Curriculum quiz generation (cache + on-demand AI) ----------
+async function generateCurriculumQuiz(meta) {
+  // meta: { courseTitle, unitTitle, lessonTitle, learningObjective, keyConcepts, keyVocabulary, ccssCode }
+  const userMsg = `Course: ${meta.courseTitle || 'Unknown course'}
+Unit / chapter: ${meta.unitTitle || 'Unknown unit'}
+Section title: ${meta.lessonTitle || 'Unknown lesson'}
+Existing questions in this section:
+(none — generate a fresh quiz)
+
+How many new questions to add: 5
+Learning objective: ${meta.learningObjective || '(not provided)'}
+Key concepts: ${meta.keyConcepts || '(not provided)'}
+Key vocabulary: ${meta.keyVocabulary || '(not provided)'}
+${meta.ccssCode ? 'Standards: ' + meta.ccssCode : ''}
+
+Generate exactly 5 quiz questions covering this lesson. Output ONLY a JSON array.`;
+  const model = 'claude-sonnet-4-5-20250929';
+  const system = prompts.buildSystem('gen-questions');
+  const result = await callClaudeDirect({
+    model, system,
+    messages: [{ role: 'user', content: userMsg }],
+    max_tokens: 1500,
+    temperature: 0.5,
+  });
+  // Record usage.
+  if (result.usage) {
+    const usage = result.usage;
+    db.recordAiUsage({
+      userId: null, userEmail: '(curriculum-quiz-gen)', intent: 'gen-questions', model,
+      inputTokens: usage.input_tokens || 0,
+      outputTokens: usage.output_tokens || 0,
+      cacheReadTokens: usage.cache_read_input_tokens || 0,
+      cacheCreationTokens: usage.cache_creation_input_tokens || 0,
+      costUsd: computeCost(model, usage),
+    }).catch(err => console.error('recordAiUsage failed:', err.message));
+  }
+  // Parse Claude's JSON output. Tolerate stray code fences.
+  let text = (result.text || '').trim();
+  text = text.replace(/^```(?:json)?\s*/, '').replace(/```\s*$/, '');
+  let questions;
+  try { questions = JSON.parse(text); }
+  catch (e) { throw new Error('Could not parse AI quiz output: ' + e.message); }
+  if (!Array.isArray(questions) || questions.length === 0) {
+    throw new Error('AI returned no questions.');
+  }
+  // Normalise shape.
+  questions = questions.map(q => ({
+    type: q.type === 'word' ? 'word' : 'regular',
+    q: String(q.q || ''),
+    answer: String(q.answer || ''),
+    solution: String(q.solution || ''),
+  })).filter(q => q.q && q.answer);
+  if (questions.length === 0) throw new Error('AI returned malformed questions.');
+  return { questions, model };
+}
+
+async function handleGetCurriculumQuiz(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in to start a quiz.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.courseId !== 'string' || typeof body.lessonNumber !== 'string') {
+    return json(res, 400, { error: 'courseId and lessonNumber required.' });
+  }
+  const courseId = body.courseId.trim();
+  const lessonNumber = body.lessonNumber.trim();
+  const force = body.regenerate === true;
+  if (!force) {
+    const cached = await db.getCurriculumQuiz(courseId, lessonNumber);
+    if (cached) return json(res, 200, { questions: cached.questions, model: cached.model, cached: true });
+  }
+  // Need meta to generate. Pull the lesson row.
+  const course = await db.getCurriculumCourseFull(courseId);
+  if (!course) return json(res, 404, { error: 'Course not found.' });
+  let unit = null, lesson = null;
+  for (const u2 of (course.units || [])) {
+    const l = (u2.lessons || []).find(x => x.lesson_number === lessonNumber);
+    if (l) { unit = u2; lesson = l; break; }
+  }
+  if (!lesson) return json(res, 404, { error: 'Lesson not found.' });
+  let result;
+  try {
+    result = await generateCurriculumQuiz({
+      courseTitle: course.title,
+      unitTitle: unit.unit_title,
+      lessonTitle: lesson.lesson_title,
+      learningObjective: lesson.learning_objective,
+      keyConcepts: lesson.key_concepts,
+      keyVocabulary: lesson.key_vocabulary,
+      ccssCode: lesson.ccss_code,
+    });
+  } catch (e) {
+    console.error('curriculum quiz gen failed:', e.message);
+    return json(res, 502, { error: 'Quiz generation failed. Try again in a moment.' });
+  }
+  await db.saveCurriculumQuiz(courseId, lessonNumber, result.questions, result.model);
+  json(res, 200, { questions: result.questions, model: result.model, cached: false });
+}
+
 // ---------- User favorites ----------
 async function handleListFavorites(req, res) {
   const u = await currentUser(req);
@@ -1666,6 +1764,8 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/favorites' && req.method === 'GET') return handleListFavorites(req, res);
     if (url === '/api/me/favorites' && req.method === 'POST') return handleAddFavorite(req, res);
     if (url === '/api/me/favorites' && req.method === 'DELETE') return handleRemoveFavorite(req, res);
+    // Curriculum quiz (cache + on-demand AI generation).
+    if (url === '/api/curriculum/quiz' && req.method === 'POST') return handleGetCurriculumQuiz(req, res);
     // Profile, links
     if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
     if (url === '/api/me/rich-profile' && req.method === 'GET') return handleGetRichProfile(req, res);

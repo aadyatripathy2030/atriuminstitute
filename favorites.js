@@ -258,12 +258,12 @@
         const kind = card.dataset.kind;
         hide(el('favoritesPage'));
         if (kind === 'unit') {
-          // Curriculum unit -> drill into curriculum truth (lessons),
-          // not the legacy course's unrelated book grid.
+          // Full learning app for the curriculum unit (section grid
+          // with Learn / Start Quiz / Study buttons).
           const currCourseId = card.dataset.currCourse;
           const unitNumber = Number(card.dataset.unitNumber);
-          if (currCourseId && typeof window.openCurriculumUnit === 'function') {
-            window.openCurriculumUnit(currCourseId, unitNumber);
+          if (currCourseId && typeof window.openCurriculumUnitAsCourse === 'function') {
+            window.openCurriculumUnitAsCourse(currCourseId, unitNumber);
           }
         } else {
           const cid = card.dataset.course;

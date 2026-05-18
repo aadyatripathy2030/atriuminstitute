@@ -996,6 +996,28 @@ async function getCurriculumCourseFull(courseId) {
   return course;
 }
 
+// ---------- Cached curriculum lesson quizzes ----------
+async function getCurriculumQuiz(courseId, lessonNumber) {
+  const rows = await q(
+    `select questions, model, created_at
+     from curriculum_lesson_quizzes
+     where course_id = $1 and lesson_number = $2
+     limit 1`,
+    [courseId, lessonNumber]
+  );
+  return rows[0] || null;
+}
+
+async function saveCurriculumQuiz(courseId, lessonNumber, questions, model) {
+  await q(
+    `insert into curriculum_lesson_quizzes (course_id, lesson_number, questions, model, updated_at)
+     values ($1, $2, $3::jsonb, $4, now())
+     on conflict (course_id, lesson_number)
+     do update set questions = excluded.questions, model = excluded.model, updated_at = now()`,
+    [courseId, lessonNumber, JSON.stringify(questions), model || null]
+  );
+}
+
 // ---------- User favorites (legacy course + book ids) ----------
 async function listFavorites(userId) {
   return q(
@@ -1053,6 +1075,7 @@ module.exports = {
   adminAllLinks, adminLessonStats,
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   listFavorites, addFavorite, removeFavorite,
+  getCurriculumQuiz, saveCurriculumQuiz,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

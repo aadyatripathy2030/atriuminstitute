@@ -501,3 +501,24 @@ create table if not exists user_favorites (
 
 create index if not exists idx_favorites_user_created
   on user_favorites (user_id, created_at desc);
+
+-- ------------------------------------------------------------------
+-- Cached AI-generated quizzes for curriculum lessons. Keyed on the
+-- curriculum_course id + lesson_number (e.g. "grade6" / "1.1") so the
+-- same quiz is reused across users. Generated via the gen-questions
+-- intent the first time a student clicks Start Quiz on a lesson.
+-- ------------------------------------------------------------------
+
+create table if not exists curriculum_lesson_quizzes (
+  id uuid primary key default gen_random_uuid(),
+  course_id text not null,
+  lesson_number text not null,
+  questions jsonb not null,
+  model text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (course_id, lesson_number)
+);
+
+create index if not exists idx_curriculum_quizzes_lookup
+  on curriculum_lesson_quizzes (course_id, lesson_number);

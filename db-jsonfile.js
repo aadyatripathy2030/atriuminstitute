@@ -871,6 +871,10 @@ async function listCurriculumSubjects() { return []; }
 async function listCurriculumCourses() { return []; }
 async function getCurriculumCourseFull() { return null; }
 
+// ---------- Cached curriculum lesson quizzes (Postgres-only feature) ----------
+async function getCurriculumQuiz() { return null; }
+async function saveCurriculumQuiz() { /* no-op in jsonfile dev */ }
+
 // ---------- User favorites ----------
 async function listFavorites(userId) {
   load();
@@ -922,6 +926,7 @@ module.exports = {
   adminAllLinks, adminLessonStats,
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   listFavorites, addFavorite, removeFavorite,
+  getCurriculumQuiz, saveCurriculumQuiz,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
