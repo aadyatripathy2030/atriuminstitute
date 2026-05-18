@@ -2183,26 +2183,51 @@ footer {
 }
 .auth-field input,
 .auth-field select {
-  font: inherit;
+  font-family: var(--font);
   font-size: 16px;
   padding: 12px 14px;
-  border: 1px solid var(--border, #e6e2d7);
+  border: 1px solid var(--border-strong, #d4cfc0);
   border-radius: 10px;
-  background: var(--paper, #fff);
-  color: var(--text, #1e2238);
-  min-height: 46px;
+  background: var(--paper, #fff) !important;
+  color: var(--text, #1e2238) !important;
+  min-height: 50px;
+  -webkit-text-fill-color: var(--text, #1e2238);  /* override browser autofill text color */
+  caret-color: var(--text, #1e2238);
 }
-/* The age number input feels cramped at the default width — give it more
-   room and consistent text size. */
+/* The age number input gets extra love: it's the field most people fill in,
+   and the default number-input styling is tiny. Make it big, bold, readable. */
 #authAge {
-  font-size: 17px;
-  font-weight: 500;
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: .5px;
-  padding: 14px 16px;
+  padding: 18px 20px;
   text-align: left;
+  min-height: 60px;
+  color: var(--text, #1e2238) !important;
+  -webkit-text-fill-color: var(--text, #1e2238);
+  background: var(--paper, #fff) !important;
 }
+#authAge::placeholder { color: var(--muted, #6b7280); opacity: 1; font-size: 18px; font-weight: 400; }
 #authAge::-webkit-outer-spin-button,
 #authAge::-webkit-inner-spin-button { margin-left: 6px; }
+
+/* Dark-mode: number inputs sometimes render their text invisibly because
+   the OS-level form styling wins. Force dark-mode text + bg explicitly. */
+:root[data-theme="dark"] .auth-field input,
+:root[data-theme="dark"] .auth-field select,
+:root[data-theme="dark"] #authAge {
+  background: var(--paper) !important;
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text);
+  border-color: var(--border-strong);
+}
+/* Autofill (Chrome / Safari) yellow-flash override so the text stays visible */
+.auth-field input:-webkit-autofill,
+#authAge:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--paper, #fff) inset !important;
+  -webkit-text-fill-color: var(--text, #1e2238) !important;
+  caret-color: var(--text, #1e2238);
+}
 .auth-linkcode-wrap {
   margin-top: 12px;
   text-align: left;
