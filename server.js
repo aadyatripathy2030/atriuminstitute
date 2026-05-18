@@ -1274,7 +1274,10 @@ async function runPrebuildJob(jobs, opts) {
       try {
         if (!opts.force) {
           const cached = await db.getCachedLesson(job.courseId, job.bookId, job.sectionIdx, job.sectionKind);
-          if (cached) { prebuildState.skipped++; prebuildState.done++; continue; }
+          // Increment only `skipped`; `done` is incremented in the
+          // finally block below. The previous code bumped `done` here
+          // AND in finally, producing a 200% progress reading.
+          if (cached) { prebuildState.skipped++; continue; }
         }
         if (prebuildState.cancelled) return;
         const result = await _generateWithRetry(job, 4);
