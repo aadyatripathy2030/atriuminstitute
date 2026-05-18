@@ -961,10 +961,18 @@ const prebuildState = {
 
 function buildJobList(courses, opts) {
   const jobs = [];
+  // onlySectionIdx is parsed once; treat null as "no filter".
+  const onlySectionIdx = (opts.onlySection === null || opts.onlySection === undefined || opts.onlySection === '')
+    ? null
+    : Number(opts.onlySection);
+  const onlySectionKind = opts.onlySectionKind || null; // 'section' or 'cumulative' or null
   for (const [courseId, course] of Object.entries(courses || {})) {
     if (opts.onlyCourse && courseId !== opts.onlyCourse) continue;
     for (const book of (course.books || [])) {
+      if (opts.onlyBook && book.id !== opts.onlyBook) continue;
       (book.sections || []).forEach((section, sectionIdx) => {
+        if (onlySectionIdx !== null && sectionIdx !== onlySectionIdx) return;
+        if (onlySectionKind && onlySectionKind !== 'section') return;
         jobs.push({
           courseId, bookId: book.id, sectionIdx, sectionKind: 'section',
           courseTitle: course.title, bookTitle: book.title,
@@ -973,12 +981,20 @@ function buildJobList(courses, opts) {
         });
       });
       if (book.cumulativeTest) {
-        jobs.push({
-          courseId, bookId: book.id, sectionIdx: 0, sectionKind: 'cumulative',
-          courseTitle: course.title, bookTitle: book.title,
-          sectionTitle: `${book.title} — Cumulative test`,
-          sampleQuestions: (book.cumulativeTest.questions || []).slice(0, 6),
-        });
+        // Cumulative tests use sectionIdx=0 internally, but in the LOV
+        // we represent them as a separate "cumulative" option so the
+        // operator can isolate one explicitly.
+        const skipCumulative =
+          (onlySectionIdx !== null && onlySectionKind !== 'cumulative') ||
+          (onlySectionKind === 'section');
+        if (!skipCumulative) {
+          jobs.push({
+            courseId, bookId: book.id, sectionIdx: 0, sectionKind: 'cumulative',
+            courseTitle: course.title, bookTitle: book.title,
+            sectionTitle: `${book.title} — Cumulative test`,
+            sampleQuestions: (book.cumulativeTest.questions || []).slice(0, 6),
+          });
+        }
       }
     }
   }
@@ -1039,7 +1055,12 @@ async function handleAdminPrebuildStart(req, res) {
   try { courses = loadCourses(); }
   catch (e) { return json(res, 500, { error: 'Could not load curriculum: ' + e.message }); }
   const opts = {
-    onlyCourse: typeof body.onlyCourse === 'string' ? body.onlyCourse : null,
+    onlyCourse: typeof body.onlyCourse === 'string' && body.onlyCourse ? body.onlyCourse : null,
+    onlyBook: typeof body.onlyBook === 'string' && body.onlyBook ? body.onlyBook : null,
+    onlySection: (body.onlySection === null || body.onlySection === undefined || body.onlySection === '')
+      ? null
+      : body.onlySection,
+    onlySectionKind: typeof body.onlySectionKind === 'string' && body.onlySectionKind ? body.onlySectionKind : null,
     force: body.force === true,
     concurrency: body.concurrency,
   };

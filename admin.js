@@ -409,6 +409,67 @@
     }
   }
 
+  // Cascade: course -> topic (book) -> lesson (section). Resets downstream
+  // selects whenever an upstream changes, and disables them when the
+  // upstream is "all".
+  function _resetSelect(sel, placeholder) {
+    if (!sel) return;
+    sel.innerHTML = '';
+    const o = document.createElement('option');
+    o.value = '';
+    o.textContent = placeholder;
+    sel.appendChild(o);
+  }
+
+  function refreshPrebuildBookSelect() {
+    const bookSel = el('prebuildBook');
+    const sectionSel = el('prebuildSection');
+    if (!bookSel) return;
+    _resetSelect(bookSel, 'All topics');
+    _resetSelect(sectionSel, 'All lessons');
+    sectionSel.disabled = true;
+    const courseId = el('prebuildCourse').value;
+    if (!courseId || typeof COURSES === 'undefined' || !COURSES[courseId]) {
+      bookSel.disabled = true;
+      return;
+    }
+    bookSel.disabled = false;
+    for (const b of (COURSES[courseId].books || [])) {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = b.title;
+      bookSel.appendChild(opt);
+    }
+  }
+
+  function refreshPrebuildSectionSelect() {
+    const sectionSel = el('prebuildSection');
+    if (!sectionSel) return;
+    _resetSelect(sectionSel, 'All lessons');
+    const courseId = el('prebuildCourse').value;
+    const bookId = el('prebuildBook').value;
+    if (!courseId || !bookId || typeof COURSES === 'undefined' || !COURSES[courseId]) {
+      sectionSel.disabled = true;
+      return;
+    }
+    const book = (COURSES[courseId].books || []).find(b => b.id === bookId);
+    if (!book) { sectionSel.disabled = true; return; }
+    sectionSel.disabled = false;
+    (book.sections || []).forEach((sec, idx) => {
+      const opt = document.createElement('option');
+      // Value carries kind + idx so the server can disambiguate.
+      opt.value = `s:${idx}`;
+      opt.textContent = `${idx + 1}. ${sec.title || 'Lesson ' + (idx + 1)}`;
+      sectionSel.appendChild(opt);
+    });
+    if (book.cumulativeTest) {
+      const opt = document.createElement('option');
+      opt.value = 'c';
+      opt.textContent = 'Cumulative test';
+      sectionSel.appendChild(opt);
+    }
+  }
+
   let _prebuildPoll = null;
   async function refreshPrebuildStatus() {
     try {
@@ -467,13 +528,24 @@
 
   async function startPrebuild() {
     const onlyCourse = el('prebuildCourse').value || null;
+    const onlyBook = el('prebuildBook').value || null;
+    const sectionRaw = el('prebuildSection').value || '';
+    let onlySection = null;
+    let onlySectionKind = null;
+    if (sectionRaw.startsWith('s:')) {
+      onlySection = Number(sectionRaw.slice(2));
+      onlySectionKind = 'section';
+    } else if (sectionRaw === 'c') {
+      onlySection = 0;
+      onlySectionKind = 'cumulative';
+    }
     const force = el('prebuildForce').checked;
     if (force && !confirm('Regenerate ALREADY-cached lessons too? This costs more — every previously-cached section will be re-billed.')) return;
     try {
       await fetchJSON('/api/admin/prebuild-lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ onlyCourse, force, concurrency: 3 }),
+        body: JSON.stringify({ onlyCourse, onlyBook, onlySection, onlySectionKind, force, concurrency: 3 }),
       });
       refreshPrebuildStatus();
     } catch (e) {
@@ -557,6 +629,10 @@
     if (pbStart) pbStart.addEventListener('click', startPrebuild);
     const pbCancel = el('prebuildCancelBtn');
     if (pbCancel) pbCancel.addEventListener('click', cancelPrebuild);
+    const pbCourse = el('prebuildCourse');
+    if (pbCourse) pbCourse.addEventListener('change', refreshPrebuildBookSelect);
+    const pbBook = el('prebuildBook');
+    if (pbBook) pbBook.addEventListener('change', refreshPrebuildSectionSelect);
   }
 
   function isAdminRoute() {

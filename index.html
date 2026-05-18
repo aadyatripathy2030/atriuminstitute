@@ -616,10 +616,17 @@
       <select id="prebuildCourse" class="admin-select">
         <option value="">All courses</option>
       </select>
+      <select id="prebuildBook" class="admin-select" disabled>
+        <option value="">All topics</option>
+      </select>
+      <select id="prebuildSection" class="admin-select" disabled>
+        <option value="">All lessons</option>
+      </select>
       <label class="prebuild-force"><input type="checkbox" id="prebuildForce"> Regenerate already-cached</label>
       <button class="cta" id="prebuildStartBtn">Start prebuild →</button>
       <button class="q-btn" id="prebuildCancelBtn" disabled>Cancel</button>
     </div>
+    <p class="muted" style="margin:6px 0 0;font-size:13px">Tip: pick a course + topic + lesson with <strong>Regenerate already-cached</strong> ticked to test a single section. Validate, then widen the selection.</p>
     <div id="prebuildProgress" class="prebuild-progress hidden">
       <div class="prebuild-bar"><div class="prebuild-bar-fill" id="prebuildBarFill"></div></div>
       <div id="prebuildStatusLine" class="prebuild-status-line"></div>
