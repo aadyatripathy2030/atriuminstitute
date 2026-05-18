@@ -476,6 +476,83 @@
   </div>
 </div>
 
+<!-- One-page onboarding survey for new students. Shown automatically
+     after first sign-in if survey_completed_at is null. Skippable. -->
+<div id="surveyOverlay" class="survey-overlay hidden" aria-hidden="true">
+  <div class="survey-card" role="dialog" aria-labelledby="surveyTitle">
+    <div class="survey-head">
+      <h1 id="surveyTitle">Help us teach you better</h1>
+      <p class="survey-sub">Six quick questions. Max will use these answers to personalise lessons and quizzes. You can skip any field.</p>
+    </div>
+    <form id="surveyForm" class="survey-form">
+      <fieldset>
+        <legend>How do you learn best?</legend>
+        <div class="survey-radio-row">
+          <label><input type="radio" name="learningStyle" value="visual"> Pictures &amp; diagrams</label>
+          <label><input type="radio" name="learningStyle" value="hands_on"> Trying problems myself</label>
+          <label><input type="radio" name="learningStyle" value="reading"> Reading the text</label>
+          <label><input type="radio" name="learningStyle" value="video"> Watching videos</label>
+          <label><input type="radio" name="learningStyle" value="mixed"> A bit of everything</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>When do you usually study?</legend>
+        <div class="survey-radio-row">
+          <label><input type="radio" name="preferredStudyTime" value="morning"> Mornings</label>
+          <label><input type="radio" name="preferredStudyTime" value="after_school"> After school</label>
+          <label><input type="radio" name="preferredStudyTime" value="evening"> Evenings</label>
+          <label><input type="radio" name="preferredStudyTime" value="weekend"> Weekends</label>
+          <label><input type="radio" name="preferredStudyTime" value="flexible"> It changes</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Which subjects do you feel confident in?</legend>
+        <div class="survey-check-row" id="surveyConfidenceWrap">
+          <label><input type="checkbox" name="confidenceSubjects" value="math"> Math</label>
+          <label><input type="checkbox" name="confidenceSubjects" value="english"> English / Reading</label>
+          <label><input type="checkbox" name="confidenceSubjects" value="science"> Science</label>
+          <label><input type="checkbox" name="confidenceSubjects" value="history"> History / Social Studies</label>
+          <label><input type="checkbox" name="confidenceSubjects" value="languages"> World Languages</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Which subjects do you want extra help with?</legend>
+        <div class="survey-check-row" id="surveyHelpWrap">
+          <label><input type="checkbox" name="helpSubjects" value="math"> Math</label>
+          <label><input type="checkbox" name="helpSubjects" value="english"> English / Reading</label>
+          <label><input type="checkbox" name="helpSubjects" value="science"> Science</label>
+          <label><input type="checkbox" name="helpSubjects" value="history"> History / Social Studies</label>
+          <label><input type="checkbox" name="helpSubjects" value="writing"> Writing</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>What do you want to be when you grow up?</legend>
+        <input type="text" name="careerInterest" maxlength="300" placeholder="e.g. doctor, engineer, teacher, game designer, not sure yet">
+      </fieldset>
+
+      <fieldset>
+        <legend>What do you do for fun?</legend>
+        <input type="text" name="hobbies" maxlength="300" placeholder="e.g. soccer, drawing, gaming, music">
+      </fieldset>
+
+      <fieldset>
+        <legend>What's your goal on Atrium? (optional)</legend>
+        <textarea name="studyGoal" rows="2" maxlength="2000" placeholder="e.g. Pass Algebra 2 with a B+ by June. Get faster at fractions. Read better."></textarea>
+      </fieldset>
+
+      <div class="survey-actions">
+        <button type="button" id="surveySkipBtn" class="auth-link">Skip for now</button>
+        <button type="submit" id="surveySubmitBtn" class="auth-btn">Save and continue</button>
+      </div>
+      <div id="surveyError" class="auth-error hidden"></div>
+    </form>
+  </div>
+</div>
+
 <!-- Parent home: linked students + add new link + own link code -->
 <div id="parentHome" class="parent-home hidden">
   <header class="parent-hero">
@@ -498,9 +575,10 @@
     </div>
     <form id="parentLinkForm" class="parent-link-form">
       <input type="text" id="parentLinkInput" placeholder="ABCD-EFGH" maxlength="9" autocomplete="off" required>
-      <button type="submit" class="auth-btn">Add student</button>
+      <button type="submit" class="auth-btn">Send invitation</button>
     </form>
     <div id="parentLinkError" class="auth-error hidden"></div>
+    <div id="parentPendingInvites" class="parent-pending-invites"></div>
   </section>
 
   <section class="parent-section">
@@ -1004,6 +1082,7 @@
     <h1>A calm place to learn <em>math &amp; English</em>.</h1>
     <p>Interactive, auto-graded quizzes with a built-in AI tutor who checks your work, walks you through your mistakes, and answers any question.</p>
   </header>
+  <div id="studentPendingInvites" class="student-pending-invites"></div>
   <div id="recBox"></div>
   <div id="podBox"></div>
   <div class="section-heading">
@@ -1460,6 +1539,7 @@
 <script src="admin.js"></script>
 <script src="favorites.js"></script>
 <script src="gamification.js"></script>
+<script src="survey.js"></script>
 <script src="curriculum.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>

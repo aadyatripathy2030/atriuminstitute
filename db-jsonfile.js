@@ -316,23 +316,73 @@ async function createLinkFromCode(initiatedByUserId, otherLinkCode) {
 
   let link = state.links.find(l => l.parent_user_id === parentId && l.student_user_id === studentId);
   if (link) {
-    link.status = 'active';
-    link.confirmed_at = link.confirmed_at || new Date().toISOString();
+    if (link.status !== 'active') {
+      // Re-initiating after a rejection (or while still pending) resets
+      // to pending so the other side gets another approval prompt.
+      link.status = 'pending';
+      link.initiated_by_user_id = initiatedByUserId;
+    }
   } else {
     link = {
       id: crypto.randomUUID(),
       parent_user_id: parentId,
       student_user_id: studentId,
-      status: 'active',
+      status: 'pending',
       initiated_by_user_id: initiatedByUserId,
       created_at: new Date().toISOString(),
-      confirmed_at: new Date().toISOString(),
+      confirmed_at: null,
     };
     state.links.push(link);
   }
   save();
-  await grantConsent(studentId);
+  return { ok: true, link, other };
+}
+
+async function approveLink(linkId, approverUserId) {
+  load();
+  const link = state.links.find(l => l.id === linkId);
+  if (!link) return { ok: false, reason: 'not-found' };
+  if (link.status === 'active') return { ok: true, link, already: true };
+  if (link.status === 'rejected') return { ok: false, reason: 'rejected' };
+  const isParticipant = link.parent_user_id === approverUserId || link.student_user_id === approverUserId;
+  if (!isParticipant) return { ok: false, reason: 'not-allowed' };
+  if (link.initiated_by_user_id === approverUserId) return { ok: false, reason: 'cannot-self-approve' };
+  link.status = 'active';
+  link.confirmed_at = new Date().toISOString();
+  save();
+  await grantConsent(link.student_user_id);
   return { ok: true, link };
+}
+
+async function rejectLink(linkId, requestingUserId) {
+  load();
+  const link = state.links.find(l => l.id === linkId);
+  if (!link || link.status !== 'pending') return { ok: false, reason: 'not-found-or-already-resolved' };
+  if (link.parent_user_id !== requestingUserId && link.student_user_id !== requestingUserId) {
+    return { ok: false, reason: 'not-allowed' };
+  }
+  link.status = 'rejected';
+  save();
+  return { ok: true, link };
+}
+
+async function listPendingLinksForUser(userId) {
+  load();
+  return state.links
+    .filter(l => l.status === 'pending'
+      && (l.parent_user_id === userId || l.student_user_id === userId)
+      && l.initiated_by_user_id !== userId)
+    .map(l => {
+      const init = state.users.find(u => u.id === l.initiated_by_user_id);
+      const otherId = l.parent_user_id === userId ? l.student_user_id : l.parent_user_id;
+      const other = state.users.find(u => u.id === otherId);
+      return {
+        ...l,
+        initiated_by_email: init ? init.email : null,
+        initiated_by_role: init ? init.role : null,
+        other_email: other ? other.email : null,
+      };
+    });
 }
 
 async function listLinkedStudents(parentUserId) {
@@ -551,6 +601,38 @@ async function upsertStudentProfile(userId, fields) {
   state.studentProfiles[userId] = merged;
   save();
   return merged;
+}
+
+async function saveStudentSurvey(userId, fields) {
+  await upsertStudentProfile(userId, {});
+  load();
+  const existing = state.studentProfiles[userId];
+  if (!existing) return null;
+  const f = fields || {};
+  const arr = (v) => Array.isArray(v) ? v.map(String).slice(0, 12) : null;
+  existing.learning_style = (typeof f.learningStyle === 'string') ? f.learningStyle : existing.learning_style;
+  existing.preferred_study_time = (typeof f.preferredStudyTime === 'string') ? f.preferredStudyTime : existing.preferred_study_time;
+  existing.career_interest = (typeof f.careerInterest === 'string') ? f.careerInterest.trim().slice(0, 500) : existing.career_interest;
+  existing.hobbies = (typeof f.hobbies === 'string') ? f.hobbies.trim().slice(0, 500) : existing.hobbies;
+  if (typeof f.studyGoal === 'string') existing.study_goal = f.studyGoal.trim().slice(0, 2000);
+  if (arr(f.confidenceSubjects)) existing.confidence_subjects = arr(f.confidenceSubjects);
+  if (arr(f.helpSubjects)) existing.help_subjects = arr(f.helpSubjects);
+  existing.survey_completed_at = new Date().toISOString();
+  existing.survey_skipped = false;
+  existing.updated_at = new Date().toISOString();
+  save();
+  return existing;
+}
+
+async function markSurveySkipped(userId) {
+  await upsertStudentProfile(userId, {});
+  load();
+  const existing = state.studentProfiles[userId];
+  if (!existing) return null;
+  existing.survey_skipped = true;
+  existing.updated_at = new Date().toISOString();
+  save();
+  return existing;
 }
 
 async function upsertParentProfile(userId, fields) {
@@ -947,10 +1029,12 @@ module.exports = {
   createCode, verifyCode,
   createSession, getSession, deleteSession,
   getProgress, getAllProgress, setProgress,
-  createLinkFromCode, listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
+  createLinkFromCode, approveLink, rejectLink, listPendingLinksForUser,
+  listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
   logQuizAttempt, listQuizAttempts, listWeakSections,
   logActivity, listActivity,
   getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
+  saveStudentSurvey, markSurveySkipped,
   setParentAuthorisedReminders, markReminderSent, markDigestSent,
   listReminderCandidates, listDigestCandidates,
   recordAiUsage, listAiUsage, summariseAiUsage,

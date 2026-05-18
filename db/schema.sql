@@ -269,6 +269,24 @@ alter table student_profiles
   check (ai_model_preference in ('balanced', 'fast', 'best'));
 
 -- ------------------------------------------------------------------
+-- Post-signup onboarding survey (added May 2026). A new student is
+-- prompted with a one-page survey after they verify their email. The
+-- answers are saved into student_profiles so the dashboard, lesson
+-- prompts, and study plan can personalise. The survey is optional;
+-- survey_completed_at marks completion (or 'never' for "skip forever").
+-- ------------------------------------------------------------------
+alter table student_profiles add column if not exists learning_style text
+  check (learning_style is null or learning_style in ('visual', 'hands_on', 'reading', 'video', 'mixed'));
+alter table student_profiles add column if not exists preferred_study_time text
+  check (preferred_study_time is null or preferred_study_time in ('morning', 'after_school', 'evening', 'weekend', 'flexible'));
+alter table student_profiles add column if not exists career_interest text;
+alter table student_profiles add column if not exists hobbies text;
+alter table student_profiles add column if not exists confidence_subjects text[];
+alter table student_profiles add column if not exists help_subjects text[];
+alter table student_profiles add column if not exists survey_completed_at timestamptz;
+alter table student_profiles add column if not exists survey_skipped boolean not null default false;
+
+-- ------------------------------------------------------------------
 -- Curriculum reference data (May 2026). Multi-subject by design — math
 -- is the first subject loaded but Language Arts (and any future
 -- subject) drop in as additional JSON files under curriculum/ with

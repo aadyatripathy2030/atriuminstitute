@@ -131,7 +131,7 @@ test('every new user gets a unique 8-char link_code', async () => {
   assert.notEqual(a.link_code, b.link_code);
 });
 
-test('createLinkFromCode connects a parent to a student and grants consent', async () => {
+test('createLinkFromCode connects a parent to a student and grants consent after two-sided approval', async () => {
   const student = await db.upsertUser('kid1@example.com', 'student');
   await db.updateUserProfile(student.id, { age: 10, country: 'United States' });
   const refreshed = await db.getUser(student.id);
@@ -139,15 +139,58 @@ test('createLinkFromCode connects a parent to a student and grants consent', asy
   assert.equal(refreshed.consent_granted_at, null);
 
   const parent = await db.upsertUser('mom1@example.com', 'parent');
+  // Parent initiates with the student's link code -> link is 'pending',
+  // consent is NOT granted yet because the student hasn't approved.
   const result = await db.createLinkFromCode(parent.id, student.link_code);
   assert.equal(result.ok, true);
+  assert.equal(result.link.status, 'pending');
+  const stillUnlinked = await db.getUser(student.id);
+  assert.equal(stillUnlinked.consent_granted_at, null, 'consent must wait for the other side to approve');
 
+  // The initiator cannot also approve (would defeat the whole point).
+  const selfApprove = await db.approveLink(result.link.id, parent.id);
+  assert.equal(selfApprove.ok, false);
+  assert.equal(selfApprove.reason, 'cannot-self-approve');
+
+  // Student (the other side) approves -> link becomes active + consent
+  // gets granted.
+  const approved = await db.approveLink(result.link.id, student.id);
+  assert.equal(approved.ok, true);
+  assert.equal(approved.link.status, 'active');
   const after = await db.getUser(student.id);
-  assert.ok(after.consent_granted_at, 'consent should be granted once a parent links');
+  assert.ok(after.consent_granted_at, 'consent should be granted once both sides approve');
 
   const linked = await db.listLinkedStudents(parent.id);
   assert.equal(linked.length, 1);
   assert.equal(linked[0].id, student.id);
+});
+
+test('approveLink and rejectLink gate access and reset on retry', async () => {
+  const student = await db.upsertUser('kid2@example.com', 'student');
+  const parent = await db.upsertUser('mom2@example.com', 'parent');
+  const stranger = await db.upsertUser('stranger@example.com', 'parent');
+
+  const r = await db.createLinkFromCode(parent.id, student.link_code);
+  assert.equal(r.link.status, 'pending');
+
+  // Stranger cannot approve someone else's invitation.
+  const notAllowed = await db.approveLink(r.link.id, stranger.id);
+  assert.equal(notAllowed.ok, false);
+
+  // Student rejects.
+  const rej = await db.rejectLink(r.link.id, student.id);
+  assert.equal(rej.ok, true);
+  assert.equal(rej.link.status, 'rejected');
+
+  // Parent re-initiates with the same code -> pending again so the
+  // student gets a fresh chance to approve.
+  const retry = await db.createLinkFromCode(parent.id, student.link_code);
+  assert.equal(retry.link.status, 'pending');
+
+  // Pending list shows the invitation on the student's side.
+  const pending = await db.listPendingLinksForUser(student.id);
+  assert.equal(pending.length, 1);
+  assert.equal(pending[0].initiated_by_email, parent.email);
 });
 
 test('createLinkFromCode rejects same-role and self links', async () => {
@@ -166,7 +209,12 @@ test('isParentOfStudent enforces authorisation correctly', async () => {
   const student = await db.upsertUser('iso-student@example.com', 'student');
   const parent = await db.upsertUser('iso-parent@example.com', 'parent');
   const stranger = await db.upsertUser('iso-stranger@example.com', 'parent');
-  await db.createLinkFromCode(parent.id, student.link_code);
+  const inv = await db.createLinkFromCode(parent.id, student.link_code);
+  // After two-sided approval was introduced, the link sits in 'pending'
+  // until both sides agree. isParentOfStudent only authorises 'active'
+  // links, so the student must approve before the parent gets access.
+  assert.equal(await db.isParentOfStudent(parent.id, student.id), false);
+  await db.approveLink(inv.link.id, student.id);
   assert.equal(await db.isParentOfStudent(parent.id, student.id), true);
   assert.equal(await db.isParentOfStudent(stranger.id, student.id), false);
 });

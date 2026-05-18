@@ -455,6 +455,26 @@ async function handleSaveRichProfile(req, res) {
   });
 }
 
+async function handleSaveSurvey(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  if (u.role !== 'student') return json(res, 400, { error: 'Survey is for students.' });
+  const body = await readJSON(req);
+  if (!body) return json(res, 400, { error: 'Bad payload.' });
+  const profile = await db.saveStudentSurvey(u.id, body);
+  await db.logActivity(u.id, 'survey_completed', {});
+  json(res, 200, { ok: true, profile });
+}
+
+async function handleSkipSurvey(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  if (u.role !== 'student') return json(res, 400, { error: 'Survey is for students.' });
+  const profile = await db.markSurveySkipped(u.id);
+  await db.logActivity(u.id, 'survey_skipped', {});
+  json(res, 200, { ok: true, profile });
+}
+
 async function handleParentAuthoriseReminders(req, res, studentId) {
   if (!await requireLinkedStudent(req, res, studentId)) return;
   const body = await readJSON(req);
@@ -480,8 +500,60 @@ async function handleCreateLink(req, res) {
               : 'Could not create the link.';
     return json(res, 400, { error: msg });
   }
-  await db.logActivity(u.id, 'link_created', { linkId: result.link.id });
+  await db.logActivity(u.id, 'link_invited', { linkId: result.link.id });
+  // Notify the other party so they can approve from their inbox / dashboard.
+  // Best-effort: if email fails, the in-app pending list still works.
+  if (result.other && result.other.email) {
+    try {
+      await email.sendLinkApprovalRequest(result.other.email, {
+        inviterEmail: u.email,
+        inviterRole: u.role,
+        approverRole: result.other.role,
+      });
+    } catch (e) {
+      console.warn('Link approval email failed:', e.message);
+    }
+  }
+  json(res, 200, {
+    ok: true,
+    link: result.link,
+    pending: result.link.status === 'pending',
+    message: result.link.status === 'pending'
+      ? `Invitation sent to ${result.other.email}. The link goes live once they approve it.`
+      : 'Link created.',
+  });
+}
+
+async function handleApproveLink(req, res, linkId) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const result = await db.approveLink(linkId, u.id);
+  if (!result.ok) {
+    const msg = result.reason === 'not-found' ? 'Invitation not found.'
+              : result.reason === 'rejected' ? 'This invitation was already rejected. Ask the other person to try again.'
+              : result.reason === 'cannot-self-approve' ? 'The person who sent the invitation cannot also approve it. The other party needs to approve.'
+              : result.reason === 'not-allowed' ? 'You can only approve invitations addressed to you.'
+              : 'Could not approve the link.';
+    return json(res, 400, { error: msg });
+  }
+  await db.logActivity(u.id, 'link_approved', { linkId });
   json(res, 200, { ok: true, link: result.link });
+}
+
+async function handleRejectLink(req, res, linkId) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const result = await db.rejectLink(linkId, u.id);
+  if (!result.ok) return json(res, 400, { error: 'Invitation not found or already resolved.' });
+  await db.logActivity(u.id, 'link_rejected', { linkId });
+  json(res, 200, { ok: true });
+}
+
+async function handleListPendingLinks(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const rows = await db.listPendingLinksForUser(u.id);
+  json(res, 200, { pending: rows });
 }
 
 async function handleDeleteLink(req, res, linkId) {
@@ -2180,6 +2252,8 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/achievements' && req.method === 'GET') return await handleGetMyAchievements(req, res);
     if (url === '/api/me/points' && req.method === 'GET') return await handleGetMyPoints(req, res);
     if (url.startsWith('/api/school-districts/search') && req.method === 'GET') return await handleSearchSchoolDistricts(req, res);
+    if (url === '/api/me/survey' && req.method === 'POST') return await handleSaveSurvey(req, res);
+    if (url === '/api/me/survey/skip' && req.method === 'POST') return await handleSkipSurvey(req, res);
     if (url === '/api/leaderboard' && req.method === 'GET') return await handleGetLeaderboard(req, res);
     if (url === '/api/problem-of-day' && req.method === 'GET') return await handleGetPOD(req, res);
     if (url === '/api/problem-of-day/attempt' && req.method === 'POST') return await handlePostPODAttempt(req, res);
@@ -2194,6 +2268,15 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/rich-profile' && req.method === 'GET') return await handleGetRichProfile(req, res);
     if (url === '/api/me/rich-profile' && req.method === 'POST') return await handleSaveRichProfile(req, res);
     if (url === '/api/me/links' && req.method === 'POST') return await handleCreateLink(req, res);
+    if (url === '/api/me/links/pending' && req.method === 'GET') return await handleListPendingLinks(req, res);
+    if (url.startsWith('/api/me/links/') && url.endsWith('/approve') && req.method === 'POST') {
+      const id = url.slice('/api/me/links/'.length, -('/approve'.length));
+      return await handleApproveLink(req, res, id);
+    }
+    if (url.startsWith('/api/me/links/') && url.endsWith('/reject') && req.method === 'POST') {
+      const id = url.slice('/api/me/links/'.length, -('/reject'.length));
+      return await handleRejectLink(req, res, id);
+    }
     if (url.startsWith('/api/me/links/') && req.method === 'DELETE') {
       return await handleDeleteLink(req, res, url.slice('/api/me/links/'.length));
     }

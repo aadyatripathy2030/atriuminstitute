@@ -276,18 +276,96 @@ async function createLinkFromCode(initiatedByUserId, otherLinkCode) {
   const parentId = me.role === 'parent' ? me.id : other.id;
   const studentId = me.role === 'student' ? me.id : other.id;
 
+  // Two-sided approval: the link is created as 'pending' and only flips
+  // to 'active' when the OTHER party explicitly approves it. This
+  // prevents a parent (or student) from being silently associated with
+  // the wrong child / parent by someone who happens to know their link
+  // code. The initiator's approval is implicit (they typed the code);
+  // the other side must approve via /api/me/links/:id/approve.
   const rows = await q(
-    `insert into parent_student_links (parent_user_id, student_user_id, status, initiated_by_user_id, confirmed_at)
-     values ($1, $2, 'active', $3, now())
+    `insert into parent_student_links (parent_user_id, student_user_id, status, initiated_by_user_id)
+     values ($1, $2, 'pending', $3)
      on conflict (parent_user_id, student_user_id)
-       do update set status = 'active', confirmed_at = coalesce(parent_student_links.confirmed_at, excluded.confirmed_at)
-     returning id, parent_user_id, student_user_id, status, created_at, confirmed_at`,
+       do update set status = case
+         -- Already active: keep it that way.
+         when parent_student_links.status = 'active' then 'active'
+         -- Previously rejected, now re-initiated: reset to pending so
+         -- the other side gets a fresh shot at approving.
+         else 'pending'
+       end,
+       initiated_by_user_id = $3
+     returning id, parent_user_id, student_user_id, status, created_at, confirmed_at, initiated_by_user_id`,
     [parentId, studentId, initiatedByUserId],
   );
-  // Parental consent moment: if the student was gated by consent_required,
-  // mark consent granted now.
-  await grantConsent(studentId);
+  return { ok: true, link: rows[0], other };
+}
+
+// The other side approves a pending link. Only the user who DIDN'T
+// initiate the link may approve it; the initiator's side is implicit.
+async function approveLink(linkId, approverUserId) {
+  // Find the link and confirm the approver is the "other" side.
+  const rows = await q(
+    `select id, parent_user_id, student_user_id, status, initiated_by_user_id
+       from parent_student_links where id = $1 limit 1`,
+    [linkId],
+  );
+  const link = rows[0];
+  if (!link) return { ok: false, reason: 'not-found' };
+  if (link.status === 'active') return { ok: true, link, already: true };
+  if (link.status === 'rejected') return { ok: false, reason: 'rejected' };
+  const isParticipant = link.parent_user_id === approverUserId || link.student_user_id === approverUserId;
+  if (!isParticipant) return { ok: false, reason: 'not-allowed' };
+  if (link.initiated_by_user_id === approverUserId) return { ok: false, reason: 'cannot-self-approve' };
+  const updated = await q(
+    `update parent_student_links
+        set status = 'active', confirmed_at = now()
+      where id = $1
+      returning id, parent_user_id, student_user_id, status, created_at, confirmed_at`,
+    [linkId],
+  );
+  // Grant parental consent the moment the link becomes active (under-13s
+  // were gated on consent_required until this point).
+  await grantConsent(link.student_user_id);
+  return { ok: true, link: updated[0] };
+}
+
+// Either side can reject a pending invitation. After rejection, the
+// initiator can start a new request, which resets the row to pending.
+async function rejectLink(linkId, requestingUserId) {
+  const rows = await q(
+    `update parent_student_links
+        set status = 'rejected'
+      where id = $1
+        and (parent_user_id = $2 or student_user_id = $2)
+        and status = 'pending'
+      returning id, parent_user_id, student_user_id, status`,
+    [linkId, requestingUserId],
+  );
+  if (!rows.length) return { ok: false, reason: 'not-found-or-already-resolved' };
   return { ok: true, link: rows[0] };
+}
+
+// Pending invitations the given user can act on. Excludes invitations
+// the user themselves initiated.
+async function listPendingLinksForUser(userId) {
+  return q(
+    `select l.id, l.parent_user_id, l.student_user_id, l.status, l.created_at,
+            l.initiated_by_user_id,
+            init.email as initiated_by_email,
+            init.role as initiated_by_role,
+            other.email as other_email
+       from parent_student_links l
+       join users init on init.id = l.initiated_by_user_id
+       join users other on other.id = case
+         when l.parent_user_id = $1 then l.student_user_id
+         else l.parent_user_id
+       end
+      where l.status = 'pending'
+        and (l.parent_user_id = $1 or l.student_user_id = $1)
+        and l.initiated_by_user_id <> $1
+      order by l.created_at desc`,
+    [userId],
+  );
 }
 
 async function setStripeCustomerId(userId, customerId) {
@@ -448,7 +526,7 @@ async function listActivity(userId, opts = {}) {
 }
 
 // ---------- Profiles ----------
-const STUDENT_PROFILE_COLS = 'user_id, display_name, school_name, grade_level, subjects, study_plan_courses, study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local, reminder_content, parent_authorised_reminders, last_reminder_sent_at, ai_model_preference, updated_at';
+const STUDENT_PROFILE_COLS = 'user_id, display_name, school_name, grade_level, subjects, study_plan_courses, study_goal, timezone, reminder_enabled, reminder_frequency, reminder_time_local, reminder_content, parent_authorised_reminders, last_reminder_sent_at, ai_model_preference, learning_style, preferred_study_time, career_interest, hobbies, confidence_subjects, help_subjects, survey_completed_at, survey_skipped, updated_at';
 const PARENT_PROFILE_COLS = 'user_id, display_name, relationship, timezone, weekly_digest_enabled, weekly_digest_day, weekly_digest_time_local, last_digest_sent_at, updated_at';
 
 async function getStudentProfile(userId) {
@@ -508,6 +586,53 @@ async function upsertStudentProfile(userId, fields) {
     ],
   );
   return rows[0];
+}
+
+// Post-signup survey. Saves all answered fields and stamps
+// survey_completed_at. Caller passes raw values; this helper applies the
+// allow-list and persists. Skipping is a separate call (markSurveySkipped).
+async function saveStudentSurvey(userId, fields) {
+  const f = fields || {};
+  const arr = (v) => Array.isArray(v) ? v.map(String).slice(0, 12) : null;
+  const LEARNING_STYLES = new Set(['visual', 'hands_on', 'reading', 'video', 'mixed']);
+  const TIME_PREFS = new Set(['morning', 'after_school', 'evening', 'weekend', 'flexible']);
+  const learningStyle = (typeof f.learningStyle === 'string' && LEARNING_STYLES.has(f.learningStyle)) ? f.learningStyle : null;
+  const studyTime = (typeof f.preferredStudyTime === 'string' && TIME_PREFS.has(f.preferredStudyTime)) ? f.preferredStudyTime : null;
+  const careerInterest = (typeof f.careerInterest === 'string') ? f.careerInterest.trim().slice(0, 500) : null;
+  const hobbies = (typeof f.hobbies === 'string') ? f.hobbies.trim().slice(0, 500) : null;
+  const studyGoal = (typeof f.studyGoal === 'string') ? f.studyGoal.trim().slice(0, 2000) : null;
+  const confidence = arr(f.confidenceSubjects);
+  const help = arr(f.helpSubjects);
+
+  // Ensure a profile row exists before the targeted survey update.
+  await upsertStudentProfile(userId, {});
+
+  const rows = await q(
+    `update student_profiles set
+       learning_style = coalesce($2, learning_style),
+       preferred_study_time = coalesce($3, preferred_study_time),
+       career_interest = coalesce($4, career_interest),
+       hobbies = coalesce($5, hobbies),
+       study_goal = coalesce($6, study_goal),
+       confidence_subjects = coalesce($7::text[], confidence_subjects),
+       help_subjects = coalesce($8::text[], help_subjects),
+       survey_completed_at = now(),
+       survey_skipped = false,
+       updated_at = now()
+     where user_id = $1
+     returning ${STUDENT_PROFILE_COLS}`,
+    [userId, learningStyle, studyTime, careerInterest, hobbies, studyGoal, confidence, help],
+  );
+  return rows[0] || null;
+}
+
+async function markSurveySkipped(userId) {
+  await upsertStudentProfile(userId, {});
+  const rows = await q(
+    `update student_profiles set survey_skipped = true, updated_at = now() where user_id = $1 returning ${STUDENT_PROFILE_COLS}`,
+    [userId],
+  );
+  return rows[0] || null;
 }
 
 async function upsertParentProfile(userId, fields) {
@@ -1625,10 +1750,12 @@ module.exports = {
   createCode, verifyCode,
   createSession, getSession, deleteSession,
   getProgress, getAllProgress, setProgress,
-  createLinkFromCode, listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
+  createLinkFromCode, approveLink, rejectLink, listPendingLinksForUser,
+  listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
   logQuizAttempt, listQuizAttempts, listWeakSections,
   logActivity, listActivity,
   getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
+  saveStudentSurvey, markSurveySkipped,
   setParentAuthorisedReminders, markReminderSent, markDigestSent,
   listReminderCandidates, listDigestCandidates,
   recordAiUsage, listAiUsage, summariseAiUsage,

@@ -310,9 +310,65 @@
     console.log('[showApp] done. courses-home hidden?', ch.classList.contains('hidden'));
   }
 
+  // Render any pending parent-link invitations the signed-in user can
+  // approve or reject. Two-sided approval: another account entered this
+  // user's link code and the user must explicitly accept before the
+  // link goes active.
+  async function renderStudentPendingInvites() {
+    const wrap = el('studentPendingInvites');
+    if (!wrap) return;
+    try {
+      const r = await fetch('/api/me/links/pending', { credentials: 'same-origin' });
+      if (!r.ok) { wrap.innerHTML = ''; return; }
+      const { pending } = await r.json();
+      if (!pending || !pending.length) { wrap.innerHTML = ''; return; }
+      const esc = (s) => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      wrap.innerHTML = `
+        <div class="student-pending-card">
+          <div class="student-pending-title">🔔 ${pending.length} link request${pending.length > 1 ? 's' : ''} waiting</div>
+          <p class="student-pending-help">Someone typed your link code. Approve only if you recognise the email.</p>
+          ${pending.map(p => `
+            <div class="student-pending-row" data-id="${esc(p.id)}">
+              <div class="student-pending-from"><strong>${esc(p.initiated_by_email)}</strong> · ${esc(p.initiated_by_role)}</div>
+              <div class="student-pending-actions">
+                <button class="btn-primary" data-action="approve">Approve</button>
+                <button class="btn-secondary" data-action="reject">Reject</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      wrap.querySelectorAll('.student-pending-row').forEach(row => {
+        const id = row.dataset.id;
+        row.querySelector('[data-action="approve"]').addEventListener('click', async () => {
+          try {
+            await fetch(`/api/me/links/${encodeURIComponent(id)}/approve`, { method: 'POST', credentials: 'same-origin' });
+            await renderStudentPendingInvites();
+          } catch (_e) {}
+        });
+        row.querySelector('[data-action="reject"]').addEventListener('click', async () => {
+          try {
+            await fetch(`/api/me/links/${encodeURIComponent(id)}/reject`, { method: 'POST', credentials: 'same-origin' });
+            await renderStudentPendingInvites();
+          } catch (_e) {}
+        });
+      });
+    } catch (_e) {
+      wrap.innerHTML = '';
+    }
+  }
+  window.renderStudentPendingInvites = renderStudentPendingInvites;
+
   function setNavSignedIn(user) {
     currentUser = user;
     _startHeartbeat();
+    // Background-fetch any pending invites; non-blocking.
+    if (user && user.role !== 'parent') renderStudentPendingInvites();
+    // Offer the post-signup survey for new students. Idempotent on the
+    // server side (survey_completed_at / survey_skipped gate the prompt).
+    if (user && user.role === 'student' && typeof window.maybeShowSurvey === 'function') {
+      setTimeout(() => window.maybeShowSurvey(user), 800);
+    }
     const signInBtn = el('navSignInBtn');
     const navUser = el('navUser');
     const navEmail = el('navUserEmail');

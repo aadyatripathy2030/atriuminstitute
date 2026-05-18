@@ -69,11 +69,13 @@
     }
   }
 
-  function setLinkError(msg) {
+  function setLinkError(msg, kind) {
     const n = el('parentLinkError');
     if (!n) return;
+    n.classList.remove('ok', 'err');
     if (!msg) { hide(n); n.textContent = ''; return; }
     n.textContent = msg;
+    if (kind) n.classList.add(kind);
     show(n);
   }
 
@@ -389,9 +391,69 @@
     const code = (el('parentLinkInput').value || '').trim();
     if (!code) return;
     try {
-      await postJSON('/api/me/links', { linkCode: code });
+      const r = await postJSON('/api/me/links', { linkCode: code });
       el('parentLinkInput').value = '';
+      if (r && r.pending) {
+        // Two-sided approval: link is created in pending state. The
+        // student now needs to approve it from their own dashboard.
+        setLinkError(r.message || 'Invitation sent. The link goes live once the student approves.', 'ok');
+      }
+      await renderPendingForMe();
       await renderStudentList();
+    } catch (err) {
+      setLinkError(err.message);
+    }
+  }
+
+  async function renderPendingForMe() {
+    const wrap = el('parentPendingInvites');
+    if (!wrap) return;
+    try {
+      const { pending } = await fetchJSON('/api/me/links/pending');
+      if (!pending || !pending.length) {
+        wrap.innerHTML = '';
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="pending-invites">
+          <h3>Pending invitations</h3>
+          <p class="pending-invites-help">A student typed your link code. Approve only if you recognise the email.</p>
+          ${pending.map(p => `
+            <div class="pending-invite-row" data-id="${escapeHTML(p.id)}">
+              <div class="pending-invite-email"><strong>${escapeHTML(p.initiated_by_email)}</strong> wants to link with you as your ${escapeHTML(p.initiated_by_role)}.</div>
+              <div class="pending-invite-actions">
+                <button class="btn-primary" data-action="approve">Approve</button>
+                <button class="btn-secondary" data-action="reject">Reject</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      wrap.querySelectorAll('.pending-invite-row').forEach(row => {
+        const id = row.dataset.id;
+        row.querySelector('[data-action="approve"]').addEventListener('click', () => handleApproveInvite(id));
+        row.querySelector('[data-action="reject"]').addEventListener('click', () => handleRejectInvite(id));
+      });
+    } catch (_e) {
+      // Don't blow up the dashboard if pending fetch fails.
+      wrap.innerHTML = '';
+    }
+  }
+
+  async function handleApproveInvite(id) {
+    try {
+      await postJSON(`/api/me/links/${encodeURIComponent(id)}/approve`, {});
+      await renderPendingForMe();
+      await renderStudentList();
+    } catch (err) {
+      setLinkError(err.message);
+    }
+  }
+
+  async function handleRejectInvite(id) {
+    try {
+      await postJSON(`/api/me/links/${encodeURIComponent(id)}/reject`, {});
+      await renderPendingForMe();
     } catch (err) {
       setLinkError(err.message);
     }
@@ -408,6 +470,7 @@
     }
     show(el('parentHome'));
     el('parentOwnLinkCode').textContent = fmtLinkCode(user && user.link_code);
+    await renderPendingForMe();
     await renderStudentList();
   }
 

@@ -252,10 +252,32 @@ async function sendParentDigest(user, studentSummaries, opts = {}) {
   });
 }
 
+// ---------- Parent / student link approval request ----------
+
+async function sendLinkApprovalRequest(toEmail, { inviterEmail, inviterRole, approverRole }) {
+  const inviterLabel = inviterRole === 'parent' ? 'parent' : 'student';
+  const approverLabel = approverRole === 'parent' ? 'parent' : 'student';
+  const subject = `${inviterEmail} wants to link with you on ${SITE_NAME}`;
+  const approveUrl = `${SITE_URL}/#approvals`;
+  const html = `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#f7f5f0;padding:40px 20px;color:#1e2238">
+<table cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 32px;box-shadow:0 4px 20px rgba(0,0,0,.05)">
+<tr><td>
+<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#1e2238;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
+<h1 style="font-family:Georgia,serif;font-weight:500;font-size:20px;margin:0 0 12px;text-align:center">A ${inviterLabel} is asking to link with you</h1>
+<p><strong>${inviterEmail}</strong> entered your link code on ${SITE_NAME} and is asking to connect as your ${inviterLabel}. As the ${approverLabel} side, you need to approve before the link goes live.</p>
+<p>This two-sided check prevents a wrong child or parent from being associated with you by someone who happens to know your link code.</p>
+<p style="text-align:center;margin:28px 0 12px"><a href="${approveUrl}" style="display:inline-block;background:#1e2238;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open Atrium to review</a></p>
+<p style="color:#6b7084;font-size:12px;margin:20px 0 0;text-align:center">If you weren't expecting this, just reject it from the same screen. The other person will see the rejection.</p>
+</td></tr></table></body></html>`;
+  const text = `${inviterEmail} entered your link code on ${SITE_NAME} and is asking to connect with you.\n\nYou're being asked to approve this connection as the ${approverLabel} side. Open ${approveUrl} to approve or reject.\n\nIf you weren't expecting this request, just reject it.\n`;
+  return sendEmail({ to: toEmail, subject, html, text });
+}
+
 module.exports = {
   sendVerificationCode,
   sendStudentReminder,
   sendParentDigest,
+  sendLinkApprovalRequest,
   unsubscribeToken,
   verifyUnsubscribeToken,
 };
