@@ -443,6 +443,27 @@ begin
   end if;
 end$$;
 
+-- ------------------------------------------------------------------
+-- One-time backfill for installations that loaded the curriculum
+-- BEFORE the multi-subject refactor. Those rows have subject_id = null
+-- because the column didn't exist at insert time. Without this step,
+-- re-running import-curriculum.js raises a primary-key conflict on
+-- curriculum_courses because its per-subject DELETE doesn't match
+-- subject_id IS NULL rows.
+--
+-- Safe on a clean DB: the inserts use ON CONFLICT and the updates
+-- match zero rows when there's nothing to backfill.
+-- ------------------------------------------------------------------
+
+insert into curriculum_subjects (id, title, display_order)
+  values ('math', 'Mathematics', 1)
+  on conflict (id) do nothing;
+
+update curriculum_courses              set subject_id = 'math' where subject_id is null;
+update curriculum_misconceptions       set subject_id = 'math' where subject_id is null;
+update curriculum_real_world_contexts  set subject_id = 'math' where subject_id is null;
+update curriculum_glossary             set subject_id = 'math' where subject_id is null;
+
 -- User grade. Drives the grade-based filter on the courses page. Set at
 -- signup (when the student gives their age) and overridable from the
 -- Profile page. Nullable for parents and for students who haven't told
