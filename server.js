@@ -996,7 +996,8 @@ async function handleGetCurriculumCourses(req, res) {
   if (gradeRaw != null && (!Number.isInteger(grade) || grade < 1 || grade > 12)) {
     return json(res, 400, { error: 'Bad grade param (1-12).' });
   }
-  const courses = await db.listCurriculumCourses({ subject, grade });
+  const withUnits = url.searchParams.get('with') === 'units';
+  const courses = await db.listCurriculumCourses({ subject, grade, withUnits });
   json(res, 200, { courses });
 }
 

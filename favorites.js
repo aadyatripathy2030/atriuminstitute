@@ -83,8 +83,17 @@
           _list = _list.filter(f => !(f.course_id === courseId && f.book_id === bookId));
         }
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Request failed (${res.status})`);
+        let msg = data.error || `Request failed (${res.status})`;
+        if (res.status >= 500) {
+          // Most likely: user_favorites table doesn't exist yet because
+          // npm run migrate hasn't been run since the favorites feature
+          // landed. Surface a clear hint instead of "Internal error".
+          msg += ' — if this just landed, the DB migration may be pending. Try refreshing in a couple of minutes, or contact the admin to run npm run migrate.';
+        }
+        console.warn('[favorites] toggle response not ok:', res.status, msg);
+        throw new Error(msg);
       }
+      console.log('[favorites] toggle ok:', currentlyFavorited ? 'removed' : 'added', courseId, bookId);
     } catch (e) {
       console.warn('[favorites] toggle failed:', e && e.message);
       throw e;
@@ -112,6 +121,7 @@
   // ----- Page -----
   let _favPageWired = false;
   async function openFavorites() {
+    console.log('[favorites] openFavorites entry');
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
     show(el('favoritesPage'));
     if (!_favPageWired) {
@@ -122,7 +132,17 @@
         if (typeof window.goHome === 'function') window.goHome();
       });
     }
-    await ensureHydrated();
+    // Always refetch when the page opens. Hearts toggled elsewhere in
+    // the app may have mutated server state since the last hydrate; an
+    // explicit refresh keeps the page authoritative.
+    const list = el('favoritesList');
+    if (list) list.innerHTML = '<div class="parent-empty">Loading…</div>';
+    try {
+      await refresh();
+      console.log('[favorites] refresh done. count:', _list.length);
+    } catch (e) {
+      console.warn('[favorites] refresh failed:', e && e.message);
+    }
     renderFavorites();
   }
 

@@ -920,6 +920,10 @@ async function listCurriculumSubjects() {
 
 // Filtered course list. opts.subject / opts.grade are both optional.
 // grade matches the grade_levels array containing that integer.
+// opts.withUnits attaches each course's units (no lessons) — used by the
+// courses-home grid so the student sees grade-appropriate units (which
+// differ per grade) instead of the legacy book list (which is identical
+// across grades that share a legacy course like prealgebra).
 async function listCurriculumCourses(opts) {
   opts = opts || {};
   const where = [];
@@ -933,7 +937,30 @@ async function listCurriculumCourses(opts) {
               from curriculum_courses
               ${where.length ? 'where ' + where.join(' and ') : ''}
               order by display_order, id`;
-  return q(sql, params);
+  const courses = await q(sql, params);
+  if (!opts.withUnits || courses.length === 0) return courses;
+  // Bulk-fetch units for the matching courses.
+  const ids = courses.map(c => c.id);
+  const units = await q(
+    `select cu.course_id, cu.unit_number, cu.unit_title, cu.weeks,
+            (select count(*) from curriculum_lessons cl where cl.course_id = cu.course_id and cl.unit_number = cu.unit_number) as lesson_count
+     from curriculum_units cu
+     where cu.course_id = any($1::text[])
+     order by cu.course_id, cu.unit_number`,
+    [ids]
+  );
+  const byCourse = new Map();
+  for (const u of units) {
+    if (!byCourse.has(u.course_id)) byCourse.set(u.course_id, []);
+    byCourse.get(u.course_id).push({
+      unit_number: u.unit_number,
+      unit_title: u.unit_title,
+      weeks: u.weeks,
+      lesson_count: Number(u.lesson_count) || 0,
+    });
+  }
+  for (const c of courses) c.units = byCourse.get(c.id) || [];
+  return courses;
 }
 
 // Full course detail: course row + its units (each with its lessons).
