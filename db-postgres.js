@@ -1318,11 +1318,68 @@ async function getUserAchievements(userId) {
     [userId]
   );
   const storedMap = new Map(stored.map(r => [r.badge_id, r.earned_at]));
+  // 4) Compute progress for locked badges so the UI can show "7/10 ..."
+  // Pull the counters once and key them by badge_id.
+  const progress = await _computeBadgeProgress(userId);
   const badges = BADGE_CATALOG.map(b => {
     const earned_at = storedMap.get(b.id) || null;
-    return { ...b, earned: !!earned_at, earned_at };
+    const p = progress[b.id] || null;
+    return { ...b, earned: !!earned_at, earned_at, progress: p };
   });
   return { badges, earned: badges.filter(b => b.earned).length, total: badges.length };
+}
+
+// Per-badge progress for the achievements page UI. Returns
+// { current, target } for any badge with a measurable counter; null
+// when the badge is binary (e.g. "first quiz") or too dynamic
+// (multi_subject).
+async function _computeBadgeProgress(userId) {
+  const r = await q(
+    `select
+       (select count(*)::int from quiz_attempts where user_id = $1) as attempts,
+       (select count(*)::int from quiz_attempts where user_id = $1 and passed) as passes,
+       (select count(*)::int from quiz_attempts where user_id = $1 and passed and score = total) as perfect,
+       (select count(*)::int from activity_log where user_id = $1 and kind = 'lesson_started') as lessons,
+       (select count(*)::int from activity_log where user_id = $1 and kind = 'hint_used') as hints,
+       (select count(*)::int from user_pod_attempts where user_id = $1 and correct) as pods`,
+    [userId]
+  );
+  const c = r[0] || {};
+  const streaks = await getUserStreaks(userId);
+  return {
+    first_quiz:    { current: Math.min(c.attempts || 0, 1), target: 1 },
+    first_pass:    { current: Math.min(c.passes || 0, 1), target: 1 },
+    pass_10:       { current: c.passes || 0, target: 10 },
+    pass_50:       { current: c.passes || 0, target: 50 },
+    pass_100:      { current: c.passes || 0, target: 100 },
+    perfect_5:     { current: c.perfect || 0, target: 5 },
+    streak_3:      { current: streaks.longest_streak || 0, target: 3 },
+    streak_7:      { current: streaks.longest_streak || 0, target: 7 },
+    streak_30:     { current: streaks.longest_streak || 0, target: 30 },
+    hint_user:     { current: c.hints || 0, target: 5 },
+    lesson_5:      { current: c.lessons || 0, target: 5 },
+    pod_5:         { current: c.pods || 0, target: 5 },
+  };
+}
+
+// Roll-up of point totals for the achievements / leaderboard header.
+async function getMyPointsSummary(userId) {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const todayISO = iso(today);
+  const weekStart = new Date(today); weekStart.setUTCDate(today.getUTCDate() - 6);
+  const monthStart = new Date(today); monthStart.setUTCDate(today.getUTCDate() - 29);
+  const rows = await q(
+    `select
+       coalesce(sum(case when day = $2 then points else 0 end), 0)::int as today,
+       coalesce(sum(case when day >= $3 then points else 0 end), 0)::int as week,
+       coalesce(sum(case when day >= $4 then points else 0 end), 0)::int as month,
+       coalesce(sum(points), 0)::int as all_time
+     from user_points_daily where user_id = $1`,
+    [userId, todayISO, iso(weekStart), iso(monthStart)]
+  );
+  return rows[0] || { today: 0, week: 0, month: 0, all_time: 0 };
 }
 
 // ---------- Points (gamification) ----------
@@ -1500,7 +1557,7 @@ module.exports = {
   getCurriculumQuiz, saveCurriculumQuiz,
   recordHeartbeat, getActivitySummary, getActivitySummaryAll,
   getUserStreaks, getUserAchievements,
-  awardPoints, getMyPoints, getLeaderboard, getMyLeaderboardRank,
+  awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.

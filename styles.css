@@ -4313,3 +4313,130 @@ body > .site-footer {
   border-radius: 4px;
 }
 .auth-help-spam strong { color: var(--text, #1e2238); }
+
+/* ---------- Gamification: point toasts, chips, achievements header ---------- */
+
+/* Bottom-right stack of small, non-distracting reward toasts. */
+#pointToastContainer {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.point-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(30, 34, 56, 0.92);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1.2;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+  transform: translateY(8px);
+  opacity: 0;
+  transition: transform 280ms ease, opacity 280ms ease;
+  pointer-events: auto;
+  max-width: 280px;
+}
+.point-toast.show { transform: translateY(0); opacity: 1; }
+.point-toast.fading { transform: translateY(-4px); opacity: 0; }
+.point-toast .pt-icon { font-size: 15px; }
+.point-toast .pt-amount {
+  font-weight: 700;
+  color: #ffd86b;
+  font-variant-numeric: tabular-nums;
+}
+.point-toast .pt-reason { color: rgba(255, 255, 255, 0.85); }
+.point-toast.is-milestone {
+  background: linear-gradient(135deg, #b8842b 0%, #f3c969 100%);
+  color: #1e2238;
+}
+.point-toast.is-milestone .pt-amount { color: #1e2238; }
+.point-toast.is-milestone .pt-reason { color: rgba(30, 34, 56, 0.85); }
+
+/* Small "+5" / "+50" chips that sit inside action buttons. */
+.pts-chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255, 216, 107, 0.20);
+  color: #8a6300;
+  vertical-align: middle;
+  border: 1px solid rgba(220, 160, 30, 0.35);
+}
+.start-btn .pts-chip {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Points summary cards above the achievements grid. */
+.ach-points-header {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.ach-points-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(30, 34, 56, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.ach-points-card.ach-points-total {
+  background: linear-gradient(135deg, rgba(184, 132, 43, 0.10), rgba(243, 201, 105, 0.20));
+  border-color: rgba(220, 160, 30, 0.35);
+}
+.ach-points-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #4a4d63);
+}
+.ach-points-num {
+  font-family: var(--serif, Georgia, serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text, #1e2238);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .ach-points-header { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Progress bar that shows how close a locked badge is. */
+.badge-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+.badge-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(30, 34, 56, 0.10);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.badge-progress-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, #b8842b, #f3c969);
+  border-radius: 999px;
+  transition: width 400ms ease;
+}
+.badge-progress-text {
+  font-size: 11px;
+  color: var(--text-muted, #4a4d63);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

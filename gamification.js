@@ -20,6 +20,85 @@
     return data;
   }
 
+  // ----- Points table (mirrors server.js POINT_VALUES) -----
+  const POINTS = {
+    quiz_passed: 50,
+    quiz_attempted: 10,
+    lesson_started: 5,
+    hint_used: 2,
+    pod_solved: 20,
+    achievement: 50, // default; badge.points overrides
+  };
+  window.AtriumPoints = POINTS;
+
+  // ----- Toast notifications (non-distracting points feedback) -----
+  function _toastContainer() {
+    let c = document.getElementById('pointToastContainer');
+    if (!c) {
+      c = document.createElement('div');
+      c.id = 'pointToastContainer';
+      c.className = 'point-toast-container';
+      document.body.appendChild(c);
+    }
+    return c;
+  }
+
+  // showPointToast(amount, reason, opts?)
+  //   amount: number (positive = earned, negative or 0 hidden)
+  //   reason: short label like "Quiz passed" or "Hint used"
+  //   opts.icon: optional emoji to prepend
+  //   opts.flavor: 'positive' (default) | 'milestone' (for badge unlocks)
+  window.showPointToast = function (amount, reason, opts) {
+    opts = opts || {};
+    if (!amount || amount <= 0) return;
+    const c = _toastContainer();
+    const t = document.createElement('div');
+    t.className = 'point-toast' + (opts.flavor === 'milestone' ? ' is-milestone' : '');
+    const icon = opts.icon || (opts.flavor === 'milestone' ? '🏆' : '⭐');
+    t.innerHTML = `<span class="pt-icon">${esc(icon)}</span><span class="pt-amount">+${amount}</span><span class="pt-reason">${esc(reason || 'points')}</span>`;
+    c.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => t.classList.add('fading'), 2400);
+    setTimeout(() => t.remove(), 3000);
+    // Streak chip might have moved -- refresh in the background.
+    if (typeof refreshStreakChip === 'function') setTimeout(refreshStreakChip, 1500);
+  };
+
+  // Tracked set of seen badge ids so new earns trigger toasts.
+  let _seenBadges = null;
+  try {
+    const raw = localStorage.getItem('atrium_seen_badges');
+    _seenBadges = new Set(raw ? JSON.parse(raw) : []);
+  } catch (_) { _seenBadges = new Set(); }
+  function _markSeen(ids) {
+    for (const id of ids) _seenBadges.add(id);
+    try { localStorage.setItem('atrium_seen_badges', JSON.stringify([..._seenBadges])); } catch (_) {}
+  }
+
+  // Call after any points-eligible action to detect newly-earned badges.
+  // Quiet poll: fetch, compare against the seen-set, toast new ones.
+  window.checkForNewBadges = async function () {
+    try {
+      const data = await fetchJSON('/api/me/achievements');
+      const earned = (data.badges || []).filter(b => b.earned);
+      const newOnes = earned.filter(b => !_seenBadges.has(b.id));
+      if (newOnes.length === 0) {
+        _markSeen(earned.map(b => b.id));
+        return;
+      }
+      // First-load grace: don't toast everything on the very first
+      // ever check; just seed the seen-set so future earns are noticed.
+      if (_seenBadges.size === 0) {
+        _markSeen(earned.map(b => b.id));
+        return;
+      }
+      for (const b of newOnes) {
+        window.showPointToast(b.points || 50, `Badge unlocked: ${b.title}`, { icon: b.icon || '🏆', flavor: 'milestone' });
+      }
+      _markSeen(earned.map(b => b.id));
+    } catch (_) { /* silent */ }
+  };
+
   // ----- Streak chip -----
   async function refreshStreakChip() {
     const chip = el('streakChip');
@@ -55,22 +134,53 @@
     if (!grid) return;
     grid.innerHTML = '<div class="parent-empty">Loading…</div>';
     try {
-      const r = await fetchJSON('/api/me/achievements');
+      const [r, points] = await Promise.all([
+        fetchJSON('/api/me/achievements'),
+        fetchJSON('/api/me/points').catch(() => ({ today: 0, week: 0, month: 0, all_time: 0 })),
+      ]);
       const badges = r.badges || [];
       if (sub) sub.textContent = `${r.earned || 0} of ${r.total || 0} badges earned`;
+      // Inject (or update) the points header above the badge grid.
+      let header = el('achievementsPointsHeader');
+      if (!header) {
+        header = document.createElement('div');
+        header.id = 'achievementsPointsHeader';
+        header.className = 'ach-points-header';
+        grid.parentElement.insertBefore(header, grid);
+      }
+      header.innerHTML = `
+        <div class="ach-points-card"><div class="ach-points-label">Today</div><div class="ach-points-num">${points.today || 0}</div></div>
+        <div class="ach-points-card"><div class="ach-points-label">This week</div><div class="ach-points-num">${points.week || 0}</div></div>
+        <div class="ach-points-card"><div class="ach-points-label">This month</div><div class="ach-points-num">${points.month || 0}</div></div>
+        <div class="ach-points-card ach-points-total"><div class="ach-points-label">All time</div><div class="ach-points-num">${points.all_time || 0}</div></div>
+      `;
       if (!badges.length) {
         grid.innerHTML = '<div class="parent-empty">No badges defined yet.</div>';
         return;
       }
-      grid.innerHTML = badges.map(b => `
-        <div class="badge ${b.earned ? 'earned' : 'locked'}">
-          <div class="badge-icon">${esc(b.icon || '🏅')}</div>
-          <div class="badge-title">${esc(b.title)}</div>
-          <div class="badge-desc">${esc(b.description || '')}</div>
-          <div class="badge-points">${esc(String(b.points || 0))} pts</div>
-          <div class="badge-status">${b.earned ? 'Earned' : 'Locked'}</div>
-        </div>
-      `).join('');
+      grid.innerHTML = badges.map(b => {
+        const p = b.progress;
+        let progressBar = '';
+        if (!b.earned && p && p.target > 1) {
+          const pct = Math.min(100, Math.round(100 * (p.current || 0) / p.target));
+          progressBar = `
+            <div class="badge-progress-row">
+              <div class="badge-progress-bar"><div style="width:${pct}%"></div></div>
+              <div class="badge-progress-text">${p.current || 0} of ${p.target}</div>
+            </div>
+          `;
+        }
+        return `
+          <div class="badge ${b.earned ? 'earned' : 'locked'}">
+            <div class="badge-icon">${esc(b.icon || '🏅')}</div>
+            <div class="badge-title">${esc(b.title)}</div>
+            <div class="badge-desc">${esc(b.description || '')}</div>
+            ${progressBar}
+            <div class="badge-points">${esc(String(b.points || 0))} pts</div>
+            <div class="badge-status">${b.earned ? 'Earned' : 'Locked'}</div>
+          </div>
+        `;
+      }).join('');
     } catch (e) {
       grid.innerHTML = `<div class="parent-empty err">Could not load: ${esc(e.message)}</div>`;
     }
@@ -186,14 +296,17 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting…';
         try {
-          await fetchJSON('/api/problem-of-day/attempt', {
+          const res = await fetchJSON('/api/problem-of-day/attempt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ answer }),
           });
+          if (res && res.correct) {
+            window.showPointToast(POINTS.pod_solved, 'Problem of the Day', { icon: '⭐' });
+            setTimeout(() => window.checkForNewBadges && window.checkForNewBadges(), 800);
+          }
           // Re-render with the new state.
           renderPODCard();
-          // Streak / leaderboard probably moved.
           if (typeof refreshStreakChip === 'function') refreshStreakChip();
         } catch (e) {
           submitBtn.disabled = false;

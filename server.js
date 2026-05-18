@@ -1226,6 +1226,13 @@ function _awardPointsAsync(userId, amount) {
   db.awardPoints(userId, amount).catch(err => console.warn('awardPoints failed:', err.message));
 }
 
+async function handleGetMyPoints(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const summary = await db.getMyPointsSummary(u.id);
+  json(res, 200, summary);
+}
+
 async function handleGetLeaderboard(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to view the leaderboard.' });
@@ -2115,6 +2122,7 @@ const server = http.createServer(async (req, res) => {
     // Gamification.
     if (url === '/api/me/streaks' && req.method === 'GET') return await handleGetMyStreaks(req, res);
     if (url === '/api/me/achievements' && req.method === 'GET') return await handleGetMyAchievements(req, res);
+    if (url === '/api/me/points' && req.method === 'GET') return await handleGetMyPoints(req, res);
     if (url === '/api/leaderboard' && req.method === 'GET') return await handleGetLeaderboard(req, res);
     if (url === '/api/problem-of-day' && req.method === 'GET') return await handleGetPOD(req, res);
     if (url === '/api/problem-of-day/attempt' && req.method === 'POST') return await handlePostPODAttempt(req, res);

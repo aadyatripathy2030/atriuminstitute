@@ -882,6 +882,7 @@ async function getUserStreaks() { return { current_streak: 0, longest_streak: 0,
 async function getUserAchievements() { return { badges: [], earned: 0, total: 0 }; }
 async function awardPoints() { /* no-op */ }
 async function getMyPoints() { return 0; }
+async function getMyPointsSummary() { return { today: 0, week: 0, month: 0, all_time: 0 }; }
 async function getLeaderboard() { return []; }
 async function getMyLeaderboardRank() { return { rank: null, points: 0, total: 0 }; }
 async function getOrCreatePOD() { return null; }
@@ -950,7 +951,7 @@ module.exports = {
   getCurriculumQuiz, saveCurriculumQuiz,
   recordHeartbeat, getActivitySummary, getActivitySummaryAll,
   getUserStreaks, getUserAchievements,
-  awardPoints, getMyPoints, getLeaderboard, getMyLeaderboardRank,
+  awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
