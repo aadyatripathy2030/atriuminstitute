@@ -987,12 +987,31 @@ ${meta.ccssCode ? 'Standards: ' + meta.ccssCode : ''}
 Generate exactly 5 quiz questions covering this lesson. Output ONLY a JSON array.`;
   const model = 'claude-sonnet-4-5-20250929';
   const system = prompts.buildSystem('gen-questions');
-  const result = await callClaudeDirect({
-    model, system,
-    messages: [{ role: 'user', content: userMsg }],
-    max_tokens: 1500,
-    temperature: 0.5,
-  });
+  // Retry transient Anthropic errors (429/529/5xx). Mirrors the
+  // prebuild worker's retry policy.
+  let result;
+  let lastErr = null;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      result = await callClaudeDirect({
+        model, system,
+        messages: [{ role: 'user', content: userMsg }],
+        max_tokens: 1500,
+        temperature: 0.5,
+      });
+      break;
+    } catch (e) {
+      lastErr = e;
+      const m = (e && e.message) || '';
+      const codeMatch = m.match(/^Anthropic (\d+)/);
+      const code = codeMatch ? Number(codeMatch[1]) : 0;
+      const transient = code === 429 || code === 529 || (code >= 500 && code <= 599);
+      if (!transient || attempt === 4) throw e;
+      const backoff = [2000, 5000, 12000][attempt - 1] || 12000;
+      await new Promise(r => setTimeout(r, backoff + Math.floor(Math.random() * 1000)));
+    }
+  }
+  if (!result) throw lastErr || new Error('Quiz generation failed.');
   // Record usage.
   if (result.usage) {
     const usage = result.usage;
@@ -1005,12 +1024,22 @@ Generate exactly 5 quiz questions covering this lesson. Output ONLY a JSON array
       costUsd: computeCost(model, usage),
     }).catch(err => console.error('recordAiUsage failed:', err.message));
   }
-  // Parse Claude's JSON output. Tolerate stray code fences.
+  // Parse Claude's JSON output. Tolerate stray code fences + leading
+  // prose by extracting the first [...] block.
   let text = (result.text || '').trim();
   text = text.replace(/^```(?:json)?\s*/, '').replace(/```\s*$/, '');
+  // If Claude wrapped the array in prose, isolate from first '[' to last ']'.
+  const firstBracket = text.indexOf('[');
+  const lastBracket = text.lastIndexOf(']');
+  if (firstBracket >= 0 && lastBracket > firstBracket) {
+    text = text.slice(firstBracket, lastBracket + 1);
+  }
   let questions;
   try { questions = JSON.parse(text); }
-  catch (e) { throw new Error('Could not parse AI quiz output: ' + e.message); }
+  catch (e) {
+    console.error('quiz parse failed. raw response:', (result.text || '').slice(0, 500));
+    throw new Error('Could not parse AI quiz output: ' + e.message);
+  }
   if (!Array.isArray(questions) || questions.length === 0) {
     throw new Error('AI returned no questions.');
   }
