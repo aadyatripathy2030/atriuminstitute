@@ -986,6 +986,26 @@ async function recordPODAttempt() { /* no-op */ }
 async function getPODStats() { return { total: 0, solved: 0 }; }
 async function searchSchoolDistricts() { return []; }
 async function recordUserDistrict() { /* no-op */ }
+
+async function deleteUserAccount(userId) {
+  load();
+  const before = state.users.length;
+  state.users = state.users.filter(u => u.id !== userId);
+  state.sessions = (state.sessions || []).filter(s => s.user_id !== userId);
+  state.links = (state.links || []).filter(l => l.parent_user_id !== userId && l.student_user_id !== userId);
+  state.studentProfiles = Object.fromEntries(
+    Object.entries(state.studentProfiles || {}).filter(([k]) => k !== userId)
+  );
+  state.parentProfiles = Object.fromEntries(
+    Object.entries(state.parentProfiles || {}).filter(([k]) => k !== userId)
+  );
+  if (state.progress) delete state.progress[userId];
+  state.activity = (state.activity || []).filter(a => a.user_id !== userId);
+  state.quizAttempts = (state.quizAttempts || []).filter(a => a.user_id !== userId);
+  state.favorites = (state.favorites || []).filter(f => f.user_id !== userId);
+  save();
+  return before !== state.users.length;
+}
 async function getActivitySummary() {
   return [
     { subject: 'math', subject_title: 'Math', signins: 0, lessons_started: 0, quizzes_started: 0, quizzes_passed: 0, quizzes_failed: 0, avg_score_pct: 0, study_sessions: 0, hints_used: 0, time_spent_seconds: 0 },
@@ -1052,6 +1072,7 @@ module.exports = {
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   searchSchoolDistricts, recordUserDistrict,
+  deleteUserAccount,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

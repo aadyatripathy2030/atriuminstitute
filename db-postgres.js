@@ -1736,6 +1736,37 @@ async function recordUserDistrict(districtName, user) {
   return true;
 }
 
+// ---------- Self-serve account deletion ----------
+
+// Permanently deletes the user and all data that references them. Most
+// child tables have ON DELETE CASCADE so a single DELETE from users
+// takes everything with it. The one exception is
+// parent_student_links.initiated_by_user_id which is plain RESTRICT
+// (no cascade), but in practice the user is always either the parent
+// or the student on every link they initiated, so the cascade from
+// those columns deletes the row before the initiated_by FK fires.
+// We still nullify orphaned initiator rows just in case the data
+// got into an unexpected shape.
+async function deleteUserAccount(userId) {
+  // Belt-and-braces: clear out any link rows that reference this user
+  // as initiator but where the user is not parent/student (shouldn't
+  // happen, but if it does the cascade can't fix it).
+  await q(
+    `delete from parent_student_links
+        where initiated_by_user_id = $1
+          and parent_user_id <> $1
+          and student_user_id <> $1`,
+    [userId],
+  );
+  // Active sessions get killed via the FK cascade on sessions.user_id,
+  // but make it explicit so the user is logged out everywhere
+  // immediately.
+  await q('delete from sessions where user_id = $1', [userId]);
+  // Now the main delete. CASCADE on every child FK does the rest.
+  const rows = await q('delete from users where id = $1 returning id', [userId]);
+  return rows.length > 0;
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -1773,6 +1804,7 @@ module.exports = {
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   searchSchoolDistricts, recordUserDistrict,
+  deleteUserAccount,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

@@ -898,7 +898,31 @@
     }
   }
 
+  // If the user arrives back at the site after deleting their account,
+  // show a small thank-you banner so they know it worked. The query
+  // string is stripped after the banner is displayed so a refresh
+  // doesn't show it again.
+  function maybeShowAccountDeletedBanner() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('account') === 'deleted') {
+        const banner = document.createElement('div');
+        banner.className = 'account-deleted-banner';
+        banner.innerHTML = `
+          <div>Your Atrium account has been deleted. Thank you for trying us. If you change your mind, you're welcome to sign up again any time.</div>
+          <button type="button" aria-label="Dismiss">×</button>
+        `;
+        document.body.appendChild(banner);
+        banner.querySelector('button').addEventListener('click', () => banner.remove());
+        setTimeout(() => banner.remove(), 12000);
+        const url = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, '', url);
+      }
+    } catch (_e) {}
+  }
+
   async function init() {
+    maybeShowAccountDeletedBanner();
     // Wire static buttons.
     const emailForm = el('authEmailForm');
     if (emailForm) emailForm.addEventListener('submit', handleEmailSubmit);

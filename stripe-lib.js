@@ -87,6 +87,24 @@ async function createCheckoutSession(user, db, plan) {
   return session.url;
 }
 
+// Cancel a user's active Stripe subscription immediately. Used by the
+// self-serve account-delete flow so a deleted account doesn't keep
+// getting charged. Safe to call when there's no subscription on file
+// or when Stripe isn't configured -- both paths return false.
+async function cancelSubscriptionForUser(user) {
+  if (!isConfigured() || !stripe) return false;
+  if (!user || !user.stripe_subscription_id) return false;
+  try {
+    await stripe.subscriptions.cancel(user.stripe_subscription_id);
+    return true;
+  } catch (e) {
+    // Already-cancelled / unknown / 4xx Stripe errors are not fatal
+    // for the account-delete flow. Log and carry on.
+    console.warn('Stripe subscription cancel failed:', e.message);
+    return false;
+  }
+}
+
 async function createPortalSession(user, db) {
   if (!isConfigured()) throw new Error('Stripe is not configured.');
   const customer = await ensureCustomer(user, db);
@@ -127,6 +145,7 @@ module.exports = {
   isActiveStatus,
   createCheckoutSession,
   createPortalSession,
+  cancelSubscriptionForUser,
   constructWebhookEvent,
   subscriptionRow,
   priceFor,

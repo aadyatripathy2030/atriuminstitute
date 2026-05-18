@@ -484,6 +484,81 @@
   </div>
 </div>
 
+<!-- Account deletion: four-step confirmation modal. Each step blocks
+     the next until the prior input validates. Closing or pressing
+     Escape resets to step 1. Render-blocking; closes on success. -->
+<div id="deleteAccountOverlay" class="delete-overlay hidden" aria-hidden="true">
+  <div class="delete-card" role="dialog" aria-labelledby="deleteTitle">
+    <button type="button" class="delete-close" id="deleteCloseBtn" aria-label="Cancel">×</button>
+    <div class="delete-steps">
+      <span class="delete-step-dot is-active" data-step="1">1</span>
+      <span class="delete-step-line"></span>
+      <span class="delete-step-dot" data-step="2">2</span>
+      <span class="delete-step-line"></span>
+      <span class="delete-step-dot" data-step="3">3</span>
+      <span class="delete-step-line"></span>
+      <span class="delete-step-dot" data-step="4">4</span>
+    </div>
+
+    <!-- Step 1: warning -->
+    <section class="delete-pane is-active" data-pane="1">
+      <h1 id="deleteTitle">Delete your account?</h1>
+      <p class="delete-lede">This is a permanent action. We have nothing in place to undo it once it runs. Read what gets removed and decide if you really want to continue.</p>
+      <ul class="delete-impact-list">
+        <li>👤 Your account, email, and profile (school, district, age, country)</li>
+        <li>📈 All quiz attempts, weak-topic data, and scores</li>
+        <li>⏱️ Time-on-site history and the activity timeline</li>
+        <li>🏆 Every achievement, badge, point total, and streak</li>
+        <li>📌 Every favourite topic and study-plan</li>
+        <li>👪 Your link to any parent or student (the other side keeps their account)</li>
+        <li>💳 If you have a paid subscription, it's cancelled with Stripe immediately</li>
+      </ul>
+      <div class="delete-actions">
+        <button type="button" class="delete-secondary" id="deleteCancelBtn1">Cancel</button>
+        <button type="button" class="delete-primary" id="deleteNext1">I understand, continue</button>
+      </div>
+    </section>
+
+    <!-- Step 2: acknowledgements -->
+    <section class="delete-pane" data-pane="2">
+      <h1>Acknowledge each line</h1>
+      <p class="delete-lede">Tick every box to confirm you understand the consequences.</p>
+      <label class="delete-check"><input type="checkbox" id="ackProgress"> <span>I understand my <strong>progress, badges, points, and streaks</strong> will be lost forever.</span></label>
+      <label class="delete-check"><input type="checkbox" id="ackActivity"> <span>I understand my <strong>activity timeline and time-spent history</strong> will be deleted.</span></label>
+      <label class="delete-check"><input type="checkbox" id="ackLinks"> <span>I understand my <strong>link to any parent or student</strong> will be removed.</span></label>
+      <label class="delete-check"><input type="checkbox" id="ackIrrev"> <span>I understand <strong>this action is irreversible</strong>. There is no recovery.</span></label>
+      <div class="delete-actions">
+        <button type="button" class="delete-secondary" id="deleteBack2">← Back</button>
+        <button type="button" class="delete-primary" id="deleteNext2" disabled>Continue</button>
+      </div>
+    </section>
+
+    <!-- Step 3: email confirmation -->
+    <section class="delete-pane" data-pane="3">
+      <h1>Type your email</h1>
+      <p class="delete-lede">As one more check that this is the right account, type the email address you signed in with.</p>
+      <div class="delete-expected-email" id="deleteExpectedEmail"></div>
+      <input type="email" id="deleteEmailInput" class="delete-input" placeholder="you@example.com" autocomplete="off" autocapitalize="none" spellcheck="false">
+      <div class="delete-actions">
+        <button type="button" class="delete-secondary" id="deleteBack3">← Back</button>
+        <button type="button" class="delete-primary" id="deleteNext3" disabled>Continue</button>
+      </div>
+    </section>
+
+    <!-- Step 4: phrase confirmation + final button -->
+    <section class="delete-pane" data-pane="4">
+      <h1>Last step</h1>
+      <p class="delete-lede">Type <code>DELETE MY ACCOUNT</code> exactly (capital letters, with spaces). Then press the red button.</p>
+      <input type="text" id="deletePhraseInput" class="delete-input" placeholder="DELETE MY ACCOUNT" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <div class="delete-actions">
+        <button type="button" class="delete-secondary" id="deleteBack4">← Back</button>
+        <button type="button" class="delete-final" id="deleteFinalBtn" disabled>Delete my account permanently</button>
+      </div>
+      <div id="deleteError" class="auth-error hidden"></div>
+    </section>
+  </div>
+</div>
+
 <!-- One-page onboarding survey for new students. Shown automatically
      after first sign-in if survey_completed_at is null. Skippable. -->
 <div id="surveyOverlay" class="survey-overlay hidden" aria-hidden="true">
@@ -1504,7 +1579,7 @@
       <p>A free online learning platform for students in grades 6 through 12. We cover math from Pre-Algebra through Calculus and English Language Arts grades 6 to 12, with an AI tutor named Max who walks every student through lessons, quizzes, and mistakes.</p>
     </details>
     <details><summary>How much does it cost?</summary>
-      <p>Nothing. Atrium is free for every student. There's no card on file, no trial that converts, no paywall on lessons.</p>
+      <p>We're still evaluating pricing and will update this page as soon as it's finalised. The plan is to keep the core experience (browse courses, take quizzes, see your progress) free for every student. Features that consume AI tokens or run real-time monitoring (Max chat, AI lesson generation, weekly parent digest summaries, instant activity rollups) are likely to be on a premium tier so the operating cost is covered. No card is required to sign up today.</p>
     </details>
     <details><summary>Do I need to download anything?</summary>
       <p>No. It runs in any modern web browser on a laptop, tablet, or phone. No app to install.</p>
@@ -1576,7 +1651,8 @@
       <p>Render Postgres in the US. Email is sent through Resend. AI lesson and chat content is generated by Anthropic Claude. Each provider sees only the data needed to do its job.</p>
     </details>
     <details><summary>Can I delete my account?</summary>
-      <p>Yes. Email <a href="mailto:hello@atriuminstitute.ai">hello@atriuminstitute.ai</a> from the account's email address and we'll permanently delete the user record, the linked profile, and all derived activity within 30 days.</p>
+      <p>Yes, and it's self-serve. Open your <strong>Profile</strong> page, scroll to the <strong>Danger zone</strong> at the bottom, and click <strong>Delete account</strong>. You'll go through a four-step confirmation: a warning that lists everything you'll lose, four acknowledgement checkboxes, typing your account email exactly, and finally typing the phrase <code>DELETE MY ACCOUNT</code> (capital letters, with spaces). When you press the final red button the action is immediate and permanent.</p>
+      <p>What gets removed: your user record, profile, quiz attempts, weak-topic data, activity timeline, time-spent history, achievements, points, streaks, favourites, study plan, link to any parent or student, and active sessions. If you have a paid subscription, it's cancelled with Stripe at the same moment so you don't keep getting charged. We have no recovery process once the delete runs — make sure you're certain before pressing the final button.</p>
     </details>
     <details><summary>How do you handle children's data under COPPA?</summary>
       <p>Sign-ups under 13 are tagged with consent_required = true. The kid can browse but can't generate activity until a parent has linked the account. Reminder emails for under-13 students are gated on parent authorisation. Activity data is treated as restricted and not used for any commercial purpose.</p>

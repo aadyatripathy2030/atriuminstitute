@@ -205,6 +205,27 @@ test('createLinkFromCode rejects same-role and self links', async () => {
   assert.equal(self.reason, 'self');
 });
 
+test('deleteUserAccount removes the user and cascades cleanly', async () => {
+  const me = await db.upsertUser('del-me@example.com', 'student');
+  await db.updateUserProfile(me.id, { age: 14, country: 'United States' });
+  await db.upsertStudentProfile(me.id, { displayName: 'Del Me', timezone: 'UTC' });
+  await db.logQuizAttempt(me.id, { courseId: 'c', bookId: 'b', sectionIdx: 0, score: 8, total: 10, passed: true });
+  await db.logActivity(me.id, 'signin', {});
+
+  // Confirm the data is there before delete.
+  assert.ok(await db.getUser(me.id));
+  assert.ok(await db.getStudentProfile(me.id));
+
+  const removed = await db.deleteUserAccount(me.id);
+  assert.equal(removed, true);
+  assert.equal(await db.getUser(me.id), null);
+  assert.equal(await db.getStudentProfile(me.id), null);
+
+  // Deleting an already-gone user should not throw and should return false.
+  const second = await db.deleteUserAccount(me.id);
+  assert.equal(second, false);
+});
+
 test('isParentOfStudent enforces authorisation correctly', async () => {
   const student = await db.upsertUser('iso-student@example.com', 'student');
   const parent = await db.upsertUser('iso-parent@example.com', 'parent');

@@ -386,6 +386,7 @@ async function handleGetRichProfile(req, res) {
     role: u.role,
     profile,
     user: {
+      email: u.email,
       age: u.age == null ? null : Number(u.age),
       country: u.country || null,
       state_code: u.state_code || null,
@@ -453,6 +454,58 @@ async function handleSaveRichProfile(req, res) {
     profile,
     user: userPublic(fresh),
   });
+}
+
+// Self-serve account deletion. Three layers of validation on the
+// server side mirror the three-stage prompt on the client so a
+// malicious script can't bypass the dialog and delete the account
+// with a single fetch:
+//   1. Caller must acknowledge all four risk statements (boolean
+//      flags in the body).
+//   2. Caller must POST their email address — must exactly match the
+//      signed-in user's email (case-insensitive, trimmed).
+//   3. Caller must POST confirmation_phrase === "DELETE MY ACCOUNT"
+//      (exact match, including capitals).
+// Any failure returns 400 and the account is not touched.
+async function handleDeleteAccount(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body) return json(res, 400, { error: 'Bad payload.' });
+  const ack = body.acknowledgements || {};
+  const REQUIRED_ACKS = ['lose_progress', 'lose_activity', 'lose_links', 'irreversible'];
+  for (const key of REQUIRED_ACKS) {
+    if (ack[key] !== true) {
+      return json(res, 400, { error: 'Please acknowledge every warning before continuing.' });
+    }
+  }
+  const emailConfirm = String(body.email_confirmation || '').trim().toLowerCase();
+  if (emailConfirm !== String(u.email || '').trim().toLowerCase()) {
+    return json(res, 400, { error: 'The email you typed does not match the account email.' });
+  }
+  if (body.confirmation_phrase !== 'DELETE MY ACCOUNT') {
+    return json(res, 400, { error: 'Type DELETE MY ACCOUNT exactly (capitals included) to confirm.' });
+  }
+  // Best-effort activity log BEFORE the row vanishes; useful if we
+  // ever need to investigate complaints about wrongful deletion.
+  try { await db.logActivity(u.id, 'account_deleted', { email: u.email }); } catch (_e) {}
+  // If the paywall is live and this user has a Stripe subscription,
+  // cancel it before tearing down the account so they don't keep
+  // getting billed. Non-fatal if Stripe rejects (already cancelled,
+  // unknown subscription, etc.) -- we still proceed with the local
+  // delete because keeping a half-billed half-deleted account is
+  // worse than a stuck subscription that gets flagged by the user.
+  if (stripeLib.isConfigured() && u.stripe_subscription_id) {
+    try { await stripeLib.cancelSubscriptionForUser(u); } catch (_e) {}
+  }
+  const ok = await db.deleteUserAccount(u.id);
+  if (!ok) return json(res, 500, { error: 'Account not deleted. Try again or contact support.' });
+  // Revoke the session cookie now that the user is gone.
+  res.writeHead(200, {
+    'Content-Type': 'application/json',
+    'Set-Cookie': clearCookieHeader(),
+  });
+  res.end(JSON.stringify({ ok: true }));
 }
 
 async function handleSaveSurvey(req, res) {
@@ -2254,6 +2307,7 @@ const server = http.createServer(async (req, res) => {
     if (url.startsWith('/api/school-districts/search') && req.method === 'GET') return await handleSearchSchoolDistricts(req, res);
     if (url === '/api/me/survey' && req.method === 'POST') return await handleSaveSurvey(req, res);
     if (url === '/api/me/survey/skip' && req.method === 'POST') return await handleSkipSurvey(req, res);
+    if (url === '/api/me/account/delete' && req.method === 'POST') return await handleDeleteAccount(req, res);
     if (url === '/api/leaderboard' && req.method === 'GET') return await handleGetLeaderboard(req, res);
     if (url === '/api/problem-of-day' && req.method === 'GET') return await handleGetPOD(req, res);
     if (url === '/api/problem-of-day/attempt' && req.method === 'POST') return await handlePostPODAttempt(req, res);

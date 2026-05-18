@@ -193,6 +193,8 @@
         <label>What time (local) <input type="time" name="reminderTimeLocal" value="${esc((p.reminder_time_local || '17:00').slice(0, 5))}"></label>
         <label>Content <select name="reminderContent">${contentOpts}</select></label>
       </fieldset>
+
+      ${dangerZoneFieldset(userInfo)}
     `;
   }
 
@@ -244,6 +246,24 @@
           <p class="profile-label">Email reminders to under-13 students stay off until you allow them here.</p>
           ${studentToggles}
         </fieldset>` : ''}
+
+      ${dangerZoneFieldset(userInfo)}
+    `;
+  }
+
+  function dangerZoneFieldset(userInfo) {
+    const email = (userInfo && userInfo.email) || '';
+    return `
+      <fieldset class="profile-danger-zone">
+        <legend>Danger zone</legend>
+        <div class="profile-danger-row">
+          <div class="profile-danger-text">
+            <strong>Delete this account.</strong>
+            <p>Permanently removes your profile, progress, badges, activity history, link to any parent or student, and (if you have one) cancels your paid subscription. This cannot be undone.</p>
+          </div>
+          <button type="button" id="profileDeleteBtn" class="profile-danger-btn"${email ? '' : ' disabled'}>Delete account…</button>
+        </div>
+      </fieldset>
     `;
   }
 
@@ -310,6 +330,7 @@
         el('profileTitle').textContent = 'Your profile';
       }
       wireSchoolFields();
+      wireDeleteAccountButton(userInfo);
     } catch (e) {
       form.innerHTML = `<div class="profile-loading err">Could not load: ${esc(e.message)}</div>`;
     }
@@ -350,6 +371,159 @@
       districtInput.addEventListener('blur', () => setTimeout(hideProfileDistrictSuggest, 200));
     }
     refreshVisibility();
+  }
+
+  // ---------- Account deletion (four-step confirmation) ----------
+
+  function wireDeleteAccountButton(userInfo) {
+    const btn = el('profileDeleteBtn');
+    if (!btn) return;
+    btn.onclick = () => openDeleteFlow(userInfo);
+  }
+
+  function openDeleteFlow(userInfo) {
+    const overlay = el('deleteAccountOverlay');
+    if (!overlay) return;
+    resetDeleteFlow();
+    const expectedEmail = (userInfo && userInfo.email) || '';
+    const expectEl = el('deleteExpectedEmail');
+    if (expectEl) expectEl.textContent = expectedEmail ? `Expected: ${expectedEmail}` : '';
+    overlay._email = expectedEmail;
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('hidden');
+    document.body.classList.add('survey-open');
+    wireDeleteFlowOnce();
+  }
+
+  function closeDeleteFlow() {
+    const overlay = el('deleteAccountOverlay');
+    if (!overlay) return;
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.classList.add('hidden');
+    document.body.classList.remove('survey-open');
+    resetDeleteFlow();
+  }
+
+  function resetDeleteFlow() {
+    const overlay = el('deleteAccountOverlay');
+    if (!overlay) return;
+    overlay.querySelectorAll('.delete-pane').forEach((p, idx) =>
+      p.classList.toggle('is-active', idx === 0));
+    overlay.querySelectorAll('.delete-step-dot').forEach((d, idx) =>
+      d.classList.toggle('is-active', idx === 0));
+    ['ackProgress', 'ackActivity', 'ackLinks', 'ackIrrev'].forEach(id => {
+      const c = el(id); if (c) c.checked = false;
+    });
+    ['deleteEmailInput', 'deletePhraseInput'].forEach(id => {
+      const i = el(id); if (i) i.value = '';
+    });
+    const err = el('deleteError'); if (err) hide(err);
+    ['deleteNext2', 'deleteNext3', 'deleteFinalBtn'].forEach(id => {
+      const b = el(id); if (b) b.disabled = true;
+    });
+  }
+
+  function goToDeleteStep(n) {
+    const overlay = el('deleteAccountOverlay');
+    if (!overlay) return;
+    overlay.querySelectorAll('.delete-pane').forEach(p =>
+      p.classList.toggle('is-active', Number(p.dataset.pane) === n));
+    overlay.querySelectorAll('.delete-step-dot').forEach(d =>
+      d.classList.toggle('is-active', Number(d.dataset.step) <= n));
+    // Focus the first interactive element in the new pane.
+    const active = overlay.querySelector(`.delete-pane[data-pane="${n}"]`);
+    if (active) {
+      const focusable = active.querySelector('input, button:not([disabled])');
+      if (focusable) setTimeout(() => focusable.focus(), 60);
+    }
+  }
+
+  function wireDeleteFlowOnce() {
+    if (wireDeleteFlowOnce._done) return;
+    wireDeleteFlowOnce._done = true;
+    el('deleteCloseBtn').addEventListener('click', closeDeleteFlow);
+    el('deleteCancelBtn1').addEventListener('click', closeDeleteFlow);
+    el('deleteNext1').addEventListener('click', () => goToDeleteStep(2));
+    el('deleteBack2').addEventListener('click', () => goToDeleteStep(1));
+    el('deleteBack3').addEventListener('click', () => goToDeleteStep(2));
+    el('deleteBack4').addEventListener('click', () => goToDeleteStep(3));
+
+    // Step 2: enable Continue only when all four boxes are ticked.
+    const acks = ['ackProgress', 'ackActivity', 'ackLinks', 'ackIrrev'].map(id => el(id));
+    function refreshAcks() {
+      const allChecked = acks.every(b => b && b.checked);
+      const btn = el('deleteNext2');
+      if (btn) btn.disabled = !allChecked;
+    }
+    acks.forEach(b => b && b.addEventListener('change', refreshAcks));
+    el('deleteNext2').addEventListener('click', () => {
+      if (!el('deleteNext2').disabled) goToDeleteStep(3);
+    });
+
+    // Step 3: enable Continue only when email matches exactly.
+    const emailIn = el('deleteEmailInput');
+    function refreshEmail() {
+      const overlay = el('deleteAccountOverlay');
+      const expected = (overlay && overlay._email || '').trim().toLowerCase();
+      const typed = (emailIn.value || '').trim().toLowerCase();
+      el('deleteNext3').disabled = !(expected && typed && expected === typed);
+    }
+    emailIn.addEventListener('input', refreshEmail);
+    el('deleteNext3').addEventListener('click', () => {
+      if (!el('deleteNext3').disabled) goToDeleteStep(4);
+    });
+
+    // Step 4: enable final button only when phrase matches exactly.
+    const phrase = el('deletePhraseInput');
+    function refreshPhrase() {
+      el('deleteFinalBtn').disabled = phrase.value !== 'DELETE MY ACCOUNT';
+    }
+    phrase.addEventListener('input', refreshPhrase);
+    el('deleteFinalBtn').addEventListener('click', runFinalDelete);
+
+    // Escape closes the overlay.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !el('deleteAccountOverlay').classList.contains('hidden')) {
+        closeDeleteFlow();
+      }
+    });
+  }
+
+  async function runFinalDelete() {
+    const overlay = el('deleteAccountOverlay');
+    const err = el('deleteError');
+    const finalBtn = el('deleteFinalBtn');
+    if (finalBtn) { finalBtn.disabled = true; finalBtn.textContent = 'Deleting…'; }
+    try {
+      const body = {
+        acknowledgements: {
+          lose_progress: el('ackProgress').checked,
+          lose_activity: el('ackActivity').checked,
+          lose_links: el('ackLinks').checked,
+          irreversible: el('ackIrrev').checked,
+        },
+        email_confirmation: (el('deleteEmailInput').value || '').trim(),
+        confirmation_phrase: el('deletePhraseInput').value || '',
+      };
+      const r = await fetch('/api/me/account/delete', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${r.status}`);
+      }
+      // Bye. Force a reload onto the landing page; the session cookie
+      // has already been cleared by the server.
+      window.location.href = '/?account=deleted';
+    } catch (e) {
+      if (err) { err.textContent = e.message || 'Could not delete account.'; show(err); }
+      if (finalBtn) { finalBtn.disabled = false; finalBtn.textContent = 'Delete my account permanently'; }
+    }
+    // Avoid unused-var warning when overlay isn't needed:
+    void overlay;
   }
 
   function hideProfileDistrictSuggest() {
