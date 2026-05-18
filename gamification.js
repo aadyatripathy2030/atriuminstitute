@@ -157,7 +157,7 @@
           </div>
           <div class="pod-stats">${solvedToday} solved today</div>
         </div>
-        <div class="pod-question">${esc(pod.question_text)}</div>
+        <div class="pod-question">${pod.question_text}</div>
         ${solvedByYou ? `
           <div class="pod-result ok">✓ You solved this today. Worth 20 points.</div>
         ` : (my ? `
@@ -172,6 +172,11 @@
         `)}
       </div>
     `;
+    // Render math (LaTeX, fractions, etc.) in the question. Uses the
+    // existing typesetMath helper which falls back to the in-house
+    // renderer if MathJax doesn't load.
+    const qEl = box.querySelector('.pod-question');
+    if (qEl && typeof window.typesetMath === 'function') window.typesetMath(qEl);
     const submitBtn = el('podSubmit');
     const input = el('podInput');
     if (submitBtn && input) {
