@@ -4267,16 +4267,20 @@ body > .site-footer {
   margin-right: 4px;
 }
 .practice-btn, .study-section-link {
-  font: inherit; font-size: 13px; padding: 5px 12px;
+  font: inherit; font-size: 13.5px; line-height: 1.2;
+  padding: 9px 16px;
   border: 1px solid var(--border, #e6e2d7);
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--paper, #ffffff);
   color: var(--text, #1e2238); cursor: pointer;
   border-radius: 999px;
-  transition: background 0.1s, border-color 0.1s;
+  transition: background 0.1s, border-color 0.1s, transform 0.1s;
+  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
 }
 .practice-btn:hover, .study-section-link:hover {
   background: rgba(74, 111, 165, 0.08);
   border-color: var(--accent, #4a6fa5);
+  transform: translateY(-1px);
 }
 
 /* =============== Multi-child parent grid =============== */
