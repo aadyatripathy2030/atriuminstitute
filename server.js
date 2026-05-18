@@ -989,6 +989,7 @@ async function runPrebuildJob(jobs, opts) {
           const cached = await db.getCachedLesson(job.courseId, job.bookId, job.sectionIdx, job.sectionKind);
           if (cached) { prebuildState.skipped++; prebuildState.done++; continue; }
         }
+        if (prebuildState.cancelled) return;
         const result = await generateLesson({
           courseTitle: job.courseTitle,
           bookTitle: job.bookTitle,
@@ -996,6 +997,11 @@ async function runPrebuildJob(jobs, opts) {
           sectionKind: job.sectionKind,
           sampleQuestions: job.sampleQuestions,
         });
+        // If a cancel landed while the Anthropic call was in flight, throw
+        // away the result instead of paying the DB write and ticking the
+        // generated counter. The API spend is already incurred but at least
+        // the visible progress bar stops moving.
+        if (prebuildState.cancelled) return;
         const safe = sanitizeLessonContent(result.content);
         await db.saveCachedLesson(job.courseId, job.bookId, job.sectionIdx, job.sectionKind, safe, result.model);
         prebuildState.generated++;

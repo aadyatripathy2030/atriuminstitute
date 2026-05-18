@@ -439,8 +439,13 @@
     const pct = state.total ? Math.round(100 * state.done / state.total) : 0;
     const fill = el('prebuildBarFill');
     if (fill) fill.style.width = pct + '%';
+    let statusIcon;
+    if (state.running && state.cancelled) statusIcon = '⏹ Cancelling… (waiting for in-flight calls)';
+    else if (state.running) statusIcon = '⏳ Running…';
+    else if (state.cancelled) statusIcon = '⏹ Cancelled';
+    else statusIcon = '✓ Done';
     const lineParts = [
-      state.running ? '⏳ Running…' : (state.cancelled ? '⏹ Cancelled' : '✓ Done'),
+      statusIcon,
       `${state.done}/${state.total} (${pct}%)`,
       `${state.generated} generated`,
       `${state.skipped} skipped`,
@@ -476,10 +481,26 @@
     }
   }
   async function cancelPrebuild() {
+    // Optimistic UI: flip the button to "Cancelling…" before the request
+    // returns, so the click feels acknowledged. In-flight Claude calls
+    // (concurrency 3) take 5-15s each to finish; the status line will
+    // reflect that explicitly until they drain.
+    const cancelBtn = el('prebuildCancelBtn');
+    const statusLine = el('prebuildStatusLine');
+    if (cancelBtn) {
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = 'Cancelling…';
+    }
+    if (statusLine) {
+      statusLine.textContent = '⏹ Cancelling… (waiting for in-flight calls to finish)';
+    }
     try {
       await fetchJSON('/api/admin/prebuild-lessons/cancel', { method: 'POST' });
       refreshPrebuildStatus();
-    } catch (e) { alert(e.message); }
+    } catch (e) {
+      if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.textContent = '⏹ Cancel prebuild'; }
+      alert(e.message);
+    }
   }
 
   // ---------- Page-level ----------

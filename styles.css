@@ -3022,6 +3022,36 @@ button.logo:focus-visible {
 }
 .lesson-step-body h3 { display: none; }
 .lesson-step-body p { margin: 8px 0; }
+.lesson-step-body ul, .lesson-step-body ol { margin: 8px 0 12px; padding-left: 22px; }
+.lesson-step-body li { margin: 4px 0; }
+.lesson-step-body blockquote {
+  margin: 10px 0;
+  padding: 8px 14px;
+  border-left: 3px solid var(--accent, #4a6fa5);
+  background: rgba(74, 111, 165, 0.06);
+  font-style: italic;
+  color: var(--text-muted, #4a4d63);
+}
+.md-table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+  width: auto;
+  max-width: 100%;
+}
+.md-table th, .md-table td {
+  border: 1px solid var(--border, #e6e2d7);
+  padding: 6px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.md-table thead th {
+  background: rgba(74, 111, 165, 0.08);
+  font-weight: 600;
+}
+.md-table tbody tr:nth-child(even) td {
+  background: rgba(0, 0, 0, 0.015);
+}
 
 .lesson-ask {
   display: flex;
