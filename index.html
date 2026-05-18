@@ -772,7 +772,22 @@
     <h2>📖 Your Courses</h2>
     <div class="sub">Pick a course to begin</div>
   </div>
-  <div class="subject-toggle" id="subjectToggle"></div>
+  <div class="courses-controls">
+    <div class="subject-toggle" id="subjectToggle"></div>
+    <label class="courses-grade">
+      <span>Grade</span>
+      <select id="coursesGradeFilter">
+        <option value="">All grades</option>
+        <option value="6">Grade 6</option>
+        <option value="7">Grade 7</option>
+        <option value="8">Grade 8</option>
+        <option value="9">Grade 9</option>
+        <option value="10">Grade 10</option>
+        <option value="11">Grade 11</option>
+        <option value="12">Grade 12</option>
+      </select>
+    </label>
+  </div>
   <div class="courses-grid" id="coursesGrid"></div>
 </div>
 

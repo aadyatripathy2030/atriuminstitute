@@ -95,10 +95,35 @@
           ${c.total_weeks ? `${c.total_weeks} weeks` : ''}${c.total_weeks && c.total_lessons ? ' · ' : ''}${c.total_lessons ? `${c.total_lessons} lessons` : ''}
         </div>
         ${legacyBadge(c)}
+        <div class="curr-course-actions">
+          ${learnButton(c, 'inline')}
+          <button type="button" class="curr-card-detail-btn">View units & lessons →</button>
+        </div>
       </div>
     `).join('');
     list.querySelectorAll('.curr-course-card').forEach(card => {
-      card.addEventListener('click', () => openCourse(card.dataset.id));
+      // Open the structured detail (units + lessons) only when the body
+      // of the card is clicked or the explicit "View units & lessons"
+      // button is hit. The Start-learning button has its own handler and
+      // we don't want a stray click on it to also open the detail page.
+      const detail = card.querySelector('.curr-card-detail-btn');
+      if (detail) detail.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openCourseDetail(card.dataset.id);
+      });
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.curr-learn-btn')) return;
+        if (e.target.closest('.curr-card-detail-btn')) return;
+        openCourseDetail(card.dataset.id);
+      });
+    });
+    // Start-learning click handlers (inline form on every card).
+    list.querySelectorAll('.curr-learn-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const legacy = btn.dataset.legacy;
+        startLearning(legacy);
+      });
     });
   }
 
@@ -168,6 +193,36 @@
         </dl>
       </div>
     `;
+  }
+
+  // "Start learning" button. Renders disabled when no legacy mapping
+  // exists yet. Click delegates to the existing app.js openCourse() flow.
+  function learnButton(c, _variant) {
+    if (c && c.legacy_course_id) {
+      return `<button type="button" class="curr-learn-btn" data-legacy="${esc(c.legacy_course_id)}">Start learning →</button>`;
+    }
+    return `<button type="button" class="curr-learn-btn" disabled title="No existing course content yet">Coming soon</button>`;
+  }
+
+  function startLearning(legacyCourseId) {
+    if (!legacyCourseId) return;
+    hide(el('curriculumPage'));
+    if (typeof window.setCourse === 'function' && typeof window.COURSES !== 'undefined' && window.COURSES[legacyCourseId]) {
+      window.setCourse(legacyCourseId);
+    }
+    if (typeof window.openCourse === 'function') {
+      window.openCourse(legacyCourseId);
+    } else if (typeof window.goHome === 'function') {
+      window.goHome();
+    }
+  }
+
+  function openCourseDetail(courseId) {
+    if (typeof openCourse !== 'undefined') {
+      // openCourse is a closure-local function inside this IIFE; alias
+      // it via the global setter below to keep the click flow simple.
+    }
+    return openCourse(courseId);
   }
 
   // Badge showing whether this curriculum course reuses content from an

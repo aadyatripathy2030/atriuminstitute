@@ -3790,3 +3790,32 @@ body > .site-footer {
   border: 1px solid rgba(220, 140, 30, 0.35);
 }
 .curr-course-meta .curr-legacy-badge { margin-top: 0; margin-left: 8px; }
+
+/* Grade selector + subject toggle row on courses-home. */
+.courses-controls {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  margin: 0 0 18px;
+}
+.courses-controls .subject-toggle { margin: 0; }
+.courses-grade { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted, #4a4d63); min-width: 140px; }
+.courses-grade select {
+  font: inherit; font-size: 14px; padding: 6px 10px;
+  border: 1px solid var(--border, #e6e2d7); border-radius: 8px;
+  background: var(--card-bg, #fff); color: var(--text, #1e2238);
+}
+/* Curriculum-card actions (Start learning + View units & lessons). */
+.curr-course-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.curr-learn-btn {
+  font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+  background: var(--accent, #4a6fa5); color: white; border: none; border-radius: 6px;
+  font-weight: 500;
+}
+.curr-learn-btn:hover:not(:disabled) { background: var(--accent-hover, #3a5b8a); }
+.curr-learn-btn:disabled { background: var(--border, #e6e2d7); color: var(--text-muted, #4a4d63); cursor: not-allowed; }
+.curr-card-detail-btn {
+  font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+  background: transparent; color: var(--accent, #4a6fa5);
+  border: 1px solid var(--border, #e6e2d7); border-radius: 6px;
+}
+.curr-card-detail-btn:hover { border-color: var(--accent, #4a6fa5); }
+.course-cta.disabled { opacity: 0.6; }
