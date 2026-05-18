@@ -4219,3 +4219,8 @@ body > .site-footer {
 .mc-stat-num { font-weight: 700; font-size: 18px; color: var(--text, #1e2238); }
 .mc-stat-label { font-size: 11px; color: var(--text-muted, #4a4d63); margin-top: 2px; }
 .mc-view-btn { margin-top: auto; }
+
+.auth-field-optional {
+  font-size: 11px; color: var(--text-muted, #4a4d63); font-weight: 400;
+}
+.auth-field-grade { min-width: 110px; }

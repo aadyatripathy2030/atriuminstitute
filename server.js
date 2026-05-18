@@ -181,6 +181,8 @@ async function handleSignupOrLogin(req, res) {
   cleanupPendingMeta();
   pendingSignupMeta.set(user.email, {
     age: typeof body.age === 'number' ? body.age : null,
+    gradeLevel: (typeof body.gradeLevel === 'number' && body.gradeLevel >= 1 && body.gradeLevel <= 12)
+      ? Math.floor(body.gradeLevel) : null,
     country: typeof body.country === 'string' ? body.country : (typeof body.state === 'string' ? body.state : null),
     linkCode: typeof body.linkCode === 'string' ? body.linkCode : null,
     expiresAt: Date.now() + PENDING_META_TTL_MS,
@@ -242,8 +244,12 @@ async function handleVerify(req, res) {
   const meta = pendingSignupMeta.get(user.email);
   if (meta) {
     pendingSignupMeta.delete(user.email);
-    if (meta.age != null || meta.country != null) {
-      user = await db.updateUserProfile(user.id, { age: meta.age, country: meta.country }) || user;
+    if (meta.age != null || meta.country != null || meta.gradeLevel != null) {
+      user = await db.updateUserProfile(user.id, {
+        age: meta.age,
+        country: meta.country,
+        gradeLevel: meta.gradeLevel,
+      }) || user;
     }
     if (meta.linkCode) {
       const linked = await db.createLinkFromCode(user.id, meta.linkCode);

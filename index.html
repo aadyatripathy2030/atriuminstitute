@@ -106,8 +106,21 @@
       <input type="email" id="authEmail" placeholder="you@example.com" required autocomplete="email">
       <div class="auth-field-row">
         <label class="auth-field">
-          <span>Age</span>
-          <input type="number" id="authAge" min="4" max="120" placeholder="e.g. 14" required>
+          <span>Age <span class="auth-field-optional">(optional)</span></span>
+          <input type="text" inputmode="numeric" id="authAge" placeholder="e.g. 14">
+        </label>
+        <label class="auth-field auth-field-grade">
+          <span>Grade</span>
+          <select id="authGrade">
+            <option value="">Pick a grade</option>
+            <option value="6">Grade 6</option>
+            <option value="7">Grade 7</option>
+            <option value="8">Grade 8</option>
+            <option value="9">Grade 9</option>
+            <option value="10">Grade 10</option>
+            <option value="11">Grade 11</option>
+            <option value="12">Grade 12</option>
+          </select>
         </label>
         <label class="auth-field">
           <span>Country</span>

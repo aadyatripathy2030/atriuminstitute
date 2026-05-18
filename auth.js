@@ -43,6 +43,7 @@
   let authMode = 'signin'; // 'signin' | 'signup' — only signup collects age/country/role/linkCode
   let pendingEmail = null;
   let pendingAge = null;
+  let pendingGrade = null;
   let pendingCountry = null;
   let pendingLinkCode = null;
   let currentUser = null;
@@ -404,14 +405,26 @@
 
     // Only validate / send signup-extras when actually signing up.
     let ageNum = null;
+    let gradeNum = null;
     let countryVal = null;
     let linkCode = null;
     if (authMode === 'signup') {
       if (selectedRole === 'student') {
+        // Age is optional. If the student types something, parse it
+        // and store; otherwise leave null. We accept any positive int
+        // here -- no upper or lower bound that could block sign-up.
         const ageRaw = (el('authAge').value || '').trim();
-        ageNum = ageRaw ? parseInt(ageRaw, 10) : null;
-        if (!ageNum || ageNum < 4 || ageNum > 120) {
-          return showError('Enter a valid age between 4 and 120.');
+        if (ageRaw) {
+          const parsed = parseInt(ageRaw, 10);
+          if (Number.isFinite(parsed) && parsed > 0) ageNum = parsed;
+        }
+        // Grade. Optional but recommended; defaults the home page
+        // filter so the student sees grade-appropriate topics right
+        // after signin without having to set anything.
+        const gradeEl = el('authGrade');
+        if (gradeEl && gradeEl.value) {
+          const gp = parseInt(gradeEl.value, 10);
+          if (Number.isInteger(gp) && gp >= 1 && gp <= 12) gradeNum = gp;
         }
       }
       countryVal = (el('authCountry').value || '').trim();
@@ -433,12 +446,14 @@
       if (authMode === 'signup') {
         body.role = selectedRole;
         if (ageNum != null) body.age = ageNum;
+        if (gradeNum != null) body.gradeLevel = gradeNum;
         if (countryVal) body.country = countryVal;
         if (linkCode) body.linkCode = linkCode;
       }
       await postJSON('/api/auth/signup', body);
       pendingEmail = email;
       pendingAge = ageNum;
+      pendingGrade = gradeNum;
       pendingCountry = countryVal;
       pendingLinkCode = linkCode;
       const show2 = el('authEmailShow');
