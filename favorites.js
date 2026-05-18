@@ -206,7 +206,10 @@
         const emoji = legacy ? legacy.emoji : '📘';
         const grades = (cc.grade_levels || []).map(g => 'Grade ' + g).join(', ');
         tiles.push(`
-          <div class="course-card topic-card" data-kind="unit" data-curr-course="${esc(f.course_id)}" data-legacy="${esc(cc.legacy_course_id || '')}"
+          <div class="course-card topic-card" data-kind="unit"
+               data-curr-course="${esc(f.course_id)}"
+               data-unit-number="${unitNumber}"
+               data-legacy="${esc(cc.legacy_course_id || '')}"
                style="--a1:${accent};--a2:${accent2}">
             <button class="fav-heart-btn favorited" type="button" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}" aria-label="Remove from favorites" title="Remove from favorites">♥</button>
             <div class="course-emoji">${emoji}</div>
@@ -215,7 +218,7 @@
             <div class="course-meta">
               <span>${unit.lesson_count || 0} lessons${unit.weeks ? ' · ' + unit.weeks + ' weeks' : ''}</span>
             </div>
-            <div class="course-cta">${legacy ? `Open in ${esc(legacy.title)} →` : 'Coming soon'}</div>
+            <div class="course-cta">Open unit →</div>
           </div>
         `);
       } else {
@@ -248,16 +251,20 @@
       return;
     }
     list.innerHTML = tiles.join('');
-    // Card click -> open the book or the legacy course (for unit favorites).
+    // Card click -> open the right detail page based on the kind.
     list.querySelectorAll('.course-card.topic-card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('.fav-heart-btn')) return;
         const kind = card.dataset.kind;
         hide(el('favoritesPage'));
         if (kind === 'unit') {
-          const legacyId = card.dataset.legacy;
-          if (legacyId && typeof setCourse === 'function') setCourse(legacyId);
-          if (legacyId && typeof window.openCourse === 'function') window.openCourse(legacyId);
+          // Curriculum unit -> drill into curriculum truth (lessons),
+          // not the legacy course's unrelated book grid.
+          const currCourseId = card.dataset.currCourse;
+          const unitNumber = Number(card.dataset.unitNumber);
+          if (currCourseId && typeof window.openCurriculumUnit === 'function') {
+            window.openCurriculumUnit(currCourseId, unitNumber);
+          }
         } else {
           const cid = card.dataset.course;
           const bid = card.dataset.book;

@@ -127,7 +127,7 @@
     });
   }
 
-  async function openCourse(courseId) {
+  async function openCourse(courseId, openUnitNumber) {
     hide(el('currCourseList'));
     const detail = el('currCourseDetail');
     show(detail);
@@ -136,13 +136,13 @@
     el('currCourseMeta').textContent = '';
     try {
       const r = await fetchJSON('/api/curriculum/courses/' + encodeURIComponent(courseId));
-      renderCourseDetail(r.course);
+      renderCourseDetail(r.course, openUnitNumber);
     } catch (e) {
       el('currUnits').innerHTML = `<div class="parent-empty err">Could not load: ${esc(e.message)}</div>`;
     }
   }
 
-  function renderCourseDetail(course) {
+  function renderCourseDetail(course, openUnitNumber) {
     if (!course) return;
     el('currCourseTitle').textContent = course.title;
     const grades = (course.grade_levels || []).map(g => 'Grade ' + g).join(', ');
@@ -153,8 +153,11 @@
       el('currUnits').innerHTML = '<div class="parent-empty">No units loaded for this course.</div>';
       return;
     }
+    // If openUnitNumber is given, open that one and leave the rest
+    // collapsed. Otherwise default to unit 1 open.
+    const defaultOpen = (typeof openUnitNumber === 'number' && Number.isFinite(openUnitNumber)) ? openUnitNumber : 1;
     el('currUnits').innerHTML = units.map(u => `
-      <details class="curr-unit" ${u.unit_number === 1 ? 'open' : ''}>
+      <details class="curr-unit" data-unit-number="${u.unit_number}" ${u.unit_number === defaultOpen ? 'open' : ''}>
         <summary>
           <span class="curr-unit-num">Unit ${u.unit_number}</span>
           <span class="curr-unit-title">${esc(u.unit_title)}</span>
@@ -166,6 +169,14 @@
         </div>
       </details>
     `).join('');
+    // Scroll the requested unit into view if one was named.
+    if (typeof openUnitNumber === 'number') {
+      const target = el('currUnits').querySelector(`details[data-unit-number="${openUnitNumber}"]`);
+      if (target) {
+        // Defer so layout settles before scrolling.
+        setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      }
+    }
   }
 
   function renderLesson(l) {
@@ -240,6 +251,32 @@
     hide(el('currCourseDetail'));
     show(el('currCourseList'));
   }
+
+  // Public entry point used by any UI surface that has a unit card
+  // (courses-home topic grid, My Favorites). Opens the curriculum page
+  // for the right subject + course and expands the requested unit so
+  // the student lands on its lessons (curriculum truth), not on a
+  // mismatched legacy course book grid.
+  async function openCurriculumUnit(courseId, unitNumber) {
+    if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
+    show(el('curriculumPage'));
+    // Wire listeners + populate subject dropdown if first time.
+    if (!_wired) {
+      _wired = true;
+      el('currSubject').addEventListener('change', loadCourses);
+      el('currGrade').addEventListener('change', loadCourses);
+      const back = el('currBack');
+      if (back) back.addEventListener('click', () => {
+        hide(el('curriculumPage'));
+        if (typeof window.goHome === 'function') window.goHome();
+      });
+      const cBack = el('currCourseBack');
+      if (cBack) cBack.addEventListener('click', backToList);
+      await loadSubjects();
+    }
+    await openCourse(courseId, Number(unitNumber));
+  }
+  window.openCurriculumUnit = openCurriculumUnit;
 
   // ----- Page-level open / close -----
   let _wired = false;
