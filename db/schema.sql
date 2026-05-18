@@ -267,3 +267,99 @@ create table if not exists study_plans (
 alter table student_profiles
   add column if not exists ai_model_preference text not null default 'balanced'
   check (ai_model_preference in ('balanced', 'fast', 'best'));
+
+-- ------------------------------------------------------------------
+-- Curriculum reference data (May 2026). Sourced from
+-- Atrium_Math_Curriculum_Comprehensive.xlsx via tools/import-curriculum.js.
+-- These tables hold the master scope and sequence: 9 courses, ~312
+-- lessons across grades 6-12 plus AP, with learning objectives, CCSS
+-- codes, prerequisites, vocabulary, misconceptions, and real-world
+-- hooks. Used as the reference for course content production and for
+-- grade-based course filtering on the student home page.
+-- ------------------------------------------------------------------
+
+create table if not exists curriculum_courses (
+  id text primary key,
+  title text not null,
+  grade_levels integer[] not null default '{}',
+  display_order integer not null default 0,
+  total_weeks integer,
+  total_lessons integer,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_curriculum_courses_grades
+  on curriculum_courses using gin (grade_levels);
+
+create table if not exists curriculum_units (
+  id uuid primary key default gen_random_uuid(),
+  course_id text not null references curriculum_courses(id) on delete cascade,
+  unit_number integer not null,
+  unit_title text not null,
+  weeks integer,
+  unique (course_id, unit_number)
+);
+
+create index if not exists idx_curriculum_units_course on curriculum_units (course_id);
+
+create table if not exists curriculum_lessons (
+  id uuid primary key default gen_random_uuid(),
+  course_id text not null references curriculum_courses(id) on delete cascade,
+  unit_number integer not null,
+  lesson_number text not null,
+  lesson_title text not null,
+  learning_objective text,
+  ccss_code text,
+  key_concepts text,
+  prerequisites text,
+  key_vocabulary text,
+  common_misconceptions text,
+  real_world_hook text,
+  smps text,
+  display_order integer not null default 0,
+  unique (course_id, lesson_number)
+);
+
+create index if not exists idx_curriculum_lessons_course on curriculum_lessons (course_id);
+create index if not exists idx_curriculum_lessons_unit on curriculum_lessons (course_id, unit_number);
+
+create table if not exists curriculum_smps (
+  smp_number integer primary key,
+  practice text not null,
+  what_students_do text,
+  implications text
+);
+
+create table if not exists curriculum_misconceptions (
+  id uuid primary key default gen_random_uuid(),
+  topic_area text,
+  misconception text not null,
+  why_it_happens text,
+  diagnostic_approach text,
+  remediation text
+);
+
+create index if not exists idx_curriculum_misconceptions_topic on curriculum_misconceptions (topic_area);
+
+create table if not exists curriculum_real_world_contexts (
+  id uuid primary key default gen_random_uuid(),
+  theme text,
+  context text not null,
+  math_connections text
+);
+
+create index if not exists idx_curriculum_real_world_theme on curriculum_real_world_contexts (theme);
+
+create table if not exists curriculum_glossary (
+  id uuid primary key default gen_random_uuid(),
+  term text not null unique,
+  definition text,
+  first_introduced text
+);
+
+-- User grade. Drives the grade-based filter on the courses page. Set at
+-- signup (when the student gives their age) and overridable from the
+-- Profile page. Nullable for parents and for students who haven't told
+-- us yet.
+alter table users add column if not exists grade_level integer
+  check (grade_level is null or (grade_level between 1 and 12));

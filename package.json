@@ -10,7 +10,8 @@
     "test": "node --test",
     "migrate": "node tools/migrate.js",
     "prebuild-lessons": "node tools/prebuild-lessons.js",
-    "set-admin": "node tools/set-admin.js"
+    "set-admin": "node tools/set-admin.js",
+    "import-curriculum": "node tools/import-curriculum.js"
   },
   "engines": {
     "node": ">=18"
