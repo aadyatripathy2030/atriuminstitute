@@ -541,3 +541,57 @@ create table if not exists user_time_tracking (
 
 create index if not exists idx_time_tracking_user_day
   on user_time_tracking (user_id, day desc);
+
+-- ------------------------------------------------------------------
+-- Engagement: achievement badges. Each user-badge pair is stored
+-- once when the user first earns it. badge_id is a free-form slug
+-- (e.g. "first_pass", "streak_7", "pass_50") matched server-side
+-- against the canonical badge catalogue.
+-- ------------------------------------------------------------------
+
+create table if not exists user_achievements (
+  user_id uuid not null references users (id) on delete cascade,
+  badge_id text not null,
+  earned_at timestamptz not null default now(),
+  primary key (user_id, badge_id)
+);
+
+create index if not exists idx_achievements_user_earned
+  on user_achievements (user_id, earned_at desc);
+
+-- ------------------------------------------------------------------
+-- Daily Problem of the Day. One curated problem per UTC date,
+-- visible to every student that day. Definitions are stored here so
+-- they can be hand-picked or auto-rotated. Attempts are tracked per
+-- user so the home page can show "solved today" state and a daily
+-- counter.
+-- ------------------------------------------------------------------
+
+create table if not exists problem_of_the_day (
+  pod_date date primary key,
+  question_text text not null,
+  question_type text not null default 'regular',
+  correct_answer text not null,
+  solution text,
+  difficulty text default 'medium',
+  source_course_id text,
+  source_book_id text,
+  source_section_idx integer,
+  subject text not null default 'math',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists user_pod_attempts (
+  user_id uuid not null references users (id) on delete cascade,
+  pod_date date not null,
+  user_answer text,
+  correct boolean not null default false,
+  attempted_at timestamptz not null default now(),
+  primary key (user_id, pod_date)
+);
+
+create index if not exists idx_pod_attempts_user
+  on user_pod_attempts (user_id, pod_date desc);
+
+create index if not exists idx_pod_attempts_date
+  on user_pod_attempts (pod_date);
