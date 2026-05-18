@@ -125,7 +125,15 @@
         <legend>About you</legend>
         <label>Display name <input type="text" name="displayName" value="${esc(p.display_name || '')}" maxlength="200"></label>
         <label>School name <input type="text" name="schoolName" value="${esc(p.school_name || '')}" maxlength="200"></label>
-        <label>Grade level <input type="text" name="gradeLevel" placeholder="e.g. 9th" value="${esc(p.grade_level || '')}" maxlength="50"></label>
+        <label>Grade level
+          <select name="gradeLevel">
+            <option value="">Choose grade</option>
+            ${[6,7,8,9,10,11,12].map(g => {
+              const sel = (Number(userInfo && userInfo.grade_level) === g) ? ' selected' : '';
+              return `<option value="${g}"${sel}>Grade ${g}</option>`;
+            }).join('')}
+          </select>
+        </label>
       </fieldset>
 
       <fieldset>
@@ -317,6 +325,9 @@
         }
       } else if (elem.tagName === 'SELECT' && elem.name === 'weeklyDigestDay') {
         out[name] = parseInt(elem.value, 10);
+      } else if (elem.tagName === 'SELECT' && elem.name === 'gradeLevel') {
+        // Send as integer so the server gates on 1..12 cleanly.
+        if (elem.value !== '') out[name] = parseInt(elem.value, 10);
       } else if (elem.value !== '') {
         out[name] = elem.value;
       }
@@ -330,11 +341,17 @@
     const values = collectFormValues(form);
     setStatus('Saving…');
     try {
-      await fetchJSON('/api/me/rich-profile', {
+      const result = await fetchJSON('/api/me/rich-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
+      // Push the fresh user back into auth's cache so things that read
+      // window.getCurrentUser() (curriculum browser, course filter) see
+      // the new grade_level / country right away.
+      if (result && result.user && typeof window.setCurrentUser === 'function') {
+        window.setCurrentUser(result.user);
+      }
       setStatus('Saved.', 'ok');
     } catch (e) {
       setStatus(e.message || 'Could not save.', 'err');

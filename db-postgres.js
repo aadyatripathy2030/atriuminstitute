@@ -121,18 +121,20 @@ async function markVerified(userId) {
   return getUser(userId);
 }
 
-async function updateUserProfile(userId, { age, country }) {
+async function updateUserProfile(userId, { age, country, gradeLevel }) {
   const cleanAge = (typeof age === 'number' && age >= 4 && age <= 120) ? Math.floor(age) : null;
   const cleanCountry = isValidCountry(country) ? country.trim() : null;
+  const cleanGrade = (typeof gradeLevel === 'number' && gradeLevel >= 1 && gradeLevel <= 12) ? Math.floor(gradeLevel) : null;
   const consentRequired = consentRequiredForAge(cleanAge);
   const rows = await q(
     `update users
      set age = coalesce($2, age),
          country = coalesce($3, country),
-         consent_required = case when $4::boolean then true else consent_required end
+         grade_level = coalesce($4, grade_level),
+         consent_required = case when $5::boolean then true else consent_required end
      where id = $1
      returning ${USER_COLS}`,
-    [userId, cleanAge, cleanCountry, consentRequired],
+    [userId, cleanAge, cleanCountry, cleanGrade, consentRequired],
   );
   return rows[0] || null;
 }

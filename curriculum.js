@@ -175,31 +175,37 @@
   }
 
   // ----- Page-level open / close -----
-  let _opened = false;
+  let _wired = false;
   async function openCurriculum() {
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
     show(el('curriculumPage'));
     hide(el('currCourseDetail'));
     show(el('currCourseList'));
-    if (_opened) return;
-    _opened = true;
 
-    await loadSubjects();
+    // Wire listeners + back buttons exactly once. Re-opening re-reads
+    // the user's current grade and re-fetches the course list every
+    // time, so a freshly-saved profile grade takes effect next open.
+    if (!_wired) {
+      _wired = true;
+      el('currSubject').addEventListener('change', loadCourses);
+      el('currGrade').addEventListener('change', loadCourses);
+      const back = el('currBack');
+      if (back) back.addEventListener('click', () => {
+        hide(el('curriculumPage'));
+        if (typeof window.goHome === 'function') window.goHome();
+      });
+      const cBack = el('currCourseBack');
+      if (cBack) cBack.addEventListener('click', backToList);
+      await loadSubjects();
+    }
 
-    // Default grade from the signed-in user's grade_level if present.
+    // Refresh the grade default from the cached user every time. If the
+    // user updated their grade in profile, getCurrentUser() now returns
+    // the new value (profile.js calls window.setCurrentUser after save).
     const user = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
     if (user && Number.isInteger(user.grade_level)) {
       el('currGrade').value = String(user.grade_level);
     }
-    el('currSubject').addEventListener('change', loadCourses);
-    el('currGrade').addEventListener('change', loadCourses);
-    const back = el('currBack');
-    if (back) back.addEventListener('click', () => {
-      hide(el('curriculumPage'));
-      if (typeof window.goHome === 'function') window.goHome();
-    });
-    const cBack = el('currCourseBack');
-    if (cBack) cBack.addEventListener('click', backToList);
 
     await loadCourses();
   }

@@ -356,8 +356,22 @@ async function handleSaveRichProfile(req, res) {
   // Country edits live on the users table. Age is NOT editable here — it
   // controls consent_required and must stay at whatever was provided at
   // signup. Mistyped ages get fixed via support.
-  if (typeof body.country === 'string' && body.country.trim()) {
-    await db.updateUserProfile(u.id, { country: body.country.trim() });
+  //
+  // gradeLevel is the new typed grade column on users (1..12). The legacy
+  // student_profiles.grade_level text field stays in the row too via
+  // upsertStudentProfile below, for backward compat, but the canonical
+  // value the curriculum browser and home filter read from is
+  // users.grade_level.
+  const userUpdates = {};
+  if (typeof body.country === 'string' && body.country.trim()) userUpdates.country = body.country.trim();
+  if (typeof body.gradeLevel === 'number' && body.gradeLevel >= 1 && body.gradeLevel <= 12) {
+    userUpdates.gradeLevel = Math.floor(body.gradeLevel);
+  } else if (typeof body.gradeLevel === 'string' && body.gradeLevel) {
+    const n = parseInt(body.gradeLevel, 10);
+    if (Number.isInteger(n) && n >= 1 && n <= 12) userUpdates.gradeLevel = n;
+  }
+  if (Object.keys(userUpdates).length) {
+    await db.updateUserProfile(u.id, userUpdates);
   }
 
   // Under-13 students cannot turn their own reminders on without parent
@@ -375,7 +389,7 @@ async function handleSaveRichProfile(req, res) {
   json(res, 200, {
     role: u.role,
     profile,
-    user: { age: fresh.age == null ? null : Number(fresh.age), country: fresh.country || null },
+    user: userPublic(fresh),
   });
 }
 

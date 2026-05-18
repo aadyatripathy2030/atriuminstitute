@@ -578,6 +578,13 @@
 
   // Exposed so other code (e.g. app.js) can ask who the user is.
   window.getCurrentUser = function () { return currentUser; };
+  // Exposed so the profile page (or anything else that updates the
+  // user) can push the fresh user back into the auth cache without a
+  // full /me round-trip. Pass null to clear.
+  window.setCurrentUser = function (u) {
+    currentUser = u || null;
+    if (currentUser) setNavSignedIn(currentUser);
+  };
 
   async function handleConsentRefresh() {
     const user = await checkSession();

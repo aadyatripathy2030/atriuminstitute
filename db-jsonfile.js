@@ -169,7 +169,7 @@ async function markVerified(userId) {
   return u;
 }
 
-async function updateUserProfile(userId, { age, country }) {
+async function updateUserProfile(userId, { age, country, gradeLevel }) {
   load();
   const u = state.users.find(x => x.id === userId);
   if (!u) return null;
@@ -179,6 +179,9 @@ async function updateUserProfile(userId, { age, country }) {
   }
   if (isValidCountry(country)) {
     u.country = country.trim();
+  }
+  if (typeof gradeLevel === 'number' && gradeLevel >= 1 && gradeLevel <= 12) {
+    u.grade_level = Math.floor(gradeLevel);
   }
   save();
   return u;
