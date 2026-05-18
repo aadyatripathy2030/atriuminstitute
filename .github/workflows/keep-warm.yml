@@ -1,0 +1,36 @@
+name: keep-warm
+
+# Render free tier spins the web service down after ~15 minutes of
+# inactivity, so the first request after a quiet stretch can take
+# 30-60 seconds. Hit a lightweight endpoint on a schedule to keep the
+# instance warm.
+#
+# Pings every 10 minutes between 7am and 11pm Eastern (1100-0300 UTC).
+# That covers the hours a student is likely to use the site without
+# burning GitHub Actions minutes overnight when nobody's awake.
+
+on:
+  schedule:
+    - cron: '*/10 11-23,0-3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Wake atriuminstitute.ai
+        run: |
+          set -eu
+          STATUS=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 60 https://atriuminstitute.ai/api/config || echo 000)
+          echo "Got HTTP $STATUS from /api/config"
+          head -c 500 /tmp/body || true
+          # Anything 2xx/3xx counts as alive. Render's 502 while spinning up
+          # is also "successful wake" -- we just trigger the cold start, the
+          # next student-driven request hits the warm instance.
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 600 ]; then
+            echo "Site responded; instance is alive or waking."
+            exit 0
+          fi
+          echo "Unexpected status $STATUS."
+          exit 1

@@ -245,11 +245,15 @@ For English specifically: a quoted snippet in a Markdown blockquote (> ...) with
 
 - Use the FIVE heading texts EXACTLY as written: "### The simple idea", "### The formulas", "### Walk-through example", "### One more example", "### You're ready". The parser depends on these.
 - No other H1/H2/H3 headings anywhere in your output.
-- Each section is roughly 50-90 words on its own. Total around 250-400 words. Brevity helps the student more than thoroughness.
+- **Aim for the slowest student in the room.** Write for the student who has never seen this material, who has been hurt by maths or English before, who needs every step spelled out. Target length: roughly 120-180 words per section, around 600-900 words total. More detail is correct here; the goal is "they actually understand it", not "they read it in 90 seconds".
+- **Define every term the first time it appears.** Even if the student is supposed to know it from a prior grade, drop a one-clause definition: "the denominator (the bottom number of a fraction)", "the verb (the action word in the sentence)". Never assume.
+- **Show every step in worked examples.** No "skipping ahead", no "simplifying for clarity". If \`5x = 20\` becomes \`x = 4\`, write the divide-by-5 step explicitly. If \`cat + s = cats\` to form a plural, name the rule explicitly.
+- **Call out common mistakes inline.** When you introduce a step that students often get wrong, add a one-line "Watch out:" callout right there. e.g. "Watch out: when you multiply both sides of an inequality by a negative, flip the inequality sign."
 - **Visual is required.** Every lesson contains exactly one visual inside the "The formulas" step. Pick the format that actually helps: SVG for shapes / graphs / number lines / fraction pies / bar charts; Mermaid for flows / decision trees / part-of-speech trees; a table for direct comparisons; a blockquote with annotated parts for English passages; ASCII art as a last resort. The visual is not optional and not aesthetic — it carries meaning the words alone cannot.
 - **Short paragraphs.** Maximum 2-3 sentences per paragraph. NEVER write a 4-or-more-sentence wall of prose. If you have more to say, break it into a bullet list.
 - **Use bullets where natural.** Variable definitions, lists of cases, steps in a procedure, key takeaways — these are bullets, not prose. But do NOT bullet-ify continuous narrative explanation.
 - Numbered worked-example steps go one step per line — each step is its own short sentence with a blank line above it where needed for readability.
+- **Two worked examples are mandatory** (one in "Walk-through example", one in "One more example"). The first must use the smallest, friendliest numbers you can find (think: 2, 3, 5, 10). The second must use realistic-but-still-tractable numbers and should look noticeably different from the first.
 - Never use em-dashes or en-dashes. Use periods, commas, parentheses, or "and / but / so" instead.
 - No introductions like "In this lesson we will..." or "Welcome to...".
 - No closings like "I hope this helps!" or "Let me know if you have any other questions!".

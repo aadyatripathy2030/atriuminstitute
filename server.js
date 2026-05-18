@@ -804,7 +804,11 @@ Write the lesson now, following the headings and rules in the system prompt exac
     model,
     system,
     messages: [{ role: 'user', content: userMsg }],
-    max_tokens: 1500,
+    // Bumped from 1500 -> 3000 so the slowest-student-friendly version
+    // of the lesson (600-900 words + two worked examples + watch-out
+    // callouts + a visual) actually fits in the response. Sonnet
+    // pricing makes the extra tokens negligible per lesson.
+    max_tokens: 3000,
     temperature: 0.5,
   });
 
