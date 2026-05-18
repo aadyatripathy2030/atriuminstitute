@@ -175,7 +175,22 @@ async function handleSignupOrLogin(req, res) {
   const body = await readJSON(req);
   if (!body || !isValidEmail(body.email)) return json(res, 400, { error: 'Invalid email.' });
   const role = isValidRole(body.role) ? body.role : 'student';
+  const mode = body.mode === 'signin' ? 'signin' : 'signup';
+  // Detect "already exists" before the upsert so we can:
+  //  - Tell sign-up users we found their existing account and switch
+  //    them to Sign-in mode (gentle, not a hard error).
+  //  - Block sign-in attempts when no account exists for that email
+  //    (otherwise the upsert would silently create one and the user
+  //    would never notice the typo).
+  const existingBefore = await db.findUser(body.email);
+  if (mode === 'signin' && !existingBefore) {
+    return json(res, 404, {
+      error: 'No account found for this email. Switch to "Create account" to sign up.',
+      no_account: true,
+    });
+  }
   const user = await db.upsertUser(body.email, role);
+  const wasExisting = !!existingBefore;
 
   // Stash optional first-signup metadata for /verify to apply atomically.
   cleanupPendingMeta();
@@ -195,7 +210,14 @@ async function handleSignupOrLogin(req, res) {
     console.error('Email send failed:', e.message);
     return json(res, 502, { error: 'Could not send verification email. Try again.' });
   }
-  json(res, 200, { ok: true, message: 'Check your email for a 6-digit code.' });
+  json(res, 200, {
+    ok: true,
+    existing: wasExisting,
+    role: user.role,
+    message: wasExisting
+      ? 'We found an existing account for this email. Check your inbox for the sign-in code.'
+      : 'Check your email for a 6-digit code.',
+  });
 }
 
 function userPublic(u) {

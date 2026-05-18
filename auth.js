@@ -381,8 +381,25 @@
     });
     let data = {};
     try { data = await res.json(); } catch (_) { /* tolerate empty */ }
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    if (!res.ok) {
+      const err = new Error(data.error || `Request failed (${res.status})`);
+      // Attach the full response body so callers can read structured
+      // flags (no_account, existing, etc.) without re-parsing.
+      err.responseData = data;
+      err.status = res.status;
+      throw err;
+    }
     return data;
+  }
+
+  // Switch authMode + reflect it in the UI. Used both by user clicks
+  // on the Sign-in/Create-account tabs AND by the existing-account
+  // auto-switch when the server tells us to flip from signup to signin.
+  function setAuthMode(m) {
+    if (m !== 'signin' && m !== 'signup') return;
+    authMode = m;
+    updateModeToggleUI();
+    applyModeVisibility();
   }
 
   async function checkSession() {
@@ -442,7 +459,7 @@
     btn.textContent = 'Sending…';
 
     try {
-      const body = { email };
+      const body = { email, mode: authMode };
       if (authMode === 'signup') {
         body.role = selectedRole;
         if (ageNum != null) body.age = ageNum;
@@ -450,20 +467,47 @@
         if (countryVal) body.country = countryVal;
         if (linkCode) body.linkCode = linkCode;
       }
-      await postJSON('/api/auth/signup', body);
+      const result = await postJSON('/api/auth/signup', body);
       pendingEmail = email;
       pendingAge = ageNum;
       pendingGrade = gradeNum;
       pendingCountry = countryVal;
       pendingLinkCode = linkCode;
       const show2 = el('authEmailShow');
-      if (show2) show2.textContent = `Code sent to ${email}.`;
+      // If the user picked "Create account" but the email already
+      // exists, the server still sent a sign-in code. Flip the UI
+      // to Sign-in mode and tell the user gently what happened.
+      if (result && result.existing && authMode === 'signup') {
+        setAuthMode('signin');
+        if (show2) show2.innerHTML = `📬 You already have an account. A sign-in code was sent to <strong>${email}</strong>.`;
+      } else if (show2) {
+        show2.textContent = `Code sent to ${email}.`;
+      }
       hide(el('authEmailForm'));
       show(el('authCodeForm'));
       startResendCooldown();
       setTimeout(() => el('authCode') && el('authCode').focus(), 30);
     } catch (err) {
-      showError(err.message);
+      // Server uses 404 + no_account: true when sign-in is attempted
+      // on an unknown email. Suggest switching to "Create account".
+      if (err && err.responseData && err.responseData.no_account) {
+        showError(`${err.message} `);
+        const errBox = el('authError');
+        if (errBox) {
+          const switchBtn = document.createElement('button');
+          switchBtn.type = 'button';
+          switchBtn.className = 'auth-link';
+          switchBtn.textContent = 'Switch to Create account →';
+          switchBtn.style.marginLeft = '6px';
+          switchBtn.addEventListener('click', () => {
+            clearError();
+            setAuthMode('signup');
+          });
+          errBox.appendChild(switchBtn);
+        }
+      } else {
+        showError(err.message);
+      }
     } finally {
       btn.disabled = false;
       btn.textContent = originalText;
@@ -477,10 +521,11 @@
     const btn = el('authResendCode');
     if (btn && btn.disabled) return; // still in cooldown
     try {
-      const body = { email: pendingEmail };
+      const body = { email: pendingEmail, mode: authMode };
       if (authMode === 'signup') {
         body.role = selectedRole;
         if (pendingAge != null) body.age = pendingAge;
+        if (pendingGrade != null) body.gradeLevel = pendingGrade;
         if (pendingCountry) body.country = pendingCountry;
         if (pendingLinkCode) body.linkCode = pendingLinkCode;
       }
