@@ -1001,6 +1001,45 @@ function buildJobList(courses, opts) {
   return jobs;
 }
 
+// Anthropic occasionally returns transient errors (429 rate-limit, 529
+// overloaded, 5xx). For a long bulk job this is normal — we don't want
+// to lose dozens of sections to a one-second overload spike. Wrap each
+// generation in a small retry-with-backoff. Permanent errors (4xx
+// other than 429) fail fast without retry.
+function _isTransientAnthropicError(err) {
+  const m = err && err.message ? err.message : '';
+  if (!m.startsWith('Anthropic ')) return false;
+  // Codes 429 (rate limit), 500/502/503/504 (server), 529 (overloaded).
+  const codeMatch = m.match(/^Anthropic (\d+)/);
+  if (!codeMatch) return false;
+  const code = Number(codeMatch[1]);
+  return code === 429 || code === 529 || (code >= 500 && code <= 599);
+}
+
+async function _generateWithRetry(job, maxAttempts) {
+  let lastErr = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (prebuildState.cancelled) throw new Error('cancelled');
+    try {
+      return await generateLesson({
+        courseTitle: job.courseTitle,
+        bookTitle: job.bookTitle,
+        sectionTitle: job.sectionTitle,
+        sectionKind: job.sectionKind,
+        sampleQuestions: job.sampleQuestions,
+      });
+    } catch (e) {
+      lastErr = e;
+      if (!_isTransientAnthropicError(e) || attempt === maxAttempts) throw e;
+      // Exponential backoff with jitter: 2s, 5s, 12s.
+      const baseMs = [2000, 5000, 12000][attempt - 1] || 12000;
+      const jitter = Math.floor(Math.random() * 1000);
+      await new Promise(r => setTimeout(r, baseMs + jitter));
+    }
+  }
+  throw lastErr;
+}
+
 async function runPrebuildJob(jobs, opts) {
   const concurrency = Math.min(Math.max(parseInt(opts.concurrency, 10) || 3, 1), 6);
   let i = 0;
@@ -1017,13 +1056,7 @@ async function runPrebuildJob(jobs, opts) {
           if (cached) { prebuildState.skipped++; prebuildState.done++; continue; }
         }
         if (prebuildState.cancelled) return;
-        const result = await generateLesson({
-          courseTitle: job.courseTitle,
-          bookTitle: job.bookTitle,
-          sectionTitle: job.sectionTitle,
-          sectionKind: job.sectionKind,
-          sampleQuestions: job.sampleQuestions,
-        });
+        const result = await _generateWithRetry(job, 4);
         // If a cancel landed while the Anthropic call was in flight, throw
         // away the result instead of paying the DB write and ticking the
         // generated counter. The API spend is already incurred but at least
