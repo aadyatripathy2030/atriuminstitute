@@ -146,7 +146,31 @@
     renderFavorites();
   }
 
-  function renderFavorites() {
+  // Curriculum-course cache so we don't refetch /api/curriculum/courses/:id
+  // every time the My Favorites page re-renders.
+  const _ccCache = new Map();
+  async function _loadCurriculumCourse(courseId) {
+    if (_ccCache.has(courseId)) return _ccCache.get(courseId);
+    try {
+      const res = await fetch('/api/curriculum/courses/' + encodeURIComponent(courseId), { credentials: 'same-origin' });
+      if (!res.ok) { _ccCache.set(courseId, null); return null; }
+      const data = await res.json();
+      _ccCache.set(courseId, data.course || null);
+      return data.course || null;
+    } catch (_) {
+      _ccCache.set(courseId, null);
+      return null;
+    }
+  }
+
+  function _looksLikeUnitFavorite(f) {
+    // Unit favorites use course_id = curriculum_course_id and book_id of
+    // the form "u<digits>". Legacy book favorites use course_id from the
+    // courses.js COURSES map.
+    return typeof f.book_id === 'string' && /^u\d+$/.test(f.book_id);
+  }
+
+  async function renderFavorites() {
     const list = el('favoritesList');
     if (!list) return;
     if (_list.length === 0) {
@@ -159,51 +183,88 @@
       `;
       return;
     }
+    list.innerHTML = '<div class="parent-empty">Loading…</div>';
     const COURSES_REF = (typeof window.COURSES !== 'undefined') ? window.COURSES : {};
+    // Pre-resolve any curriculum-course favorites in parallel.
+    const curriculumCourseIds = Array.from(new Set(
+      _list.filter(_looksLikeUnitFavorite).map(f => f.course_id)
+    ));
+    await Promise.all(curriculumCourseIds.map(id => _loadCurriculumCourse(id)));
+
     const tiles = [];
+    const scores = (typeof loadScores === 'function') ? loadScores() : {};
     for (const f of _list) {
-      const course = COURSES_REF[f.course_id];
-      if (!course) continue;
-      const book = (course.books || []).find(b => b.id === f.book_id);
-      if (!book) continue;
-      const scores = (typeof loadScores === 'function') ? loadScores() : {};
-      const stats = (typeof bookStatsFor === 'function') ? bookStatsFor(book, scores) : { passed: 0, total: (book.sections || []).length };
-      const pct = stats.total ? (100 * stats.passed / stats.total) : 0;
-      tiles.push(`
-        <div class="course-card topic-card" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}"
-             style="--a1:${book.accent || course.accent};--a2:${book.accent2 || course.accent2}">
-          <button class="fav-heart-btn favorited" type="button" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}" aria-label="Remove from favorites" title="Remove from favorites">♥</button>
-          <div class="course-emoji">${book.emoji || course.emoji || '📘'}</div>
-          <div class="course-title">${esc(book.title)}</div>
-          <div class="course-subtitle">${esc(course.title)}</div>
-          ${book.subtitle ? `<div class="course-desc">${esc(book.subtitle)}</div>` : ''}
-          <div class="course-meta">
-            <span>${(book.sections || []).length} quizzes</span>
-            <span>${stats.passed}/${stats.total} passed</span>
+      if (_looksLikeUnitFavorite(f)) {
+        const cc = _ccCache.get(f.course_id);
+        if (!cc) continue;
+        const unitNumber = Number(f.book_id.slice(1));
+        const unit = (cc.units || []).find(u => u.unit_number === unitNumber);
+        if (!unit) continue;
+        const legacy = cc.legacy_course_id && COURSES_REF[cc.legacy_course_id] ? COURSES_REF[cc.legacy_course_id] : null;
+        const accent = legacy ? legacy.accent : '#4a6fa5';
+        const accent2 = legacy ? legacy.accent2 : '#9fb8d6';
+        const emoji = legacy ? legacy.emoji : '📘';
+        const grades = (cc.grade_levels || []).map(g => 'Grade ' + g).join(', ');
+        tiles.push(`
+          <div class="course-card topic-card" data-kind="unit" data-curr-course="${esc(f.course_id)}" data-legacy="${esc(cc.legacy_course_id || '')}"
+               style="--a1:${accent};--a2:${accent2}">
+            <button class="fav-heart-btn favorited" type="button" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}" aria-label="Remove from favorites" title="Remove from favorites">♥</button>
+            <div class="course-emoji">${emoji}</div>
+            <div class="course-title">${esc(unit.unit_title)}</div>
+            <div class="course-subtitle">${esc(cc.title)}${grades ? ' · ' + esc(grades) : ''}</div>
+            <div class="course-meta">
+              <span>${unit.lesson_count || 0} lessons${unit.weeks ? ' · ' + unit.weeks + ' weeks' : ''}</span>
+            </div>
+            <div class="course-cta">${legacy ? `Open in ${esc(legacy.title)} →` : 'Coming soon'}</div>
           </div>
-          <div class="book-progress-bar"><div style="width:${pct}%"></div></div>
-          <div class="course-cta">Start ${esc(book.title)} →</div>
-        </div>
-      `);
+        `);
+      } else {
+        const course = COURSES_REF[f.course_id];
+        if (!course) continue;
+        const book = (course.books || []).find(b => b.id === f.book_id);
+        if (!book) continue;
+        const stats = (typeof bookStatsFor === 'function') ? bookStatsFor(book, scores) : { passed: 0, total: (book.sections || []).length };
+        const pct = stats.total ? (100 * stats.passed / stats.total) : 0;
+        tiles.push(`
+          <div class="course-card topic-card" data-kind="book" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}"
+               style="--a1:${book.accent || course.accent};--a2:${book.accent2 || course.accent2}">
+            <button class="fav-heart-btn favorited" type="button" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}" aria-label="Remove from favorites" title="Remove from favorites">♥</button>
+            <div class="course-emoji">${book.emoji || course.emoji || '📘'}</div>
+            <div class="course-title">${esc(book.title)}</div>
+            <div class="course-subtitle">${esc(course.title)}</div>
+            ${book.subtitle ? `<div class="course-desc">${esc(book.subtitle)}</div>` : ''}
+            <div class="course-meta">
+              <span>${(book.sections || []).length} quizzes</span>
+              <span>${stats.passed}/${stats.total} passed</span>
+            </div>
+            <div class="book-progress-bar"><div style="width:${pct}%"></div></div>
+            <div class="course-cta">Start ${esc(book.title)} →</div>
+          </div>
+        `);
+      }
     }
     if (!tiles.length) {
-      list.innerHTML = '<div class="parent-empty">Your favorites reference courses that are no longer available.</div>';
+      list.innerHTML = '<div class="parent-empty">Your favorites reference items that are no longer available.</div>';
       return;
     }
     list.innerHTML = tiles.join('');
-    // Card click -> open the book.
+    // Card click -> open the book or the legacy course (for unit favorites).
     list.querySelectorAll('.course-card.topic-card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('.fav-heart-btn')) return;
-        const cid = card.dataset.course;
-        const bid = card.dataset.book;
-        if (typeof setCourse === 'function') setCourse(cid);
-        if (typeof window._setNavFromTopicGrid === 'function') {
-          window._setNavFromTopicGrid(true);
-        }
-        // Hide favorites page so the detail stacks cleanly.
+        const kind = card.dataset.kind;
         hide(el('favoritesPage'));
-        if (typeof window.openBook === 'function') window.openBook(bid);
+        if (kind === 'unit') {
+          const legacyId = card.dataset.legacy;
+          if (legacyId && typeof setCourse === 'function') setCourse(legacyId);
+          if (legacyId && typeof window.openCourse === 'function') window.openCourse(legacyId);
+        } else {
+          const cid = card.dataset.course;
+          const bid = card.dataset.book;
+          if (typeof setCourse === 'function') setCourse(cid);
+          if (typeof window._setNavFromTopicGrid === 'function') window._setNavFromTopicGrid(true);
+          if (typeof window.openBook === 'function') window.openBook(bid);
+        }
       });
     });
     // Heart click -> unfavorite + re-render.
