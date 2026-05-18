@@ -3791,17 +3791,43 @@ body > .site-footer {
 }
 .curr-course-meta .curr-legacy-badge { margin-top: 0; margin-left: 8px; }
 
-/* Grade selector + subject toggle row on courses-home. */
+/* Grade selector + subject toggle row on courses-home. Sits in the
+   same centered 1200px column as .section-heading and .courses-grid
+   below it, with subject toggle on the left and grade on the right. */
 .courses-controls {
-  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
-  margin: 0 0 18px;
+  max-width: 1200px;
+  margin: 0 auto 18px;
+  padding: 0 32px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
-.courses-controls .subject-toggle { margin: 0; }
-.courses-grade { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted, #4a4d63); min-width: 140px; }
+.courses-controls .subject-toggle {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.courses-grade {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted, #4a4d63);
+}
 .courses-grade select {
   font: inherit; font-size: 14px; padding: 6px 10px;
   border: 1px solid var(--border, #e6e2d7); border-radius: 8px;
   background: var(--card-bg, #fff); color: var(--text, #1e2238);
+  min-width: 130px;
+}
+@media (max-width: 640px) {
+  .courses-controls { justify-content: flex-start; }
 }
 /* Curriculum-card actions (Start learning + View units & lessons). */
 .curr-course-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
