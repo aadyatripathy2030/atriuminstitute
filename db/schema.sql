@@ -269,17 +269,28 @@ alter table student_profiles
   check (ai_model_preference in ('balanced', 'fast', 'best'));
 
 -- ------------------------------------------------------------------
--- Curriculum reference data (May 2026). Sourced from
--- Atrium_Math_Curriculum_Comprehensive.xlsx via tools/import-curriculum.js.
--- These tables hold the master scope and sequence: 9 courses, ~312
--- lessons across grades 6-12 plus AP, with learning objectives, CCSS
--- codes, prerequisites, vocabulary, misconceptions, and real-world
--- hooks. Used as the reference for course content production and for
--- grade-based course filtering on the student home page.
+-- Curriculum reference data (May 2026). Multi-subject by design — math
+-- is the first subject loaded but Language Arts (and any future
+-- subject) drop in as additional JSON files under curriculum/ with
+-- their own subject_id. Schema reused as-is, no per-subject tables.
+--
+-- The import flow:
+--   1. node tools/import-curriculum.js scans curriculum/*.json
+--   2. each file declares one subject and its courses + reference data
+--   3. import is transactional and idempotent (delete + reload all
+--      curriculum_* rows in one tx)
 -- ------------------------------------------------------------------
+
+create table if not exists curriculum_subjects (
+  id text primary key,                       -- 'math', 'language_arts', ...
+  title text not null,
+  display_order integer not null default 0,
+  updated_at timestamptz not null default now()
+);
 
 create table if not exists curriculum_courses (
   id text primary key,
+  subject_id text references curriculum_subjects(id) on delete cascade,
   title text not null,
   grade_levels integer[] not null default '{}',
   display_order integer not null default 0,
@@ -288,8 +299,15 @@ create table if not exists curriculum_courses (
   updated_at timestamptz not null default now()
 );
 
+-- subject_id column added in the multi-subject refactor; pre-existing
+-- math courses get backfilled by the import script.
+alter table curriculum_courses
+  add column if not exists subject_id text references curriculum_subjects(id) on delete cascade;
+
 create index if not exists idx_curriculum_courses_grades
   on curriculum_courses using gin (grade_levels);
+create index if not exists idx_curriculum_courses_subject
+  on curriculum_courses (subject_id);
 
 create table if not exists curriculum_units (
   id uuid primary key default gen_random_uuid(),
@@ -315,20 +333,58 @@ create table if not exists curriculum_lessons (
   key_vocabulary text,
   common_misconceptions text,
   real_world_hook text,
-  smps text,
+  practices text,                            -- math: "1, 3, 5" (SMPs). LA: equivalent practice codes.
+  meta jsonb not null default '{}'::jsonb,   -- subject-specific extras (LA genre, text_type, anchor_standard, etc.)
   display_order integer not null default 0,
   unique (course_id, lesson_number)
 );
 
+-- Migrate the original smps column to practices if a prior import left it.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'curriculum_lessons' and column_name = 'smps'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_name = 'curriculum_lessons' and column_name = 'practices'
+  ) then
+    alter table curriculum_lessons rename column smps to practices;
+  elsif exists (
+    select 1 from information_schema.columns
+    where table_name = 'curriculum_lessons' and column_name = 'smps'
+  ) then
+    -- Both exist (rare). Copy smps -> practices where practices is null, then drop smps.
+    update curriculum_lessons set practices = smps where practices is null and smps is not null;
+    alter table curriculum_lessons drop column smps;
+  end if;
+end$$;
+
+alter table curriculum_lessons
+  add column if not exists meta jsonb not null default '{}'::jsonb;
+
 create index if not exists idx_curriculum_lessons_course on curriculum_lessons (course_id);
 create index if not exists idx_curriculum_lessons_unit on curriculum_lessons (course_id, unit_number);
 
-create table if not exists curriculum_smps (
-  smp_number integer primary key,
+-- Generic per-subject practices framework. Math = 8 SMPs. LA can have
+-- its own set (e.g. close reading, evidence-based writing, listening
+-- and discussion). curriculum_smps is dropped if it was created by an
+-- earlier import; the new table covers both subjects.
+drop table if exists curriculum_smps;
+
+create table if not exists curriculum_practices (
+  id uuid primary key default gen_random_uuid(),
+  subject_id text not null references curriculum_subjects(id) on delete cascade,
+  code text not null,                        -- 'SMP 1' or 'CR.1', etc.
   practice text not null,
   what_students_do text,
-  implications text
+  implications text,
+  display_order integer not null default 0,
+  unique (subject_id, code)
 );
+
+create index if not exists idx_curriculum_practices_subject
+  on curriculum_practices (subject_id);
 
 create table if not exists curriculum_misconceptions (
   id uuid primary key default gen_random_uuid(),
@@ -339,7 +395,11 @@ create table if not exists curriculum_misconceptions (
   remediation text
 );
 
+alter table curriculum_misconceptions
+  add column if not exists subject_id text references curriculum_subjects(id) on delete cascade;
+
 create index if not exists idx_curriculum_misconceptions_topic on curriculum_misconceptions (topic_area);
+create index if not exists idx_curriculum_misconceptions_subject on curriculum_misconceptions (subject_id);
 
 create table if not exists curriculum_real_world_contexts (
   id uuid primary key default gen_random_uuid(),
@@ -348,14 +408,40 @@ create table if not exists curriculum_real_world_contexts (
   math_connections text
 );
 
-create index if not exists idx_curriculum_real_world_theme on curriculum_real_world_contexts (theme);
+alter table curriculum_real_world_contexts
+  add column if not exists subject_id text references curriculum_subjects(id) on delete cascade;
 
+create index if not exists idx_curriculum_real_world_theme on curriculum_real_world_contexts (theme);
+create index if not exists idx_curriculum_real_world_subject on curriculum_real_world_contexts (subject_id);
+
+-- Glossary: term is unique across all subjects historically. For LA we
+-- expect different terminology, so swap the unique to (subject_id, term).
 create table if not exists curriculum_glossary (
   id uuid primary key default gen_random_uuid(),
-  term text not null unique,
+  term text not null,
   definition text,
   first_introduced text
 );
+
+alter table curriculum_glossary
+  add column if not exists subject_id text references curriculum_subjects(id) on delete cascade;
+
+-- Drop the old single-column unique on term if it exists, swap to
+-- (subject_id, term).
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint where conname = 'curriculum_glossary_term_key'
+  ) then
+    alter table curriculum_glossary drop constraint curriculum_glossary_term_key;
+  end if;
+  if not exists (
+    select 1 from pg_constraint where conname = 'curriculum_glossary_subject_term_uq'
+  ) then
+    alter table curriculum_glossary
+      add constraint curriculum_glossary_subject_term_uq unique (subject_id, term);
+  end if;
+end$$;
 
 -- User grade. Drives the grade-based filter on the courses page. Set at
 -- signup (when the student gives their age) and overridable from the

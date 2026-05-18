@@ -1,4 +1,9 @@
 {
+  "subject": {
+    "id": "math",
+    "title": "Mathematics",
+    "display_order": 1
+  },
   "courses": [
     {
       "id": "grade6",
@@ -25,7 +30,8 @@
               "key_vocabulary": "area, base, height, composition, decomposition",
               "common_misconceptions": "Students confuse area with perimeter, and assume only formulas can be used to find area",
               "real_world_hook": "Designing a community garden layout",
-              "smps": "1, 3, 5"
+              "practices": "1, 3, 5",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -37,7 +43,8 @@
               "key_vocabulary": "parallelogram, base, height, perpendicular",
               "common_misconceptions": "Students use slant height instead of perpendicular height",
               "real_world_hook": "Tile patterns and graphic design",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -49,7 +56,8 @@
               "key_vocabulary": "triangle, vertex, base, height, hypotenuse",
               "common_misconceptions": "Students multiply all three sides or forget the one half factor",
               "real_world_hook": "Roof truss design and engineering",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -61,7 +69,8 @@
               "key_vocabulary": "polygon, regular polygon, decomposition",
               "common_misconceptions": "Students count overlapping regions twice or miss interior regions",
               "real_world_hook": "State and country map area comparisons",
-              "smps": "1, 7"
+              "practices": "1, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.5",
@@ -73,7 +82,8 @@
               "key_vocabulary": "net, face, edge, vertex, surface area",
               "common_misconceptions": "Students compute volume instead of surface area, or forget hidden faces",
               "real_world_hook": "Packaging design and minimizing material",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             }
           ]
         },
@@ -92,7 +102,8 @@
               "key_vocabulary": "ratio, for every, per, colon notation",
               "common_misconceptions": "Students treat ratios as subtraction or as fractions of a whole",
               "real_world_hook": "Recipe scaling and paint mixing",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -104,7 +115,8 @@
               "key_vocabulary": "equivalent ratios, ratio table, scale factor",
               "common_misconceptions": "Students add the same number to both quantities instead of multiplying",
               "real_world_hook": "Currency exchange rates",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -116,7 +128,8 @@
               "key_vocabulary": "tape diagram, double number line",
               "common_misconceptions": "Students draw tape segments of unequal size or skip values on number line",
               "real_world_hook": "Mixing colors and team rosters",
-              "smps": "1, 5"
+              "practices": "1, 5",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -128,7 +141,8 @@
               "key_vocabulary": "compare, equivalent, ratio comparison",
               "common_misconceptions": "Students compare only one quantity instead of the relationship",
               "real_world_hook": "Comparing speed and fuel efficiency",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         },
@@ -147,7 +161,8 @@
               "key_vocabulary": "unit rate, per, rate, unit price",
               "common_misconceptions": "Students invert the rate or forget what the unit refers to",
               "real_world_hook": "Comparing prices per ounce at the grocery store",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -159,7 +174,8 @@
               "key_vocabulary": "speed, velocity, density, conversion",
               "common_misconceptions": "Students mix up which quantity is numerator and which is denominator",
               "real_world_hook": "NASCAR lap times and athletic pacing",
-              "smps": "2, 4"
+              "practices": "2, 4",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -171,7 +187,8 @@
               "key_vocabulary": "percent, percentage, rate per hundred",
               "common_misconceptions": "Students confuse percent of a number with raw percent value",
               "real_world_hook": "Sale discounts and tip calculations",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -183,7 +200,8 @@
               "key_vocabulary": "whole, part, percent, base",
               "common_misconceptions": "Students treat finding the whole the same as finding a part",
               "real_world_hook": "Sales tax, commission, and earning goals",
-              "smps": "1, 7"
+              "practices": "1, 7",
+              "meta": {}
             }
           ]
         },
@@ -202,7 +220,8 @@
               "key_vocabulary": "dividend, divisor, quotient, reciprocal",
               "common_misconceptions": "Students try to divide numerators and denominators separately",
               "real_world_hook": "Cutting ribbon and measuring ingredients",
-              "smps": "1, 2"
+              "practices": "1, 2",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -214,7 +233,8 @@
               "key_vocabulary": "partitive, quotative, model",
               "common_misconceptions": "Students rely only on the keep change flip rule without understanding",
               "real_world_hook": "Sharing pizza and splitting hiking trail segments",
-              "smps": "1, 5"
+              "practices": "1, 5",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -226,7 +246,8 @@
               "key_vocabulary": "reciprocal, multiplicative inverse, algorithm",
               "common_misconceptions": "Students take reciprocal of dividend or both fractions",
               "real_world_hook": "Construction cuts and recipe halving",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -238,7 +259,8 @@
               "key_vocabulary": "remainder, interpretation",
               "common_misconceptions": "Students choose multiplication when division is needed because of small numbers",
               "real_world_hook": "Cooking, sewing, and woodworking projects",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -250,7 +272,8 @@
               "key_vocabulary": "volume, cubic unit, prism",
               "common_misconceptions": "Students forget to cube the unit or confuse with surface area",
               "real_world_hook": "Aquarium and shipping box capacity",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -269,7 +292,8 @@
               "key_vocabulary": "place value, decimal point, tenth, hundredth",
               "common_misconceptions": "Students align right edge instead of decimal point",
               "real_world_hook": "Money calculations and lab measurements",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -281,7 +305,8 @@
               "key_vocabulary": "factor, product, decimal",
               "common_misconceptions": "Students misplace the decimal in the product",
               "real_world_hook": "Calculating area in metric units",
-              "smps": "6, 8"
+              "practices": "6, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -293,7 +318,8 @@
               "key_vocabulary": "dividend, divisor, quotient, long division",
               "common_misconceptions": "Students forget to shift the decimal in the divisor",
               "real_world_hook": "Average speed and unit conversions",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -305,7 +331,8 @@
               "key_vocabulary": "remainder, quotient, divisibility",
               "common_misconceptions": "Students forget to bring down digits or place quotient digits incorrectly",
               "real_world_hook": "Splitting costs among groups and distributing supplies",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -324,7 +351,8 @@
               "key_vocabulary": "variable, expression, equation, unknown",
               "common_misconceptions": "Students treat the variable as a label rather than a value",
               "real_world_hook": "Sharing problems and budget planning",
-              "smps": "1, 2"
+              "practices": "1, 2",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -336,7 +364,8 @@
               "key_vocabulary": "solution, equality, balance",
               "common_misconceptions": "Students see equal sign as do something rather than is equivalent to",
               "real_world_hook": "Code logic and game scoring",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -348,7 +377,8 @@
               "key_vocabulary": "distributive property, like terms, coefficient",
               "common_misconceptions": "Students distribute only to the first term inside parentheses",
               "real_world_hook": "Simplifying recipes for different group sizes",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -360,7 +390,8 @@
               "key_vocabulary": "exponent, base, power, squared, cubed",
               "common_misconceptions": "Students multiply the base by the exponent rather than using as repeated multiplication",
               "real_world_hook": "Bacterial growth and computer memory",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.5",
@@ -372,7 +403,8 @@
               "key_vocabulary": "inequality, solution set, open circle, closed circle",
               "common_misconceptions": "Students treat inequalities as single solutions rather than sets",
               "real_world_hook": "Minimum height for rides and budget limits",
-              "smps": "2, 5"
+              "practices": "2, 5",
+              "meta": {}
             }
           ]
         },
@@ -391,7 +423,8 @@
               "key_vocabulary": "negative, opposite, absolute value, integer",
               "common_misconceptions": "Students think larger negative numbers are bigger because the digit is larger",
               "real_world_hook": "Temperature, elevation, and bank balances",
-              "smps": "2, 3"
+              "practices": "2, 3",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -403,7 +436,8 @@
               "key_vocabulary": "absolute value, magnitude, distance",
               "common_misconceptions": "Students confuse absolute value with making numbers positive in equations",
               "real_world_hook": "Measuring debt amounts and elevation differences",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -415,7 +449,8 @@
               "key_vocabulary": "quadrant, x-axis, y-axis, ordered pair",
               "common_misconceptions": "Students swap x and y coordinates or get quadrant numbering wrong",
               "real_world_hook": "Maps, video game positioning, and GPS",
-              "smps": "5, 6"
+              "practices": "5, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -427,7 +462,8 @@
               "key_vocabulary": "GCF, LCM, prime, composite, factor tree",
               "common_misconceptions": "Students confuse GCF and LCM, or mix up factors and multiples",
               "real_world_hook": "Scheduling repeating events and tiling problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -446,7 +482,8 @@
               "key_vocabulary": "statistical question, variability",
               "common_misconceptions": "Students think any factual question is statistical",
               "real_world_hook": "Survey design for school issues",
-              "smps": "1, 3"
+              "practices": "1, 3",
+              "meta": {}
             },
             {
               "lesson_number": "8.2",
@@ -458,7 +495,8 @@
               "key_vocabulary": "frequency, interval, distribution, dot plot, histogram",
               "common_misconceptions": "Students confuse histograms with bar graphs and use them for categorical data",
               "real_world_hook": "Class survey results and weather data",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "8.3",
@@ -470,7 +508,8 @@
               "key_vocabulary": "mean, median, measure of center, outlier",
               "common_misconceptions": "Students use mean when median is better due to outliers",
               "real_world_hook": "Average income reporting and grade calculation",
-              "smps": "2, 3"
+              "practices": "2, 3",
+              "meta": {}
             },
             {
               "lesson_number": "8.4",
@@ -482,7 +521,8 @@
               "key_vocabulary": "range, IQR, quartile, box plot, five number summary",
               "common_misconceptions": "Students confuse range with IQR or misorder quartiles",
               "real_world_hook": "Comparing test score distributions across classes",
-              "smps": "2, 4"
+              "practices": "2, 4",
+              "meta": {}
             }
           ]
         }
@@ -513,7 +553,8 @@
               "key_vocabulary": "scale factor, scaled copy, corresponding",
               "common_misconceptions": "Students focus on additive change rather than multiplicative",
               "real_world_hook": "Photo enlargement and miniature models",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -525,7 +566,8 @@
               "key_vocabulary": "scale, scale drawing, blueprint",
               "common_misconceptions": "Students forget to apply the scale to both dimensions",
               "real_world_hook": "Architecture plans and map reading",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -537,7 +579,8 @@
               "key_vocabulary": "square of scale factor, area ratio",
               "common_misconceptions": "Students apply linear scale factor to area instead of squaring",
               "real_world_hook": "Pizza size pricing and floor plan comparisons",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -549,7 +592,8 @@
               "key_vocabulary": "precision, scale selection",
               "common_misconceptions": "Students pick a scale that does not fit the paper or use it inconsistently",
               "real_world_hook": "Designing a bedroom layout or a school garden",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             }
           ]
         },
@@ -568,7 +612,8 @@
               "key_vocabulary": "dependent, independent, variable",
               "common_misconceptions": "Students reverse the dependent and independent variables",
               "real_world_hook": "Time and distance, hours worked and money earned",
-              "smps": "1, 2"
+              "practices": "1, 2",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -580,7 +625,8 @@
               "key_vocabulary": "proportional, constant of proportionality",
               "common_misconceptions": "Students check additively rather than multiplicatively",
               "real_world_hook": "Recipe scaling for events",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -592,7 +638,8 @@
               "key_vocabulary": "constant of proportionality, k, unit rate",
               "common_misconceptions": "Students compute k as y minus x instead of y divided by x",
               "real_world_hook": "Hourly wages and currency conversion",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -604,7 +651,8 @@
               "key_vocabulary": "origin, linear, slope",
               "common_misconceptions": "Students think any straight line is proportional, ignoring the origin requirement",
               "real_world_hook": "Distance time graphs and gas mileage",
-              "smps": "5, 6"
+              "practices": "5, 6",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -616,7 +664,8 @@
               "key_vocabulary": "representation, comparison",
               "common_misconceptions": "Students compare across forms by appearance rather than rate",
               "real_world_hook": "Comparing different streaming service costs per song",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -635,7 +684,8 @@
               "key_vocabulary": "circumference, diameter, radius, pi",
               "common_misconceptions": "Students confuse radius and diameter in formulas",
               "real_world_hook": "Wheel rotation and Ferris wheel design",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -647,7 +697,8 @@
               "key_vocabulary": "area of circle, pi r squared",
               "common_misconceptions": "Students use diameter instead of radius in area formula",
               "real_world_hook": "Pizza area and irrigation coverage",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -659,7 +710,8 @@
               "key_vocabulary": "composite, semicircle, quarter circle",
               "common_misconceptions": "Students include perimeter pieces twice when decomposing",
               "real_world_hook": "Running track design and architectural arches",
-              "smps": "1, 7"
+              "practices": "1, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -671,7 +723,8 @@
               "key_vocabulary": "cylinder, base, axis, volume",
               "common_misconceptions": "Students confuse formula with surface area",
               "real_world_hook": "Water tank capacity and soda can volume",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             }
           ]
         },
@@ -690,7 +743,8 @@
               "key_vocabulary": "percent increase, percent decrease, percent change",
               "common_misconceptions": "Students compute percent change using new value as denominator",
               "real_world_hook": "Sales growth and population change",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -702,7 +756,8 @@
               "key_vocabulary": "tax, tip, discount, markup, retail",
               "common_misconceptions": "Students add discount percent to tax percent in one step incorrectly",
               "real_world_hook": "Restaurant bills and retail shopping",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -714,7 +769,8 @@
               "key_vocabulary": "principal, interest rate, simple interest, term",
               "common_misconceptions": "Students treat the rate as already a decimal when given as a percent",
               "real_world_hook": "Savings accounts and short term loans",
-              "smps": "2, 4"
+              "practices": "2, 4",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -726,7 +782,8 @@
               "key_vocabulary": "percent error, actual, measured",
               "common_misconceptions": "Students forget to take absolute value or divide by the wrong value",
               "real_world_hook": "Science lab measurements and engineering tolerance",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -738,7 +795,8 @@
               "key_vocabulary": "multistep, strategy",
               "common_misconceptions": "Students stop after first calculation without finishing the problem",
               "real_world_hook": "Financial literacy and project planning",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -757,7 +815,8 @@
               "key_vocabulary": "additive inverse, sum, opposite",
               "common_misconceptions": "Students get sign rules confused when one addend is negative",
               "real_world_hook": "Bank deposits and withdrawals, temperature change",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -769,7 +828,8 @@
               "key_vocabulary": "subtract, additive inverse, difference",
               "common_misconceptions": "Students subtract digits and choose sign by which is bigger",
               "real_world_hook": "Elevation changes during hiking",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -781,7 +841,8 @@
               "key_vocabulary": "product, sign rule",
               "common_misconceptions": "Students think two negatives never make a positive in any operation",
               "real_world_hook": "Velocity over time with negative direction",
-              "smps": "2, 8"
+              "practices": "2, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -793,7 +854,8 @@
               "key_vocabulary": "quotient, sign rule, undefined",
               "common_misconceptions": "Students try to divide by zero or apply additive sign rules",
               "real_world_hook": "Average rate of change and unit conversions",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.5",
@@ -805,7 +867,8 @@
               "key_vocabulary": "terminating, repeating, bar notation",
               "common_misconceptions": "Students assume all fractions terminate or are repeating without checking",
               "real_world_hook": "Comparing measurement systems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -824,7 +887,8 @@
               "key_vocabulary": "term, coefficient, like terms, distribute",
               "common_misconceptions": "Students combine unlike terms or distribute incorrectly across negatives",
               "real_world_hook": "Simplifying budget formulas",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -836,7 +900,8 @@
               "key_vocabulary": "inverse operation, balance, solution",
               "common_misconceptions": "Students undo operations in the wrong order",
               "real_world_hook": "Phone plan costs and earnings goals",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -848,7 +913,8 @@
               "key_vocabulary": "distribute, combine, multistep equation",
               "common_misconceptions": "Students distribute the multiplier incorrectly across all terms",
               "real_world_hook": "Pricing models with discounts and fees",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -860,7 +926,8 @@
               "key_vocabulary": "inequality, flip, boundary value",
               "common_misconceptions": "Students forget to flip the inequality sign with negative coefficients",
               "real_world_hook": "Minimum performance requirements",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.5",
@@ -872,7 +939,8 @@
               "key_vocabulary": "translation, model equation",
               "common_misconceptions": "Students set up equation reversing key relationships",
               "real_world_hook": "Saving for a target purchase",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -891,7 +959,8 @@
               "key_vocabulary": "complementary, supplementary, vertical, adjacent",
               "common_misconceptions": "Students confuse vertical angles with vertical lines",
               "real_world_hook": "Architecture and laser pointer reflections",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -903,7 +972,8 @@
               "key_vocabulary": "unique triangle, triangle inequality",
               "common_misconceptions": "Students assume any three side lengths form a triangle",
               "real_world_hook": "Truss design and surveying",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -915,7 +985,8 @@
               "key_vocabulary": "cross section, slice, parallel, perpendicular",
               "common_misconceptions": "Students visualize the wrong plane of cut",
               "real_world_hook": "CT scans in medicine and architecture",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -927,7 +998,8 @@
               "key_vocabulary": "right prism, base, lateral face",
               "common_misconceptions": "Students confuse formulas across different prism types",
               "real_world_hook": "Pool volume and packaging design",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             }
           ]
         },
@@ -946,7 +1018,8 @@
               "key_vocabulary": "probability, sample space, event, outcome",
               "common_misconceptions": "Students give probabilities greater than 1 or as raw counts",
               "real_world_hook": "Weather forecasts and lottery odds",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "8.2",
@@ -958,7 +1031,8 @@
               "key_vocabulary": "theoretical, experimental, simulation",
               "common_misconceptions": "Students expect experimental probability to exactly equal theoretical",
               "real_world_hook": "Coin flipping and dice rolling experiments",
-              "smps": "4, 8"
+              "practices": "4, 8",
+              "meta": {}
             },
             {
               "lesson_number": "8.3",
@@ -970,7 +1044,8 @@
               "key_vocabulary": "compound event, tree diagram, independent",
               "common_misconceptions": "Students add probabilities when they should multiply",
               "real_world_hook": "Game design and genetics",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.4",
@@ -982,7 +1057,8 @@
               "key_vocabulary": "population, sample, random, representative",
               "common_misconceptions": "Students rely on convenience samples and generalize from them",
               "real_world_hook": "Election polls and product testing",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "8.5",
@@ -994,7 +1070,8 @@
               "key_vocabulary": "mean absolute deviation, distribution",
               "common_misconceptions": "Students compare only means without considering variability",
               "real_world_hook": "Comparing test scores or athletic performance",
-              "smps": "2, 3"
+              "practices": "2, 3",
+              "meta": {}
             }
           ]
         }
@@ -1025,7 +1102,8 @@
               "key_vocabulary": "translation, reflection, rotation, rigid motion",
               "common_misconceptions": "Students confuse reflections with rotations of 180 degrees",
               "real_world_hook": "Animation and design software",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -1037,7 +1115,8 @@
               "key_vocabulary": "orientation, invariant, congruence",
               "common_misconceptions": "Students think reflections and rotations change side lengths",
               "real_world_hook": "Tile patterns and tessellations",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -1049,7 +1128,8 @@
               "key_vocabulary": "congruent, corresponding parts",
               "common_misconceptions": "Students equate congruence with same shape regardless of size",
               "real_world_hook": "Manufacturing identical parts",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -1061,7 +1141,8 @@
               "key_vocabulary": "transversal, alternate interior, corresponding angle",
               "common_misconceptions": "Students confuse which angle pairs are congruent versus supplementary",
               "real_world_hook": "Road design and railroad track geometry",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             }
           ]
         },
@@ -1080,7 +1161,8 @@
               "key_vocabulary": "dilation, center, scale factor",
               "common_misconceptions": "Students forget that the center stays fixed",
               "real_world_hook": "Zoom features and projection",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -1092,7 +1174,8 @@
               "key_vocabulary": "similar, proportional, scale",
               "common_misconceptions": "Students treat similarity and congruence as the same",
               "real_world_hook": "Photo printing and architectural models",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -1104,7 +1187,8 @@
               "key_vocabulary": "slope, rise, run, similar triangles",
               "common_misconceptions": "Students compute slope as run over rise",
               "real_world_hook": "Roof pitch and ramp design",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -1116,7 +1200,8 @@
               "key_vocabulary": "y-intercept, linear equation, slope-intercept",
               "common_misconceptions": "Students think y intercept is wherever the line starts being drawn",
               "real_world_hook": "Cell phone plans with base fees",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -1128,7 +1213,8 @@
               "key_vocabulary": "proportional, non-proportional, origin",
               "common_misconceptions": "Students think any linear graph represents a proportional relationship",
               "real_world_hook": "Free trial versus paid subscription models",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         },
@@ -1147,7 +1233,8 @@
               "key_vocabulary": "linear, representation, translate",
               "common_misconceptions": "Students treat tables with arithmetic patterns but non constant rate as linear",
               "real_world_hook": "Income over time and cost analysis",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -1159,7 +1246,8 @@
               "key_vocabulary": "point-slope, slope formula",
               "common_misconceptions": "Students forget to find b after computing slope",
               "real_world_hook": "Modeling fuel consumption and savings",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -1171,7 +1259,8 @@
               "key_vocabulary": "negative slope, zero slope, undefined slope",
               "common_misconceptions": "Students think undefined slope equals zero slope",
               "real_world_hook": "Tracking decline and stable measurements",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -1183,7 +1272,8 @@
               "key_vocabulary": "two-point form, equation of line",
               "common_misconceptions": "Students substitute incorrectly when solving for b",
               "real_world_hook": "Forecasting trends from data points",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.5",
@@ -1195,7 +1285,8 @@
               "key_vocabulary": "model, prediction, interpolation, extrapolation",
               "common_misconceptions": "Students extrapolate far beyond data without considering limits",
               "real_world_hook": "Population growth and price increases",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             }
           ]
         },
@@ -1214,7 +1305,8 @@
               "key_vocabulary": "variables on both sides, like terms",
               "common_misconceptions": "Students drop or change signs when moving terms",
               "real_world_hook": "Comparing two pricing plans",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -1226,7 +1318,8 @@
               "key_vocabulary": "identity, contradiction, infinite solutions",
               "common_misconceptions": "Students stop solving and assume an error when getting 0 equals 0",
               "real_world_hook": "Identifying logical inconsistencies",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -1238,7 +1331,8 @@
               "key_vocabulary": "system, intersection, point of solution",
               "common_misconceptions": "Students misread point of intersection from inaccurate graph",
               "real_world_hook": "Break even analysis",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -1250,7 +1344,8 @@
               "key_vocabulary": "substitution, back substitute",
               "common_misconceptions": "Students substitute into the same equation they solved from",
               "real_world_hook": "Mixture and rate problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -1262,7 +1357,8 @@
               "key_vocabulary": "system model, constraints",
               "common_misconceptions": "Students conflate the two variables in their model",
               "real_world_hook": "Cost comparison between phone plans or gym memberships",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -1281,7 +1377,8 @@
               "key_vocabulary": "function, input, output, vertical line test",
               "common_misconceptions": "Students think every relation is a function or vice versa",
               "real_world_hook": "Membership database and ID systems",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -1293,7 +1390,8 @@
               "key_vocabulary": "function notation, evaluate, domain element",
               "common_misconceptions": "Students treat f times x rather than f of x",
               "real_world_hook": "Programming function calls",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -1305,7 +1403,8 @@
               "key_vocabulary": "linear, nonlinear, rate of change",
               "common_misconceptions": "Students think every curve is the same type of nonlinear",
               "real_world_hook": "Modeling growth versus decay",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -1317,7 +1416,8 @@
               "key_vocabulary": "comparison, representation",
               "common_misconceptions": "Students compare based on a single feature instead of overall behavior",
               "real_world_hook": "Comparing investment returns",
-              "smps": "1, 3"
+              "practices": "1, 3",
+              "meta": {}
             },
             {
               "lesson_number": "5.5",
@@ -1329,7 +1429,8 @@
               "key_vocabulary": "cone, sphere, hemisphere, frustum",
               "common_misconceptions": "Students mix up cone and sphere volume formulas",
               "real_world_hook": "Ice cream cone capacity and basketball volume",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -1348,7 +1449,8 @@
               "key_vocabulary": "scatter plot, bivariate, cluster, outlier",
               "common_misconceptions": "Students struggle to read scatter plots when scales are not uniform",
               "real_world_hook": "Hours studied versus test scores",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -1360,7 +1462,8 @@
               "key_vocabulary": "positive, negative, no association, form",
               "common_misconceptions": "Students confuse strong association with causation",
               "real_world_hook": "Calorie intake versus weight change",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -1372,7 +1475,8 @@
               "key_vocabulary": "line of fit, prediction, trend",
               "common_misconceptions": "Students draw line through extremes rather than through middle of data",
               "real_world_hook": "Forecasting from historical data",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -1384,7 +1488,8 @@
               "key_vocabulary": "two-way table, joint, marginal, conditional",
               "common_misconceptions": "Students compute proportions from the wrong total",
               "real_world_hook": "Survey results across demographic groups",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             }
           ]
         },
@@ -1403,7 +1508,8 @@
               "key_vocabulary": "product rule, quotient rule, power rule",
               "common_misconceptions": "Students add bases instead of adding exponents when multiplying",
               "real_world_hook": "Computer storage units",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -1415,7 +1521,8 @@
               "key_vocabulary": "negative exponent, reciprocal, zero exponent",
               "common_misconceptions": "Students think negative exponents produce negative answers",
               "real_world_hook": "Microbiology cell sizes",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -1427,7 +1534,8 @@
               "key_vocabulary": "scientific notation, mantissa, exponent",
               "common_misconceptions": "Students place decimal point incorrectly when converting",
               "real_world_hook": "Astronomy distances and atomic measurements",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -1439,7 +1547,8 @@
               "key_vocabulary": "order of magnitude, normalization",
               "common_misconceptions": "Students forget to normalize the answer to proper scientific notation",
               "real_world_hook": "Comparing national debts and global populations",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -1458,7 +1567,8 @@
               "key_vocabulary": "square root, cube root, radical, perfect square",
               "common_misconceptions": "Students treat square root and cube root the same way",
               "real_world_hook": "Side length from area, edge length from volume",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "8.2",
@@ -1470,7 +1580,8 @@
               "key_vocabulary": "irrational, rational, approximation",
               "common_misconceptions": "Students think any non terminating decimal is irrational",
               "real_world_hook": "Diagonal measurements in construction",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "8.3",
@@ -1482,7 +1593,8 @@
               "key_vocabulary": "leg, hypotenuse, Pythagorean theorem",
               "common_misconceptions": "Students confuse which side is the hypotenuse or solve for legs incorrectly",
               "real_world_hook": "Ladder safety and TV screen sizing",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "8.4",
@@ -1494,7 +1606,8 @@
               "key_vocabulary": "distance formula, hypotenuse on grid",
               "common_misconceptions": "Students subtract coordinates without squaring",
               "real_world_hook": "GPS distance and game map navigation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         }
@@ -1526,7 +1639,8 @@
               "key_vocabulary": "distribution, skew, symmetric, modality",
               "common_misconceptions": "Students confuse histograms with bar graphs for categorical data",
               "real_world_hook": "Comparing salaries across job sectors",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -1538,7 +1652,8 @@
               "key_vocabulary": "standard deviation, variance, IQR",
               "common_misconceptions": "Students compute standard deviation without dividing by n minus 1 or n",
               "real_world_hook": "Quality control in manufacturing",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -1550,7 +1665,8 @@
               "key_vocabulary": "comparison, context, outlier influence",
               "common_misconceptions": "Students rely only on means without considering shape or spread",
               "real_world_hook": "Comparing student performance across schools",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -1562,7 +1678,8 @@
               "key_vocabulary": "variability, dispersion",
               "common_misconceptions": "Students assume larger range always means larger standard deviation",
               "real_world_hook": "Stock price volatility analysis",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             }
           ]
         },
@@ -1581,7 +1698,8 @@
               "key_vocabulary": "literal equation, formula manipulation",
               "common_misconceptions": "Students forget to apply operations to all terms when rearranging",
               "real_world_hook": "Rearranging physics formulas",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -1593,7 +1711,8 @@
               "key_vocabulary": "compound inequality, intersection, union",
               "common_misconceptions": "Students flip inequality when adding or subtracting instead of multiplying",
               "real_world_hook": "Optimum range for human body temperature",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -1605,7 +1724,8 @@
               "key_vocabulary": "absolute value, distance, two cases",
               "common_misconceptions": "Students forget the negative case or solve before isolating",
               "real_world_hook": "Tolerance specifications in engineering",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -1617,7 +1737,8 @@
               "key_vocabulary": "substitution, elimination, system",
               "common_misconceptions": "Students lose track of which variable they have solved for",
               "real_world_hook": "Mixture problems and break even analysis",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -1629,7 +1750,8 @@
               "key_vocabulary": "feasible region, boundary, half-plane",
               "common_misconceptions": "Students shade wrong side or forget to include or exclude boundary",
               "real_world_hook": "Production planning and dietary constraints",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "2.6",
@@ -1641,7 +1763,8 @@
               "key_vocabulary": "objective function, vertex, constraint, optimization",
               "common_misconceptions": "Students forget that optimum occurs at a vertex of feasible region",
               "real_world_hook": "Profit maximization for a small business",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -1660,7 +1783,8 @@
               "key_vocabulary": "correlation, correlation coefficient, r value",
               "common_misconceptions": "Students confuse correlation with causation",
               "real_world_hook": "Education level versus income",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -1672,7 +1796,8 @@
               "key_vocabulary": "least squares, regression, residual",
               "common_misconceptions": "Students interpret slope without units or context",
               "real_world_hook": "Predicting house prices from square footage",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -1684,7 +1809,8 @@
               "key_vocabulary": "residual, residual plot, model fit",
               "common_misconceptions": "Students miss that patterned residuals indicate poor fit",
               "real_world_hook": "Improving predictive models",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -1696,7 +1822,8 @@
               "key_vocabulary": "joint frequency, marginal, conditional",
               "common_misconceptions": "Students compute conditional probabilities from wrong total",
               "real_world_hook": "Public health data analysis",
-              "smps": "2, 4"
+              "practices": "2, 4",
+              "meta": {}
             }
           ]
         },
@@ -1715,7 +1842,8 @@
               "key_vocabulary": "piecewise, function notation, evaluate",
               "common_misconceptions": "Students apply only one rule across all pieces of a piecewise function",
               "real_world_hook": "Tax brackets and tiered pricing",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -1727,7 +1855,8 @@
               "key_vocabulary": "domain, range, restriction",
               "common_misconceptions": "Students give individual values instead of intervals",
               "real_world_hook": "Constraints in real world problems",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -1739,7 +1868,8 @@
               "key_vocabulary": "intercept, extremum, increasing, decreasing",
               "common_misconceptions": "Students confuse the variable and the function value",
               "real_world_hook": "Profit graphs over time",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -1751,7 +1881,8 @@
               "key_vocabulary": "translation, reflection, stretch, parent function",
               "common_misconceptions": "Students confuse horizontal and vertical shifts",
               "real_world_hook": "Modeling shifted phenomena like delayed effects",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -1763,7 +1894,8 @@
               "key_vocabulary": "inverse function, one-to-one",
               "common_misconceptions": "Students compute reciprocals instead of inverses",
               "real_world_hook": "Decoding messages and reversing processes",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -1782,7 +1914,8 @@
               "key_vocabulary": "exponential growth, growth factor",
               "common_misconceptions": "Students model exponential situations as linear",
               "real_world_hook": "Compound interest and viral content",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -1794,7 +1927,8 @@
               "key_vocabulary": "exponential decay, decay factor, half life",
               "common_misconceptions": "Students use negative growth factor instead of decay factor",
               "real_world_hook": "Drug elimination from the body and radioactive decay",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -1806,7 +1940,8 @@
               "key_vocabulary": "horizontal asymptote, exponential graph",
               "common_misconceptions": "Students think the asymptote is a barrier crossed at some point",
               "real_world_hook": "Population growth curves",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -1818,7 +1953,8 @@
               "key_vocabulary": "constant difference, constant ratio",
               "common_misconceptions": "Students compute differences when checking exponential",
               "real_world_hook": "Comparing simple interest with compound interest",
-              "smps": "1, 3"
+              "practices": "1, 3",
+              "meta": {}
             },
             {
               "lesson_number": "5.5",
@@ -1830,7 +1966,8 @@
               "key_vocabulary": "initial value, base, exponential model",
               "common_misconceptions": "Students confuse the initial value with the value after one period",
               "real_world_hook": "Investment projections and inflation",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             }
           ]
         },
@@ -1849,7 +1986,8 @@
               "key_vocabulary": "quadratic, parabola, vertex",
               "common_misconceptions": "Students confuse quadratics with other nonlinear functions",
               "real_world_hook": "Projectile motion and area maximization",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -1861,7 +1999,8 @@
               "key_vocabulary": "axis of symmetry, vertex, x-intercept",
               "common_misconceptions": "Students find vertex by averaging y values instead of x intercepts",
               "real_world_hook": "Path of a thrown ball",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -1873,7 +2012,8 @@
               "key_vocabulary": "standard form, vertex form, factored form",
               "common_misconceptions": "Students think changing form changes the function",
               "real_world_hook": "Choosing form for specific information needed",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -1885,7 +2025,8 @@
               "key_vocabulary": "maximum, minimum, model parameters",
               "common_misconceptions": "Students model linear or exponential situations as quadratic",
               "real_world_hook": "Maximizing revenue based on pricing",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "6.5",
@@ -1897,7 +2038,8 @@
               "key_vocabulary": "function family, dominance, comparison",
               "common_misconceptions": "Students assume quadratic always grows faster than exponential",
               "real_world_hook": "Choosing the right model for a phenomenon",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         },
@@ -1916,7 +2058,8 @@
               "key_vocabulary": "zero product property, factor",
               "common_misconceptions": "Students set factors equal to right side of equation, not zero",
               "real_world_hook": "Finding when a projectile hits the ground",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -1928,7 +2071,8 @@
               "key_vocabulary": "square root method, plus or minus",
               "common_misconceptions": "Students give only the positive root",
               "real_world_hook": "Finding side length given area",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -1940,7 +2084,8 @@
               "key_vocabulary": "completing the square, perfect square trinomial",
               "common_misconceptions": "Students forget to balance both sides when completing",
               "real_world_hook": "Deriving the quadratic formula",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -1952,7 +2097,8 @@
               "key_vocabulary": "discriminant, quadratic formula, complex",
               "common_misconceptions": "Students drop the negative sign on b or compute discriminant incorrectly",
               "real_world_hook": "Engineering and physics problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.5",
@@ -1964,7 +2110,8 @@
               "key_vocabulary": "modeling, contextual solution",
               "common_misconceptions": "Students accept negative or unrealistic solutions",
               "real_world_hook": "Maximum height of a rocket and area enclosed by fencing",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         }
@@ -1996,7 +2143,8 @@
               "key_vocabulary": "compass, straightedge, construction, bisector",
               "common_misconceptions": "Students measure rather than construct, missing the proof element",
               "real_world_hook": "Drafting in architecture",
-              "smps": "5, 6"
+              "practices": "5, 6",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -2008,7 +2156,8 @@
               "key_vocabulary": "undefined term, postulate, theorem",
               "common_misconceptions": "Students use everyday meanings of words like line and angle",
               "real_world_hook": "Precise communication in technical fields",
-              "smps": "6"
+              "practices": "6",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -2020,7 +2169,8 @@
               "key_vocabulary": "rigid motion, isometry, preimage, image",
               "common_misconceptions": "Students apply transformations to figures rather than every point",
               "real_world_hook": "Robotics movement and game development",
-              "smps": "4, 8"
+              "practices": "4, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -2032,7 +2182,8 @@
               "key_vocabulary": "symmetry, axis of symmetry, rotational symmetry",
               "common_misconceptions": "Students think all polygons have line symmetry",
               "real_world_hook": "Designing logos and packaging",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.5",
@@ -2044,7 +2195,8 @@
               "key_vocabulary": "composition, sequence",
               "common_misconceptions": "Students assume order does not matter",
               "real_world_hook": "Sequencing in animation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -2063,7 +2215,8 @@
               "key_vocabulary": "congruent, corresponding parts",
               "common_misconceptions": "Students confuse congruence with similarity",
               "real_world_hook": "Quality control in manufacturing",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -2075,7 +2228,8 @@
               "key_vocabulary": "SSS, SAS, ASA, AAS, HL",
               "common_misconceptions": "Students try to use SSA or AAA for congruence",
               "real_world_hook": "Bridge truss design",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -2087,7 +2241,8 @@
               "key_vocabulary": "two column proof, given, prove, justification",
               "common_misconceptions": "Students skip steps or use circular reasoning",
               "real_world_hook": "Logical reasoning in law and science",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -2099,7 +2254,8 @@
               "key_vocabulary": "CPCTC",
               "common_misconceptions": "Students apply CPCTC before triangles are proven congruent",
               "real_world_hook": "Surveying for inaccessible distances",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -2111,7 +2267,8 @@
               "key_vocabulary": "parallelogram, rhombus, kite, trapezoid",
               "common_misconceptions": "Students assume properties without proof or confuse properties",
               "real_world_hook": "Designing tile patterns and trusses",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         },
@@ -2130,7 +2287,8 @@
               "key_vocabulary": "dilation, scale factor, center",
               "common_misconceptions": "Students apply dilation only to vertices, missing other points",
               "real_world_hook": "Projection in art and photography",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -2142,7 +2300,8 @@
               "key_vocabulary": "similar, similarity transformation",
               "common_misconceptions": "Students require similar figures to have same orientation",
               "real_world_hook": "Architectural scaling",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -2154,7 +2313,8 @@
               "key_vocabulary": "AA, SAS similarity, SSS similarity",
               "common_misconceptions": "Students confuse congruence and similarity criteria",
               "real_world_hook": "Indirect measurement techniques",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -2166,7 +2326,8 @@
               "key_vocabulary": "similar triangle proof",
               "common_misconceptions": "Students set up incorrect proportions",
               "real_world_hook": "Geometric mean and right triangle altitude",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "3.5",
@@ -2178,7 +2339,8 @@
               "key_vocabulary": "indirect measurement, scale",
               "common_misconceptions": "Students set up proportions across rather than within figures",
               "real_world_hook": "Measuring height of tall buildings with shadows",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -2197,7 +2359,8 @@
               "key_vocabulary": "leg, hypotenuse, converse",
               "common_misconceptions": "Students apply Pythagorean theorem to non right triangles",
               "real_world_hook": "Construction layout and navigation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -2209,7 +2372,8 @@
               "key_vocabulary": "sine, cosine, tangent, SOHCAHTOA",
               "common_misconceptions": "Students mix up which sides are opposite and adjacent",
               "real_world_hook": "Surveying and navigation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -2221,7 +2385,8 @@
               "key_vocabulary": "inverse trig, arcsin, arccos, arctan",
               "common_misconceptions": "Students confuse inverse trig with reciprocal",
               "real_world_hook": "Calculating angles of ramps and roofs",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -2233,7 +2398,8 @@
               "key_vocabulary": "30-60-90, 45-45-90, exact value",
               "common_misconceptions": "Students compute special triangle values using calculator instead of memorizing exact form",
               "real_world_hook": "Architectural patterns and design",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -2245,7 +2411,8 @@
               "key_vocabulary": "elevation, depression, bearing",
               "common_misconceptions": "Students confuse angle of elevation with angle of depression",
               "real_world_hook": "Aviation flight paths and ship navigation",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -2264,7 +2431,8 @@
               "key_vocabulary": "right prism, oblique prism, cylinder",
               "common_misconceptions": "Students apply right prism formulas to oblique prisms incorrectly",
               "real_world_hook": "Industrial container design",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -2276,7 +2444,8 @@
               "key_vocabulary": "pyramid, cone, slant height, apex",
               "common_misconceptions": "Students use slant height instead of perpendicular height",
               "real_world_hook": "Architecture of ancient structures",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -2288,7 +2457,8 @@
               "key_vocabulary": "sphere, hemisphere, great circle",
               "common_misconceptions": "Students confuse surface area with volume formula for spheres",
               "real_world_hook": "Sports ball design and astronomy",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -2300,7 +2470,8 @@
               "key_vocabulary": "cross section, axis of revolution",
               "common_misconceptions": "Students visualize the wrong axis of rotation",
               "real_world_hook": "CT scan imaging and lathe manufacturing",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             }
           ]
         },
@@ -2319,7 +2490,8 @@
               "key_vocabulary": "distance formula, midpoint formula",
               "common_misconceptions": "Students compute midpoint by subtracting instead of averaging",
               "real_world_hook": "GPS calculations",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -2331,7 +2503,8 @@
               "key_vocabulary": "parallel, perpendicular, negative reciprocal",
               "common_misconceptions": "Students use opposite slope rather than negative reciprocal for perpendicular",
               "real_world_hook": "Designing intersections and street grids",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -2343,7 +2516,8 @@
               "key_vocabulary": "coordinate proof, generic coordinates",
               "common_misconceptions": "Students pick specific numbers and fail to prove the general case",
               "real_world_hook": "Algebraic justification of geometric facts",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -2355,7 +2529,8 @@
               "key_vocabulary": "partition, section formula, ratio",
               "common_misconceptions": "Students apply midpoint when partition is not at one half",
               "real_world_hook": "Equipartition in design",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             }
           ]
         },
@@ -2374,7 +2549,8 @@
               "key_vocabulary": "central angle, inscribed angle, arc",
               "common_misconceptions": "Students confuse central and inscribed angles",
               "real_world_hook": "Lens and optical design",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -2386,7 +2562,8 @@
               "key_vocabulary": "tangent, chord, secant, point of tangency",
               "common_misconceptions": "Students think tangent line crosses the circle",
               "real_world_hook": "Gear design and railroad curves",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -2398,7 +2575,8 @@
               "key_vocabulary": "arc length, sector, radian",
               "common_misconceptions": "Students use degree measure directly in radian formulas",
               "real_world_hook": "Pizza slice analysis and clock hand sweep",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -2410,7 +2588,8 @@
               "key_vocabulary": "standard form of circle, completing the square",
               "common_misconceptions": "Students forget to take square root when finding radius",
               "real_world_hook": "GPS distance circles",
-              "smps": "7"
+              "practices": "7",
+              "meta": {}
             },
             {
               "lesson_number": "7.5",
@@ -2422,7 +2601,8 @@
               "key_vocabulary": "incenter, circumcenter, inscribed, circumscribed",
               "common_misconceptions": "Students confuse the four triangle centers",
               "real_world_hook": "Optimization problems",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             }
           ]
         },
@@ -2441,7 +2621,8 @@
               "key_vocabulary": "sample space, event, complement, union, intersection",
               "common_misconceptions": "Students miss elements of sample space in compound events",
               "real_world_hook": "Game design and security systems",
-              "smps": "5"
+              "practices": "5",
+              "meta": {}
             },
             {
               "lesson_number": "8.2",
@@ -2453,7 +2634,8 @@
               "key_vocabulary": "independent, multiplication rule",
               "common_misconceptions": "Students assume all events are independent",
               "real_world_hook": "Insurance risk calculation",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.3",
@@ -2465,7 +2647,8 @@
               "key_vocabulary": "conditional probability, given",
               "common_misconceptions": "Students compute joint probability instead of conditional",
               "real_world_hook": "Medical testing and quality assurance",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "8.4",
@@ -2477,7 +2660,8 @@
               "key_vocabulary": "reversed condition, prevalence, base rate",
               "common_misconceptions": "Students ignore base rates leading to base rate fallacy",
               "real_world_hook": "Diagnostic test interpretation",
-              "smps": "2, 3"
+              "practices": "2, 3",
+              "meta": {}
             }
           ]
         }
@@ -2509,7 +2693,8 @@
               "key_vocabulary": "sequence, term, recursive, explicit",
               "common_misconceptions": "Students confuse the term number with the term value",
               "real_world_hook": "Fibonacci sequence in nature",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -2521,7 +2706,8 @@
               "key_vocabulary": "arithmetic sequence, common difference",
               "common_misconceptions": "Students use the first term as zeroth term in formula",
               "real_world_hook": "Saving plans with fixed deposits",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -2533,7 +2719,8 @@
               "key_vocabulary": "geometric sequence, common ratio",
               "common_misconceptions": "Students compute common ratio by subtraction",
               "real_world_hook": "Population growth and depreciation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -2545,7 +2732,8 @@
               "key_vocabulary": "series, sum, sigma notation",
               "common_misconceptions": "Students confuse sequence and series terminology",
               "real_world_hook": "Loan amortization",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -2564,7 +2752,8 @@
               "key_vocabulary": "polynomial, degree, leading coefficient",
               "common_misconceptions": "Students combine unlike terms with same variables but different powers",
               "real_world_hook": "Engineering formulas",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -2576,7 +2765,8 @@
               "key_vocabulary": "long division, synthetic division, remainder",
               "common_misconceptions": "Students misalign terms in long division",
               "real_world_hook": "Engineering applications of polynomial models",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -2588,7 +2778,8 @@
               "key_vocabulary": "factor theorem, remainder theorem, root",
               "common_misconceptions": "Students think remainder theorem gives the zero directly",
               "real_world_hook": "Engineering tolerance and certification",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -2600,7 +2791,8 @@
               "key_vocabulary": "end behavior, multiplicity, turning point",
               "common_misconceptions": "Students miss that even multiplicity makes graph touch axis",
               "real_world_hook": "Modeling profit and cost curves",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -2612,7 +2804,8 @@
               "key_vocabulary": "rational expression, restriction",
               "common_misconceptions": "Students cancel terms instead of factors",
               "real_world_hook": "Average cost and rate problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.6",
@@ -2624,7 +2817,8 @@
               "key_vocabulary": "asymptote, hole, removable discontinuity",
               "common_misconceptions": "Students do not recognize holes when common factors cancel",
               "real_world_hook": "Concentration in chemistry and economics curves",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             }
           ]
         },
@@ -2643,7 +2837,8 @@
               "key_vocabulary": "rational exponent, radical equivalent",
               "common_misconceptions": "Students compute fractional exponent as multiplication",
               "real_world_hook": "Compound interest with non integer periods",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -2655,7 +2850,8 @@
               "key_vocabulary": "extraneous solution, radical equation",
               "common_misconceptions": "Students forget to check for extraneous solutions",
               "real_world_hook": "Physics formulas with square roots",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -2667,7 +2863,8 @@
               "key_vocabulary": "imaginary unit, complex, i",
               "common_misconceptions": "Students assume i has a real value",
               "real_world_hook": "Electrical engineering AC circuits",
-              "smps": "6, 8"
+              "practices": "6, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -2679,7 +2876,8 @@
               "key_vocabulary": "complex conjugate, modulus",
               "common_misconceptions": "Students try to combine real and imaginary parts directly",
               "real_world_hook": "Signal processing and quantum mechanics",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.5",
@@ -2691,7 +2889,8 @@
               "key_vocabulary": "complex root, conjugate pair",
               "common_misconceptions": "Students assume no solution when discriminant is negative",
               "real_world_hook": "Physics problems with no real solution",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -2710,7 +2909,8 @@
               "key_vocabulary": "natural base, e, continuous",
               "common_misconceptions": "Students think e is just another variable",
               "real_world_hook": "Continuous compound interest",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -2722,7 +2922,8 @@
               "key_vocabulary": "logarithm, log base, common log, natural log",
               "common_misconceptions": "Students think log of zero equals one",
               "real_world_hook": "pH scale and decibels",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -2734,7 +2935,8 @@
               "key_vocabulary": "log property, change of base",
               "common_misconceptions": "Students apply log of a sum as a sum of logs",
               "real_world_hook": "Earthquake magnitude calculations",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -2746,7 +2948,8 @@
               "key_vocabulary": "log to solve, isolation",
               "common_misconceptions": "Students apply log without isolating exponential first",
               "real_world_hook": "Doubling time problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -2758,7 +2961,8 @@
               "key_vocabulary": "extraneous, logarithmic equation",
               "common_misconceptions": "Students forget that log argument must be positive",
               "real_world_hook": "Solving for time in growth models",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.6",
@@ -2770,7 +2974,8 @@
               "key_vocabulary": "pH, decibel, Richter, half life",
               "common_misconceptions": "Students forget logarithmic scales are not linear",
               "real_world_hook": "Sound intensity and earthquake comparison",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -2789,7 +2994,8 @@
               "key_vocabulary": "transformation, parent function",
               "common_misconceptions": "Students confuse direction of horizontal transformations",
               "real_world_hook": "Modeling phenomena with shifts",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -2801,7 +3007,8 @@
               "key_vocabulary": "composition of transformations",
               "common_misconceptions": "Students apply transformations in wrong order",
               "real_world_hook": "Signal modifications in engineering",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -2813,7 +3020,8 @@
               "key_vocabulary": "inverse, one to one",
               "common_misconceptions": "Students find reciprocal instead of inverse",
               "real_world_hook": "Conversion formulas in engineering",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -2825,7 +3033,8 @@
               "key_vocabulary": "piecewise, step function",
               "common_misconceptions": "Students use the wrong piece for evaluation",
               "real_world_hook": "Tax brackets and shipping costs",
-              "smps": "5, 6"
+              "practices": "5, 6",
+              "meta": {}
             }
           ]
         },
@@ -2844,7 +3053,8 @@
               "key_vocabulary": "radian, degree, arc length",
               "common_misconceptions": "Students forget to convert between degrees and radians",
               "real_world_hook": "Physics and engineering applications",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -2856,7 +3066,8 @@
               "key_vocabulary": "unit circle, reference angle, quadrant",
               "common_misconceptions": "Students get sign wrong in quadrants two, three, four",
               "real_world_hook": "Periodic motion modeling",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -2868,7 +3079,8 @@
               "key_vocabulary": "period, amplitude, phase shift, midline",
               "common_misconceptions": "Students think amplitude is the full height of the curve",
               "real_world_hook": "Sound waves and tides",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -2880,7 +3092,8 @@
               "key_vocabulary": "transformation of sine, transformation of cosine",
               "common_misconceptions": "Students misinterpret the effect of b on period",
               "real_world_hook": "Audio modulation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.5",
@@ -2892,7 +3105,8 @@
               "key_vocabulary": "tangent, cotangent, secant, cosecant",
               "common_misconceptions": "Students confuse where tangent is undefined",
               "real_world_hook": "Optics and angle of incidence",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.6",
@@ -2904,7 +3118,8 @@
               "key_vocabulary": "Pythagorean identity, simplify",
               "common_misconceptions": "Students misapply the identity to other operations",
               "real_world_hook": "Simplifying physics formulas",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -2923,7 +3138,8 @@
               "key_vocabulary": "normal distribution, empirical rule, z score",
               "common_misconceptions": "Students apply empirical rule to non normal distributions",
               "real_world_hook": "IQ scores and quality control",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -2935,7 +3151,8 @@
               "key_vocabulary": "z score, standardized value",
               "common_misconceptions": "Students forget to subtract mean before dividing by standard deviation",
               "real_world_hook": "Comparing scores from different tests",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -2947,7 +3164,8 @@
               "key_vocabulary": "observational study, experiment, control",
               "common_misconceptions": "Students conflate random sampling with random assignment",
               "real_world_hook": "Designing clinical trials",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -2959,7 +3177,8 @@
               "key_vocabulary": "margin of error, confidence interval",
               "common_misconceptions": "Students think a smaller margin of error means more accurate sample",
               "real_world_hook": "Political polling",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.5",
@@ -2971,7 +3190,8 @@
               "key_vocabulary": "simulation, randomization",
               "common_misconceptions": "Students treat one simulation as definitive",
               "real_world_hook": "Bootstrapping for confidence intervals",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             }
           ]
         }
@@ -3003,7 +3223,8 @@
               "key_vocabulary": "concave up, concave down, increasing",
               "common_misconceptions": "Students confuse concavity with increasing or decreasing",
               "real_world_hook": "Marathon pacing analysis",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -3015,7 +3236,8 @@
               "key_vocabulary": "average rate of change, secant",
               "common_misconceptions": "Students compute slope but forget context",
               "real_world_hook": "Stock price changes over intervals",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -3027,7 +3249,8 @@
               "key_vocabulary": "order of polynomial, constant difference",
               "common_misconceptions": "Students miss that second differences identify quadratic",
               "real_world_hook": "Modeling acceleration in motion",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -3039,7 +3262,8 @@
               "key_vocabulary": "end behavior, complex conjugate, multiplicity",
               "common_misconceptions": "Students forget that complex zeros come in conjugate pairs",
               "real_world_hook": "Long range forecasting",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.5",
@@ -3051,7 +3275,8 @@
               "key_vocabulary": "vertical asymptote, slant asymptote",
               "common_misconceptions": "Students miss slant asymptote when degrees differ by one",
               "real_world_hook": "Concentration approaching equilibrium",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.6",
@@ -3063,7 +3288,8 @@
               "key_vocabulary": "sign chart, boundary",
               "common_misconceptions": "Students multiply by variables without considering sign",
               "real_world_hook": "Profitability range analysis",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -3082,7 +3308,8 @@
               "key_vocabulary": "sequence as function",
               "common_misconceptions": "Students treat sequences as separate from functions",
               "real_world_hook": "Discrete versus continuous models",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -3094,7 +3321,8 @@
               "key_vocabulary": "continuous growth, percent change",
               "common_misconceptions": "Students think exponential and percentage growth are different",
               "real_world_hook": "Bacterial cultures and viral spread",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -3106,7 +3334,8 @@
               "key_vocabulary": "composition, inverse function",
               "common_misconceptions": "Students confuse f composed with g and product of f and g",
               "real_world_hook": "Pipeline processes in production",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -3118,7 +3347,8 @@
               "key_vocabulary": "log function, domain of log",
               "common_misconceptions": "Students take log of negative argument",
               "real_world_hook": "Reverse engineering compound growth",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -3130,7 +3360,8 @@
               "key_vocabulary": "semi log, linearization",
               "common_misconceptions": "Students read log scaled axes as linear",
               "real_world_hook": "Income distribution and stock price analysis",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             }
           ]
         },
@@ -3149,7 +3380,8 @@
               "key_vocabulary": "period, amplitude, frequency",
               "common_misconceptions": "Students confuse period with phase shift",
               "real_world_hook": "Tides, sound waves, and EKG",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -3161,7 +3393,8 @@
               "key_vocabulary": "sinusoidal, midline equation",
               "common_misconceptions": "Students reverse cosine and sine on unit circle",
               "real_world_hook": "Mechanical vibrations and waves",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -3173,7 +3406,8 @@
               "key_vocabulary": "sinusoidal model, parameter fit",
               "common_misconceptions": "Students fit wrong period from peak to trough",
               "real_world_hook": "Daily temperature cycles and hours of daylight",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -3185,7 +3419,8 @@
               "key_vocabulary": "tangent, arcsin, arccos, arctan",
               "common_misconceptions": "Students give all solutions instead of principal value",
               "real_world_hook": "Optics and angles of approach",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.5",
@@ -3197,7 +3432,8 @@
               "key_vocabulary": "identity, double angle, sum identity",
               "common_misconceptions": "Students treat sin of A plus B as sin A plus sin B",
               "real_world_hook": "Simplifying physics expressions",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.6",
@@ -3209,7 +3445,8 @@
               "key_vocabulary": "polar, rectangular, r, theta",
               "common_misconceptions": "Students switch r and theta in formulas",
               "real_world_hook": "Radar systems and navigation",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "3.7",
@@ -3221,7 +3458,8 @@
               "key_vocabulary": "cardioid, rose, limacon",
               "common_misconceptions": "Students plot polar points using rectangular intuition",
               "real_world_hook": "Antenna patterns",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             }
           ]
         },
@@ -3240,7 +3478,8 @@
               "key_vocabulary": "parameter, parametric, parametric form",
               "common_misconceptions": "Students eliminate parameter incorrectly losing direction",
               "real_world_hook": "Projectile paths and animation",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -3252,7 +3491,8 @@
               "key_vocabulary": "parametric conic",
               "common_misconceptions": "Students choose incorrect ranges of parameter",
               "real_world_hook": "Orbit modeling",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -3264,7 +3504,8 @@
               "key_vocabulary": "vector, magnitude, direction, dot product",
               "common_misconceptions": "Students add magnitudes instead of components",
               "real_world_hook": "Force diagrams and navigation",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -3276,7 +3517,8 @@
               "key_vocabulary": "matrix, dimensions, product",
               "common_misconceptions": "Students multiply matrices element by element",
               "real_world_hook": "Linear transformations and computer graphics",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -3295,7 +3537,8 @@
               "key_vocabulary": "limit, one sided limit, approach",
               "common_misconceptions": "Students believe limit equals function value at point",
               "real_world_hook": "Speed at instant in time",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -3307,7 +3550,8 @@
               "key_vocabulary": "continuous, discontinuity, removable",
               "common_misconceptions": "Students treat all jumps the same",
               "real_world_hook": "Continuous tax functions versus tiered",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -3319,7 +3563,8 @@
               "key_vocabulary": "tangent line, instantaneous rate",
               "common_misconceptions": "Students compute slope between same points",
               "real_world_hook": "Velocity from position function",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -3331,7 +3576,8 @@
               "key_vocabulary": "derivative, difference quotient",
               "common_misconceptions": "Students simplify difference quotient incorrectly",
               "real_world_hook": "Modeling change in any field",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         }
@@ -3363,7 +3609,8 @@
               "key_vocabulary": "limit notation, approach, asymptotic",
               "common_misconceptions": "Students think limit equals function value when continuous",
               "real_world_hook": "Approaching maximum capacity",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -3375,7 +3622,8 @@
               "key_vocabulary": "direct substitution, indeterminate, factor",
               "common_misconceptions": "Students stop at indeterminate form without manipulation",
               "real_world_hook": "Calculating instantaneous rates",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -3387,7 +3635,8 @@
               "key_vocabulary": "squeeze theorem, special limits",
               "common_misconceptions": "Students compute limit of sin x over x as 1 by direct substitution",
               "real_world_hook": "Physics with small angle approximation",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -3399,7 +3648,8 @@
               "key_vocabulary": "continuous at a point, removable, jump",
               "common_misconceptions": "Students conflate continuous with differentiable",
               "real_world_hook": "Continuous processes in nature",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "1.5",
@@ -3411,7 +3661,8 @@
               "key_vocabulary": "intermediate value theorem",
               "common_misconceptions": "Students apply theorem to discontinuous functions",
               "real_world_hook": "Equation root existence",
-              "smps": "3, 8"
+              "practices": "3, 8",
+              "meta": {}
             }
           ]
         },
@@ -3430,7 +3681,8 @@
               "key_vocabulary": "difference quotient, derivative",
               "common_misconceptions": "Students confuse derivative with average rate",
               "real_world_hook": "Instantaneous velocity from position",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -3442,7 +3694,8 @@
               "key_vocabulary": "power rule, constant rule",
               "common_misconceptions": "Students apply power rule to exponential functions",
               "real_world_hook": "Marginal cost in economics",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -3454,7 +3707,8 @@
               "key_vocabulary": "product rule, quotient rule",
               "common_misconceptions": "Students differentiate products as the product of derivatives",
               "real_world_hook": "Rate problems with multiple quantities",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -3466,7 +3720,8 @@
               "key_vocabulary": "derivative of sine, derivative of cosine",
               "common_misconceptions": "Students confuse signs of trig derivatives",
               "real_world_hook": "Oscillations in physics",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "2.5",
@@ -3478,7 +3733,8 @@
               "key_vocabulary": "natural exponential, natural log",
               "common_misconceptions": "Students treat e to the x same as power function",
               "real_world_hook": "Exponential growth derivatives",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -3497,7 +3753,8 @@
               "key_vocabulary": "chain rule, composite",
               "common_misconceptions": "Students miss the inner derivative",
               "real_world_hook": "Related rate problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -3509,7 +3766,8 @@
               "key_vocabulary": "implicit function, dy dx",
               "common_misconceptions": "Students forget to apply chain rule to y terms",
               "real_world_hook": "Curves defined by equations",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -3521,7 +3779,8 @@
               "key_vocabulary": "inverse derivative, reciprocal slope",
               "common_misconceptions": "Students use derivative of original function directly",
               "real_world_hook": "Reverse engineering rates",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -3533,7 +3792,8 @@
               "key_vocabulary": "arcsin, arccos, arctan derivatives",
               "common_misconceptions": "Students confuse the formulas",
               "real_world_hook": "Angle related rates",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -3552,7 +3812,8 @@
               "key_vocabulary": "position, velocity, acceleration, speed",
               "common_misconceptions": "Students confuse speed with velocity sign",
               "real_world_hook": "Physics problems with motion",
-              "smps": "2, 4"
+              "practices": "2, 4",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -3564,7 +3825,8 @@
               "key_vocabulary": "related rates, dr dt",
               "common_misconceptions": "Students forget chain rule with respect to time",
               "real_world_hook": "Filling tanks and growing shadows",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -3576,7 +3838,8 @@
               "key_vocabulary": "linearization, differential",
               "common_misconceptions": "Students use approximation far from base point",
               "real_world_hook": "Engineering tolerance analysis",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -3588,7 +3851,8 @@
               "key_vocabulary": "L Hopital, indeterminate form",
               "common_misconceptions": "Students apply rule when conditions are not met",
               "real_world_hook": "Evaluating limits in physics",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -3607,7 +3871,8 @@
               "key_vocabulary": "extreme value, absolute max, absolute min",
               "common_misconceptions": "Students forget to check endpoints",
               "real_world_hook": "Optimizing within constraints",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -3619,7 +3884,8 @@
               "key_vocabulary": "first derivative test, relative max, relative min",
               "common_misconceptions": "Students confuse positive derivative with positive function",
               "real_world_hook": "Profit maximization",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -3631,7 +3897,8 @@
               "key_vocabulary": "second derivative test, inflection point, concavity",
               "common_misconceptions": "Students think concavity changes at every zero of second derivative",
               "real_world_hook": "Inflection in growth curves",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -3643,7 +3910,8 @@
               "key_vocabulary": "mean value theorem, Rolle theorem",
               "common_misconceptions": "Students apply MVT without verifying differentiability",
               "real_world_hook": "Average versus instantaneous justification",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "5.5",
@@ -3655,7 +3923,8 @@
               "key_vocabulary": "optimization, constraint",
               "common_misconceptions": "Students optimize wrong quantity due to setup error",
               "real_world_hook": "Maximum volume given fixed surface area",
-              "smps": "1, 4"
+              "practices": "1, 4",
+              "meta": {}
             }
           ]
         },
@@ -3674,7 +3943,8 @@
               "key_vocabulary": "antiderivative, indefinite integral, constant of integration",
               "common_misconceptions": "Students forget the constant of integration",
               "real_world_hook": "Recovering position from velocity",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -3686,7 +3956,8 @@
               "key_vocabulary": "Riemann sum, partition, regular",
               "common_misconceptions": "Students forget to multiply by width",
               "real_world_hook": "Estimating total quantity from rate data",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -3698,7 +3969,8 @@
               "key_vocabulary": "definite integral, bounds, net area",
               "common_misconceptions": "Students treat signed area as if always positive",
               "real_world_hook": "Net change versus total change",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -3710,7 +3982,8 @@
               "key_vocabulary": "fundamental theorem, accumulation function",
               "common_misconceptions": "Students confuse the two parts of FTC",
               "real_world_hook": "Total accumulation problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "6.5",
@@ -3722,7 +3995,8 @@
               "key_vocabulary": "u substitution, change of variable",
               "common_misconceptions": "Students forget to change bounds for definite integrals",
               "real_world_hook": "Complex rate of change problems",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             }
           ]
         },
@@ -3741,7 +4015,8 @@
               "key_vocabulary": "slope field, differential equation",
               "common_misconceptions": "Students plot points instead of slopes",
               "real_world_hook": "Visualizing population growth models",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -3753,7 +4028,8 @@
               "key_vocabulary": "separable, initial condition",
               "common_misconceptions": "Students forget to determine constant from initial condition",
               "real_world_hook": "Newton law of cooling",
-              "smps": "7, 8"
+              "practices": "7, 8",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -3765,7 +4041,8 @@
               "key_vocabulary": "continuous growth, decay constant",
               "common_misconceptions": "Students confuse growth rate constant and growth factor",
               "real_world_hook": "Radioactive decay and population biology",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             }
           ]
         },
@@ -3784,7 +4061,8 @@
               "key_vocabulary": "area between curves, intersection",
               "common_misconceptions": "Students subtract in the wrong order",
               "real_world_hook": "Profit between revenue and cost curves",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.2",
@@ -3796,7 +4074,8 @@
               "key_vocabulary": "disk method, washer method, axis of revolution",
               "common_misconceptions": "Students forget to subtract inner radius squared in washers",
               "real_world_hook": "Engineering shapes of revolution",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.3",
@@ -3808,7 +4087,8 @@
               "key_vocabulary": "cross section, perpendicular axis",
               "common_misconceptions": "Students square the wrong quantity for triangular cross sections",
               "real_world_hook": "Architectural design",
-              "smps": "5, 7"
+              "practices": "5, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.4",
@@ -3820,7 +4100,8 @@
               "key_vocabulary": "accumulation, average value of function",
               "common_misconceptions": "Students confuse average value with average rate of change",
               "real_world_hook": "Total water flow and total distance",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             }
           ]
         }
@@ -3852,7 +4133,8 @@
               "key_vocabulary": "categorical, frequency, relative frequency",
               "common_misconceptions": "Students use histograms instead of bar charts for categorical data",
               "real_world_hook": "Market research surveys",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "1.2",
@@ -3864,7 +4146,8 @@
               "key_vocabulary": "distribution, skew, mode",
               "common_misconceptions": "Students describe shape using subjective terms",
               "real_world_hook": "Test score analysis",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "1.3",
@@ -3876,7 +4159,8 @@
               "key_vocabulary": "percentile, quartile, z score",
               "common_misconceptions": "Students compute percentile using only ranking, not value",
               "real_world_hook": "College admissions and class rank",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "1.4",
@@ -3888,7 +4172,8 @@
               "key_vocabulary": "variance, standard deviation, IQR",
               "common_misconceptions": "Students use sd formula without dividing by n minus one",
               "real_world_hook": "Risk assessment in finance",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "1.5",
@@ -3900,7 +4185,8 @@
               "key_vocabulary": "normal, empirical rule, z table",
               "common_misconceptions": "Students assume any bell curve follows empirical rule exactly",
               "real_world_hook": "Quality control specifications",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             }
           ]
         },
@@ -3919,7 +4205,8 @@
               "key_vocabulary": "correlation coefficient, association",
               "common_misconceptions": "Students confuse correlation with causation",
               "real_world_hook": "Predicting health outcomes",
-              "smps": "4, 6"
+              "practices": "4, 6",
+              "meta": {}
             },
             {
               "lesson_number": "2.2",
@@ -3931,7 +4218,8 @@
               "key_vocabulary": "LSRL, least squares, intercept",
               "common_misconceptions": "Students interpret slope and intercept without context",
               "real_world_hook": "Predicting test scores",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.3",
@@ -3943,7 +4231,8 @@
               "key_vocabulary": "residual, residual plot, influential",
               "common_misconceptions": "Students miss when residual patterns suggest nonlinearity",
               "real_world_hook": "Improving forecast models",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "2.4",
@@ -3955,7 +4244,8 @@
               "key_vocabulary": "log transformation, linearize",
               "common_misconceptions": "Students apply wrong transformation for given pattern",
               "real_world_hook": "Modeling exponential phenomena",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             }
           ]
         },
@@ -3974,7 +4264,8 @@
               "key_vocabulary": "SRS, stratified, cluster, systematic",
               "common_misconceptions": "Students conflate stratified and cluster sampling",
               "real_world_hook": "Polling and survey design",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "3.2",
@@ -3986,7 +4277,8 @@
               "key_vocabulary": "undercoverage, nonresponse, response bias",
               "common_misconceptions": "Students think any non random sample has the same bias",
               "real_world_hook": "Critiquing political polls",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "3.3",
@@ -3998,7 +4290,8 @@
               "key_vocabulary": "treatment, control, placebo, double blind",
               "common_misconceptions": "Students think any comparison study is an experiment",
               "real_world_hook": "Clinical trials and product testing",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "3.4",
@@ -4010,7 +4303,8 @@
               "key_vocabulary": "block, matched pairs",
               "common_misconceptions": "Students confuse stratified sampling with blocking",
               "real_world_hook": "Education intervention studies",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             },
             {
               "lesson_number": "3.5",
@@ -4022,7 +4316,8 @@
               "key_vocabulary": "confounding, lurking variable, causation",
               "common_misconceptions": "Students claim causation from observational data",
               "real_world_hook": "Critiquing health study claims",
-              "smps": "3, 4"
+              "practices": "3, 4",
+              "meta": {}
             }
           ]
         },
@@ -4041,7 +4336,8 @@
               "key_vocabulary": "conditional probability, complement, union",
               "common_misconceptions": "Students add probabilities when events are not disjoint",
               "real_world_hook": "Insurance risk modeling",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.2",
@@ -4053,7 +4349,8 @@
               "key_vocabulary": "independent, mutually exclusive",
               "common_misconceptions": "Students confuse independent with mutually exclusive",
               "real_world_hook": "Reliability of components",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.3",
@@ -4065,7 +4362,8 @@
               "key_vocabulary": "random variable, expected value, variance",
               "common_misconceptions": "Students compute expected value as simple average of values",
               "real_world_hook": "Lottery and game expected outcomes",
-              "smps": "2, 7"
+              "practices": "2, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.4",
@@ -4077,7 +4375,8 @@
               "key_vocabulary": "binomial, n choose k, success",
               "common_misconceptions": "Students apply binomial to non independent trials",
               "real_world_hook": "Quality control testing",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             },
             {
               "lesson_number": "4.5",
@@ -4089,7 +4388,8 @@
               "key_vocabulary": "geometric, first success",
               "common_misconceptions": "Students confuse geometric with binomial settings",
               "real_world_hook": "Waiting time problems",
-              "smps": "4, 7"
+              "practices": "4, 7",
+              "meta": {}
             }
           ]
         },
@@ -4108,7 +4408,8 @@
               "key_vocabulary": "sampling distribution, CLT",
               "common_misconceptions": "Students confuse sample distribution with sampling distribution",
               "real_world_hook": "Quality control with averages",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "5.2",
@@ -4120,7 +4421,8 @@
               "key_vocabulary": "sample proportion, p hat",
               "common_misconceptions": "Students forget to check conditions for normality",
               "real_world_hook": "Polling theory",
-              "smps": "2, 6"
+              "practices": "2, 6",
+              "meta": {}
             },
             {
               "lesson_number": "5.3",
@@ -4132,7 +4434,8 @@
               "key_vocabulary": "bias, variability, estimator",
               "common_misconceptions": "Students think reducing sample size reduces bias",
               "real_world_hook": "Designing studies for accuracy",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "5.4",
@@ -4144,7 +4447,8 @@
               "key_vocabulary": "simulation, repeated sampling",
               "common_misconceptions": "Students treat one simulation as definitive",
               "real_world_hook": "Bootstrap methods preview",
-              "smps": "4, 5"
+              "practices": "4, 5",
+              "meta": {}
             }
           ]
         },
@@ -4163,7 +4467,8 @@
               "key_vocabulary": "confidence interval, critical value",
               "common_misconceptions": "Students interpret CI as probability statement about parameter",
               "real_world_hook": "Election polling",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.2",
@@ -4175,7 +4480,8 @@
               "key_vocabulary": "null hypothesis, p value, alpha",
               "common_misconceptions": "Students reject null based on small p value without checking conditions",
               "real_world_hook": "Drug efficacy claims",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "6.3",
@@ -4187,7 +4493,8 @@
               "key_vocabulary": "two proportion CI",
               "common_misconceptions": "Students use pooled standard error for confidence intervals",
               "real_world_hook": "Comparing campaign approval",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "6.4",
@@ -4199,7 +4506,8 @@
               "key_vocabulary": "two proportion z test",
               "common_misconceptions": "Students forget pooled estimate for two sample test",
               "real_world_hook": "A B testing in marketing",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             }
           ]
         },
@@ -4218,7 +4526,8 @@
               "key_vocabulary": "t distribution, degrees of freedom",
               "common_misconceptions": "Students use z when sample size is small and sigma unknown",
               "real_world_hook": "Estimating average response time",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "7.2",
@@ -4230,7 +4539,8 @@
               "key_vocabulary": "one sample t test",
               "common_misconceptions": "Students fail to check normality or use of t",
               "real_world_hook": "Industrial process specifications",
-              "smps": "3, 6"
+              "practices": "3, 6",
+              "meta": {}
             },
             {
               "lesson_number": "7.3",
@@ -4242,7 +4552,8 @@
               "key_vocabulary": "two sample t, pooled",
               "common_misconceptions": "Students pool when not appropriate",
               "real_world_hook": "Comparing teaching methods",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "7.4",
@@ -4254,7 +4565,8 @@
               "key_vocabulary": "paired, matched, difference",
               "common_misconceptions": "Students use two sample test for paired data",
               "real_world_hook": "Pre and post intervention studies",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         },
@@ -4273,7 +4585,8 @@
               "key_vocabulary": "goodness of fit, chi square",
               "common_misconceptions": "Students forget to check expected count conditions",
               "real_world_hook": "Testing claimed proportions",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.2",
@@ -4285,7 +4598,8 @@
               "key_vocabulary": "homogeneity, contingency",
               "common_misconceptions": "Students confuse homogeneity and independence tests",
               "real_world_hook": "Comparing distributions across groups",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             },
             {
               "lesson_number": "8.3",
@@ -4297,7 +4611,8 @@
               "key_vocabulary": "independence, contingency",
               "common_misconceptions": "Students think chi square gives effect size",
               "real_world_hook": "Genetic linkage testing",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         },
@@ -4316,7 +4631,8 @@
               "key_vocabulary": "sampling distribution of slope",
               "common_misconceptions": "Students confuse standard error of slope with sd of residuals",
               "real_world_hook": "Significance of trends",
-              "smps": "6, 7"
+              "practices": "6, 7",
+              "meta": {}
             },
             {
               "lesson_number": "9.2",
@@ -4328,61 +4644,70 @@
               "key_vocabulary": "t test for slope, regression inference",
               "common_misconceptions": "Students report only the slope without standard error context",
               "real_world_hook": "Significance of relationships",
-              "smps": "3, 7"
+              "practices": "3, 7",
+              "meta": {}
             }
           ]
         }
       ]
     }
   ],
-  "smps": [
+  "practices": [
     {
-      "smp_number": 1,
+      "code": "SMP 1",
       "practice": "Make sense of problems and persevere in solving them",
       "what_students_do": "Read carefully, plan a solution path, monitor progress, change course if needed, check answers using a different method",
-      "implications": "Include open ended problems with multiple solution paths. Build in productive struggle moments. Design hints that nudge rather than reveal."
+      "implications": "Include open ended problems with multiple solution paths. Build in productive struggle moments. Design hints that nudge rather than reveal.",
+      "display_order": 1
     },
     {
-      "smp_number": 2,
+      "code": "SMP 2",
       "practice": "Reason abstractly and quantitatively",
       "what_students_do": "Decontextualize to manipulate symbols, then re-contextualize to interpret meaning. Attend to units throughout.",
-      "implications": "Frame problems with rich context. Ask students to interpret algebraic results back in original units."
+      "implications": "Frame problems with rich context. Ask students to interpret algebraic results back in original units.",
+      "display_order": 2
     },
     {
-      "smp_number": 3,
+      "code": "SMP 3",
       "practice": "Construct viable arguments and critique the reasoning of others",
       "what_students_do": "Justify conclusions, evaluate plausibility of arguments, distinguish correct from flawed reasoning",
-      "implications": "Include peer review prompts. Show worked examples with errors for students to critique. Use Always Sometimes Never tasks."
+      "implications": "Include peer review prompts. Show worked examples with errors for students to critique. Use Always Sometimes Never tasks.",
+      "display_order": 3
     },
     {
-      "smp_number": 4,
+      "code": "SMP 4",
       "practice": "Model with mathematics",
       "what_students_do": "Apply math to solve real world problems. Make assumptions, identify quantities, use diagrams, analyze, interpret, revise",
-      "implications": "Use multi step real world tasks. Make modeling cycle explicit. Tolerate messiness in real data."
+      "implications": "Use multi step real world tasks. Make modeling cycle explicit. Tolerate messiness in real data.",
+      "display_order": 4
     },
     {
-      "smp_number": 5,
+      "code": "SMP 5",
       "practice": "Use appropriate tools strategically",
       "what_students_do": "Choose tools wisely including pencil and paper, calculator, ruler, dynamic geometry software, spreadsheets",
-      "implications": "Teach when to use which tool. Build technology into specific lessons. Avoid making technology the focus."
+      "implications": "Teach when to use which tool. Build technology into specific lessons. Avoid making technology the focus.",
+      "display_order": 5
     },
     {
-      "smp_number": 6,
+      "code": "SMP 6",
       "practice": "Attend to precision",
       "what_students_do": "Communicate precisely, use definitions accurately, label units, compute with appropriate precision",
-      "implications": "Insist on clear notation and complete sentences in explanations. Grade for units and labels."
+      "implications": "Insist on clear notation and complete sentences in explanations. Grade for units and labels.",
+      "display_order": 6
     },
     {
-      "smp_number": 7,
+      "code": "SMP 7",
       "practice": "Look for and make use of structure",
       "what_students_do": "See patterns, decompose complex problems, recognize equivalent forms, identify auxiliary structures",
-      "implications": "Sequence problems to reveal structure. Use multiple representations. Connect new content to prior structure."
+      "implications": "Sequence problems to reveal structure. Use multiple representations. Connect new content to prior structure.",
+      "display_order": 7
     },
     {
-      "smp_number": 8,
+      "code": "SMP 8",
       "practice": "Look for and express regularity in repeated reasoning",
       "what_students_do": "Notice repeated calculations and shortcut to general method. Maintain oversight of process while attending to details.",
-      "implications": "Use sequences of similar problems that reveal underlying formula or rule. Ask students to articulate generalization."
+      "implications": "Use sequences of similar problems that reveal underlying formula or rule. Ask students to articulate generalization.",
+      "display_order": 8
     }
   ],
   "misconceptions": [
