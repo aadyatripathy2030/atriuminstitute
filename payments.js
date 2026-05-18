@@ -123,7 +123,26 @@
     }
   }
 
+  // Hide the pricing card and disable the upgrade modal when the server
+  // says the paywall is off (PAYWALL_DISABLED=1 on the host). Fail-open:
+  // if /api/config doesn't respond, leave the existing UI alone.
+  async function applyPaywallVisibility() {
+    try {
+      const r = await fetch('/api/config', { credentials: 'same-origin' });
+      const cfg = await r.json();
+      if (cfg && cfg.paywall_active === false) {
+        const section = document.querySelector('.landing-pricing');
+        if (section) section.style.display = 'none';
+        // Override requirePro so any feature-gate caller just passes through.
+        window.requirePro = function () { return true; };
+        // Make sure the upgrade modal can never pop.
+        window.openUpgradeModal = function () { /* paywall disabled */ };
+      }
+    } catch (_) { /* leave UI as-is */ }
+  }
+
   function init() {
+    applyPaywallVisibility();
     syncPricingCard();
     syncUpgradeModal();
 

@@ -17,6 +17,13 @@ const PRICE_YEARLY  = process.env.STRIPE_PRICE_ID_YEARLY  || '';
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const SITE_URL = (process.env.SITE_URL || 'https://atriuminstitute.onrender.com').replace(/\/$/, '');
 
+// Kill switch. When PAYWALL_DISABLED is unset or anything other than the
+// literal string "0", the paywall is OFF: isConfigured() returns false,
+// every code path that asked "is Stripe live?" sees No, /api/claude does
+// not gate, /api/stripe/checkout returns 503. The Stripe code stays in
+// place so flipping this back to "0" re-enables everything.
+const PAYWALL_DISABLED = (process.env.PAYWALL_DISABLED || '1') !== '0';
+
 const TRIAL_DAYS = 3;
 
 let stripe = null;
@@ -29,6 +36,7 @@ try {
 }
 
 function isConfigured() {
+  if (PAYWALL_DISABLED) return false;
   return !!(stripe && PRICE_MONTHLY && PRICE_YEARLY);
 }
 

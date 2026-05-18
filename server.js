@@ -211,7 +211,11 @@ function userPublic(u) {
     subscription_status: u.subscription_status || null,
     subscription_plan: u.subscription_plan || null,
     current_period_end: u.current_period_end || null,
-    is_pro: stripeLib.isActiveStatus(u.subscription_status),
+    // When the paywall kill switch is on (isConfigured() returns false),
+    // every signed-in user has full access — is_pro is true regardless of
+    // subscription_status. Once the paywall is re-enabled this collapses
+    // back to "active or trialing means pro".
+    is_pro: !stripeLib.isConfigured() || stripeLib.isActiveStatus(u.subscription_status),
   };
 }
 
@@ -275,6 +279,13 @@ async function handleMe(req, res) {
     ? await db.listLinkedStudents(u.id)
     : await db.listLinkedParents(u.id);
   json(res, 200, { user: userPublic(u), links: links.map(userPublic) });
+}
+
+// Public site config. Anonymous-readable. Currently just exposes whether
+// the Stripe paywall is live so the landing page can hide the pricing
+// card and the upgrade modal when the kill switch is on.
+async function handleGetConfig(req, res) {
+  json(res, 200, { paywall_active: stripeLib.isConfigured() });
 }
 
 async function handleUpdateProfile(req, res) {
@@ -1515,6 +1526,9 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/auth/verify' && req.method === 'POST') return handleVerify(req, res);
     if (url === '/api/auth/logout' && req.method === 'POST') return handleLogout(req, res);
     if (url === '/api/auth/me' && req.method === 'GET') return handleMe(req, res);
+    // Public, unauthenticated config so the landing page can decide
+    // whether to show the pricing card without doing a /me round-trip.
+    if (url === '/api/config' && req.method === 'GET') return handleGetConfig(req, res);
     // Profile, links
     if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
     if (url === '/api/me/rich-profile' && req.method === 'GET') return handleGetRichProfile(req, res);
