@@ -69,6 +69,93 @@
 
   let lastLoaded = { attempts: [], weak: [], activity: [] };
 
+  // Activity rollup state. Default range is daily; the four tabs flip
+  // _summaryRange and reload the table.
+  let _summaryRange = 'daily';
+  let _summaryWired = false;
+
+  function _fmtMinutes(seconds) {
+    const m = Math.round((seconds || 0) / 60);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), mm = m % 60;
+    return mm === 0 ? h + ' hr' : `${h}h ${mm}m`;
+  }
+
+  function _fmtRangeLabel(range, from, to) {
+    const r = (range || 'daily').toLowerCase();
+    const label = { daily: 'Today', weekly: 'Last 7 days', monthly: 'Last 30 days', quarterly: 'Last 90 days' }[r] || 'Today';
+    if (!from || !to) return label;
+    return `${label} (${from} → ${to})`;
+  }
+
+  async function reloadActivitySummary(target /* 'self' | 'student' */, studentId) {
+    const tableBody = document.querySelector('#activitySummaryTable tbody');
+    const rangeNote = el('activitySummaryRange');
+    if (!tableBody) return;
+    tableBody.innerHTML = '<tr><td colspan="9" class="empty">Loading…</td></tr>';
+    let url = target === 'student'
+      ? `/api/parent/students/${encodeURIComponent(studentId)}/activity-summary?range=${_summaryRange}`
+      : `/api/me/activity-summary?range=${_summaryRange}`;
+    try {
+      const data = await fetchJSON(url);
+      if (rangeNote) rangeNote.textContent = _fmtRangeLabel(data.range, data.from, data.to);
+      const subjects = data.subjects || [];
+      // Totals row.
+      const tot = subjects.reduce((a, s) => ({
+        signins: a.signins + s.signins,
+        lessons_started: a.lessons_started + s.lessons_started,
+        quizzes_started: a.quizzes_started + s.quizzes_started,
+        quizzes_passed: a.quizzes_passed + s.quizzes_passed,
+        quizzes_failed: a.quizzes_failed + s.quizzes_failed,
+        hints_used: a.hints_used + s.hints_used,
+        time_spent_seconds: a.time_spent_seconds + s.time_spent_seconds,
+      }), { signins: 0, lessons_started: 0, quizzes_started: 0, quizzes_passed: 0, quizzes_failed: 0, hints_used: 0, time_spent_seconds: 0 });
+      const avg = subjects.length
+        ? Math.round(subjects.reduce((a, s) => a + (s.avg_score_pct || 0), 0) / subjects.length)
+        : 0;
+      tableBody.innerHTML = subjects.map(s => `
+        <tr>
+          <td>${esc(s.subject_title)}</td>
+          <td class="num">${s.signins}</td>
+          <td class="num">${s.lessons_started}</td>
+          <td class="num">${s.quizzes_started}</td>
+          <td class="num ok">${s.quizzes_passed}</td>
+          <td class="num warn">${s.quizzes_failed}</td>
+          <td class="num">${s.avg_score_pct || 0}%</td>
+          <td class="num">${s.hints_used}</td>
+          <td class="num">${_fmtMinutes(s.time_spent_seconds)}</td>
+        </tr>
+      `).join('') + `
+        <tr class="summary-total">
+          <td><strong>Total</strong></td>
+          <td class="num"><strong>${tot.signins}</strong></td>
+          <td class="num"><strong>${tot.lessons_started}</strong></td>
+          <td class="num"><strong>${tot.quizzes_started}</strong></td>
+          <td class="num ok"><strong>${tot.quizzes_passed}</strong></td>
+          <td class="num warn"><strong>${tot.quizzes_failed}</strong></td>
+          <td class="num"><strong>${avg}%</strong></td>
+          <td class="num"><strong>${tot.hints_used}</strong></td>
+          <td class="num"><strong>${_fmtMinutes(tot.time_spent_seconds)}</strong></td>
+        </tr>
+      `;
+    } catch (e) {
+      tableBody.innerHTML = `<tr><td colspan="9" class="empty err">Could not load: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function _wireSummaryTabsOnce(target, studentId) {
+    if (_summaryWired) return;
+    _summaryWired = true;
+    document.querySelectorAll('#activitySummaryTabs .summary-tab').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('#activitySummaryTabs .summary-tab').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        _summaryRange = b.dataset.range || 'daily';
+        reloadActivitySummary(target, studentId);
+      });
+    });
+  }
+
   async function openActivity() {
     captureCurrentView();
     hideAllTopLevel();
@@ -80,6 +167,8 @@
     quizEl.innerHTML = '<div class="parent-empty">Loading…</div>';
     timelineEl.innerHTML = '<div class="parent-empty">Loading…</div>';
     resetSummary();
+    _wireSummaryTabsOnce('self');
+    reloadActivitySummary('self');
 
     try {
       const [{ sections }, { attempts }, { activity }] = await Promise.all([

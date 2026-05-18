@@ -211,6 +211,7 @@
 
   function setNavSignedIn(user) {
     currentUser = user;
+    _startHeartbeat();
     const signInBtn = el('navSignInBtn');
     const navUser = el('navUser');
     const navEmail = el('navUserEmail');
@@ -242,6 +243,7 @@
   }
 
   function setNavSignedOut() {
+    _stopHeartbeat();
     currentUser = null;
     const signInBtn = el('navSignInBtn');
     const signUpBtn = el('navSignUpBtn');
@@ -596,6 +598,37 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
     console.log('[goHome] done');
   };
+
+  // ----- Time-on-site heartbeat -----
+  // Every 60s while the tab is visible AND the user is signed in,
+  // POST /api/me/heartbeat with the current subject inferred from
+  // location / current course. Server adds 60s to the day's bucket.
+  let _heartbeatTimer = null;
+  let _currentSubject = 'math';
+  window.setCurrentSubject = function (s) {
+    _currentSubject = (s === 'language_arts' || s === 'english') ? 'language_arts' : 'math';
+  };
+  function _sendHeartbeat() {
+    if (!currentUser) return;
+    if (document.visibilityState !== 'visible') return;
+    if (!navigator.onLine) return;
+    fetch('/api/me/heartbeat', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: _currentSubject, seconds: 60 }),
+      keepalive: true,
+    }).catch(() => { /* swallow; transient errors are fine */ });
+  }
+  function _startHeartbeat() {
+    if (_heartbeatTimer) return;
+    _heartbeatTimer = setInterval(_sendHeartbeat, 60 * 1000);
+    // Fire once immediately so a quick visit (< 60s) still counts.
+    setTimeout(_sendHeartbeat, 5 * 1000);
+  }
+  function _stopHeartbeat() {
+    if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+  }
 
   // Exposed so other code (e.g. app.js) can ask who the user is.
   window.getCurrentUser = function () { return currentUser; };

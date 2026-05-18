@@ -121,6 +121,88 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // Activity-rollup helpers for the parent detail page.
+  let _parentSummaryRange = 'daily';
+  let _parentSummaryWired = null;
+
+  function _fmtMinutes(seconds) {
+    const m = Math.round((seconds || 0) / 60);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), mm = m % 60;
+    return mm === 0 ? h + ' hr' : `${h}h ${mm}m`;
+  }
+
+  function _fmtRangeLabel(range, from, to) {
+    const r = (range || 'daily').toLowerCase();
+    const label = { daily: 'Today', weekly: 'Last 7 days', monthly: 'Last 30 days', quarterly: 'Last 90 days' }[r] || 'Today';
+    if (!from || !to) return label;
+    return `${label} (${from} → ${to})`;
+  }
+
+  async function _reloadParentSummary(studentId) {
+    const tbody = document.querySelector('#parentSummaryTable tbody');
+    const rangeNote = el('parentSummaryRange');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">Loading…</td></tr>';
+    try {
+      const data = await fetchJSON(`/api/parent/students/${encodeURIComponent(studentId)}/activity-summary?range=${_parentSummaryRange}`);
+      if (rangeNote) rangeNote.textContent = _fmtRangeLabel(data.range, data.from, data.to);
+      const subjects = data.subjects || [];
+      const tot = subjects.reduce((a, s) => ({
+        signins: a.signins + s.signins,
+        lessons_started: a.lessons_started + s.lessons_started,
+        quizzes_started: a.quizzes_started + s.quizzes_started,
+        quizzes_passed: a.quizzes_passed + s.quizzes_passed,
+        quizzes_failed: a.quizzes_failed + s.quizzes_failed,
+        hints_used: a.hints_used + s.hints_used,
+        time_spent_seconds: a.time_spent_seconds + s.time_spent_seconds,
+      }), { signins: 0, lessons_started: 0, quizzes_started: 0, quizzes_passed: 0, quizzes_failed: 0, hints_used: 0, time_spent_seconds: 0 });
+      const avg = subjects.length ? Math.round(subjects.reduce((a, s) => a + (s.avg_score_pct || 0), 0) / subjects.length) : 0;
+      tbody.innerHTML = subjects.map(s => `
+        <tr>
+          <td>${esc(s.subject_title)}</td>
+          <td class="num">${s.signins}</td>
+          <td class="num">${s.lessons_started}</td>
+          <td class="num">${s.quizzes_started}</td>
+          <td class="num ok">${s.quizzes_passed}</td>
+          <td class="num warn">${s.quizzes_failed}</td>
+          <td class="num">${s.avg_score_pct || 0}%</td>
+          <td class="num">${s.hints_used}</td>
+          <td class="num">${_fmtMinutes(s.time_spent_seconds)}</td>
+        </tr>
+      `).join('') + `
+        <tr class="summary-total">
+          <td><strong>Total</strong></td>
+          <td class="num"><strong>${tot.signins}</strong></td>
+          <td class="num"><strong>${tot.lessons_started}</strong></td>
+          <td class="num"><strong>${tot.quizzes_started}</strong></td>
+          <td class="num ok"><strong>${tot.quizzes_passed}</strong></td>
+          <td class="num warn"><strong>${tot.quizzes_failed}</strong></td>
+          <td class="num"><strong>${avg}%</strong></td>
+          <td class="num"><strong>${tot.hints_used}</strong></td>
+          <td class="num"><strong>${_fmtMinutes(tot.time_spent_seconds)}</strong></td>
+        </tr>
+      `;
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="9" class="empty err">Could not load: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function _wireParentSummaryTabs(studentId) {
+    // Re-wire if a different student is opened (we keep a single set of
+    // tab DOM elements but the click handlers point at a specific id).
+    if (_parentSummaryWired === studentId) return;
+    _parentSummaryWired = studentId;
+    document.querySelectorAll('#parentSummaryTabs .summary-tab').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('#parentSummaryTabs .summary-tab').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        _parentSummaryRange = b.dataset.range || 'daily';
+        _reloadParentSummary(studentId);
+      };
+    });
+  }
+
   async function openStudentDetail(student) {
     hide(el('parentHome'));
     show(el('parentStudentDetail'));
@@ -132,6 +214,11 @@
       meta.push(student.consent_granted_at ? 'Consent granted' : 'Awaiting consent');
     }
     el('parentDetailMeta').textContent = meta.join(' · ');
+    // Wire + load the activity rollup for this student.
+    _parentSummaryRange = 'daily';
+    document.querySelectorAll('#parentSummaryTabs .summary-tab').forEach(b => b.classList.toggle('active', b.dataset.range === 'daily'));
+    _wireParentSummaryTabs(student.id);
+    _reloadParentSummary(student.id);
 
     // Make sure there's a summary container at the top of the detail
     // view. Re-uses the existing parentStudentDetail layout.

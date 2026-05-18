@@ -522,3 +522,22 @@ create table if not exists curriculum_lesson_quizzes (
 
 create index if not exists idx_curriculum_quizzes_lookup
   on curriculum_lesson_quizzes (course_id, lesson_number);
+
+-- ------------------------------------------------------------------
+-- Time-on-site tracking. The browser sends a heartbeat every minute
+-- while the tab is visible; each ping adds 60 seconds to today's
+-- (user, subject) bucket. The summary view rolls up by day / week /
+-- month / quarter and shows minutes per subject.
+-- ------------------------------------------------------------------
+
+create table if not exists user_time_tracking (
+  user_id uuid not null references users (id) on delete cascade,
+  day date not null,
+  subject text not null default 'math',
+  seconds integer not null default 0,
+  last_heartbeat_at timestamptz,
+  primary key (user_id, day, subject)
+);
+
+create index if not exists idx_time_tracking_user_day
+  on user_time_tracking (user_id, day desc);

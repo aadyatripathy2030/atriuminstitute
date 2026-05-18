@@ -4038,3 +4038,58 @@ body > .site-footer {
 .lesson-chat-bubble .typing span {
   background: var(--text-muted, #4a4d63);
 }
+
+/* =============== Activity rollup table (student + parent) =============== */
+.summary-head {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 6px;
+}
+.summary-range-tabs {
+  display: inline-flex; gap: 4px; padding: 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 999px;
+}
+.summary-tab {
+  font: inherit; font-size: 13px; padding: 6px 14px;
+  border: none; background: transparent; cursor: pointer;
+  border-radius: 999px; color: var(--text-muted, #4a4d63);
+  font-weight: 500;
+}
+.summary-tab.active {
+  background: var(--text, #1e2238); color: var(--paper, #fff);
+}
+.summary-range-note {
+  font-size: 13px; color: var(--text-muted, #4a4d63);
+  margin: 0 0 10px;
+}
+.summary-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border, #e6e2d7);
+  border-radius: 10px;
+}
+.summary-table {
+  width: 100%; border-collapse: collapse; font-size: 14px;
+}
+.summary-table th, .summary-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border, #e6e2d7);
+  text-align: left;
+}
+.summary-table th {
+  background: rgba(0, 0, 0, 0.02);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted, #4a4d63);
+}
+.summary-table td.num, .summary-table th.num { text-align: right; }
+.summary-table td.ok { color: #1f7a4a; }
+.summary-table td.warn { color: #a36a18; }
+.summary-table tr.summary-total td {
+  background: rgba(0, 0, 0, 0.025);
+  border-top: 2px solid var(--border, #e6e2d7);
+  border-bottom: none;
+}
+.summary-table tbody tr:last-child td { border-bottom: none; }
+.summary-table .empty { text-align: center; padding: 18px; color: var(--text-muted, #4a4d63); }
+.summary-table .empty.err { color: #c43c5b; }

@@ -1018,6 +1018,112 @@ async function saveCurriculumQuiz(courseId, lessonNumber, questions, model) {
   );
 }
 
+// ---------- Time tracking + activity summary rollups ----------
+async function recordHeartbeat(userId, subject, seconds) {
+  const subj = (subject === 'language_arts' || subject === 'english') ? 'language_arts' : 'math';
+  const secs = Math.min(Math.max(Math.floor(seconds || 60), 1), 120);
+  await q(
+    `insert into user_time_tracking (user_id, day, subject, seconds, last_heartbeat_at)
+     values ($1, current_date, $2, $3, now())
+     on conflict (user_id, day, subject)
+     do update set seconds = user_time_tracking.seconds + excluded.seconds,
+                   last_heartbeat_at = now()`,
+    [userId, subj, secs]
+  );
+}
+
+// Activity summary for a single user across a date range. Groups by
+// subject (math first, then language_arts). Activities are derived
+// from activity_log + quiz_attempts. Time spent from user_time_tracking.
+async function getActivitySummary(userId, fromDate, toDate) {
+  // Tag every legacy + curriculum course with a subject:
+  //   english (eng6..eng12), curriculum LA (la-grade*) -> language_arts
+  //   everything else -> math
+  const subjectExpr = `
+    case
+      when meta->>'courseId' like 'eng%' then 'language_arts'
+      when meta->>'courseId' like 'la-%' then 'language_arts'
+      when meta->>'courseId' like 'curr:la-%' then 'language_arts'
+      else 'math'
+    end`;
+  const activityRows = await q(
+    `select ${subjectExpr} as subject,
+            kind,
+            count(*)::int as n
+     from activity_log
+     where user_id = $1
+       and created_at >= $2::date
+       and created_at < ($3::date + interval '1 day')
+     group by 1, 2`,
+    [userId, fromDate, toDate]
+  );
+  const subjectQuiz = `
+    case
+      when course_id like 'eng%' then 'language_arts'
+      when course_id like 'la-%' then 'language_arts'
+      when course_id like 'curr:la-%' then 'language_arts'
+      else 'math'
+    end`;
+  const quizRows = await q(
+    `select ${subjectQuiz} as subject,
+            count(*) filter (where passed = true)::int as passed,
+            count(*) filter (where passed = false)::int as failed,
+            coalesce(avg(score::float / nullif(total, 0)), 0)::float as avg_pct,
+            coalesce(sum(duration_seconds), 0)::int as quiz_seconds
+     from quiz_attempts
+     where user_id = $1
+       and completed_at >= $2::date
+       and completed_at < ($3::date + interval '1 day')
+     group by 1`,
+    [userId, fromDate, toDate]
+  );
+  const timeRows = await q(
+    `select subject, coalesce(sum(seconds), 0)::int as seconds
+     from user_time_tracking
+     where user_id = $1 and day >= $2::date and day <= $3::date
+     group by subject`,
+    [userId, fromDate, toDate]
+  );
+  // Merge into per-subject blocks.
+  const subjects = { math: _emptySubject('Math'), language_arts: _emptySubject('Language Arts') };
+  for (const r of activityRows) {
+    const b = subjects[r.subject] || subjects.math;
+    if (r.kind === 'signin') b.signins += r.n;
+    else if (r.kind === 'lesson_started') b.lessons_started += r.n;
+    else if (r.kind === 'quiz_started') b.quizzes_started += r.n;
+    else if (r.kind === 'study_started') b.study_sessions += r.n;
+    else if (r.kind === 'hint_used') b.hints_used += r.n;
+  }
+  for (const r of quizRows) {
+    const b = subjects[r.subject] || subjects.math;
+    b.quizzes_passed = r.passed;
+    b.quizzes_failed = r.failed;
+    b.avg_score_pct = Math.round(100 * r.avg_pct);
+  }
+  for (const r of timeRows) {
+    const b = subjects[r.subject] || subjects.math;
+    b.time_spent_seconds = r.seconds;
+  }
+  // Always math first, then language_arts.
+  return [subjects.math, subjects.language_arts];
+}
+
+function _emptySubject(title) {
+  return {
+    subject: title === 'Math' ? 'math' : 'language_arts',
+    subject_title: title,
+    signins: 0,
+    lessons_started: 0,
+    quizzes_started: 0,
+    quizzes_passed: 0,
+    quizzes_failed: 0,
+    avg_score_pct: 0,
+    study_sessions: 0,
+    hints_used: 0,
+    time_spent_seconds: 0,
+  };
+}
+
 // ---------- User favorites (legacy course + book ids) ----------
 async function listFavorites(userId) {
   return q(
@@ -1076,6 +1182,7 @@ module.exports = {
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   listFavorites, addFavorite, removeFavorite,
   getCurriculumQuiz, saveCurriculumQuiz,
+  recordHeartbeat, getActivitySummary,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

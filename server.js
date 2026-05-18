@@ -1100,6 +1100,58 @@ async function handleGetCurriculumQuiz(req, res) {
   json(res, 200, { questions: result.questions, model: result.model, cached: false });
 }
 
+// ---------- Time tracking + activity summary ----------
+function _rangeBounds(range) {
+  // Returns [fromISO, toISO] (inclusive) for daily / weekly / monthly /
+  // quarterly. Today is included in every range.
+  const today = new Date();
+  const y = today.getUTCFullYear();
+  const m = today.getUTCMonth();
+  const d = today.getUTCDate();
+  const todayStart = new Date(Date.UTC(y, m, d));
+  let from;
+  switch ((range || 'daily').toLowerCase()) {
+    case 'weekly':    from = new Date(todayStart);  from.setUTCDate(d - 6); break;
+    case 'monthly':   from = new Date(todayStart);  from.setUTCDate(d - 29); break;
+    case 'quarterly': from = new Date(todayStart);  from.setUTCDate(d - 89); break;
+    case 'daily':
+    default:          from = new Date(todayStart); break;
+  }
+  const iso = (dt) => dt.toISOString().slice(0, 10);
+  return [iso(from), iso(todayStart)];
+}
+
+async function handleHeartbeat(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req) || {};
+  // Client tells us which subject the user was on; defaults to math.
+  const subject = typeof body.subject === 'string' ? body.subject : 'math';
+  const seconds = typeof body.seconds === 'number' ? body.seconds : 60;
+  try { await db.recordHeartbeat(u.id, subject, seconds); }
+  catch (e) { console.error('heartbeat failed:', e.message); }
+  json(res, 200, { ok: true });
+}
+
+async function handleGetMyActivitySummary(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const url = new URL(req.url, 'http://localhost');
+  const range = url.searchParams.get('range') || 'daily';
+  const [from, to] = _rangeBounds(range);
+  const subjects = await db.getActivitySummary(u.id, from, to);
+  json(res, 200, { range, from, to, subjects });
+}
+
+async function handleGetParentStudentSummary(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const url = new URL(req.url, 'http://localhost');
+  const range = url.searchParams.get('range') || 'daily';
+  const [from, to] = _rangeBounds(range);
+  const subjects = await db.getActivitySummary(studentId, from, to);
+  json(res, 200, { range, from, to, subjects });
+}
+
 // ---------- User favorites ----------
 async function handleListFavorites(req, res) {
   const u = await currentUser(req);
@@ -1882,6 +1934,9 @@ const server = http.createServer(async (req, res) => {
       const id = url.slice('/api/curriculum/courses/'.length);
       return await handleGetCurriculumCourseFull(req, res, id);
     }
+    // Time tracking + activity rollups.
+    if (url === '/api/me/heartbeat' && req.method === 'POST') return await handleHeartbeat(req, res);
+    if (url === '/api/me/activity-summary' && req.method === 'GET') return await handleGetMyActivitySummary(req, res);
     // Favorites (signed-in user only).
     if (url === '/api/me/favorites' && req.method === 'GET') return await handleListFavorites(req, res);
     if (url === '/api/me/favorites' && req.method === 'POST') return await handleAddFavorite(req, res);
@@ -1943,10 +1998,11 @@ const server = http.createServer(async (req, res) => {
     // Parent dashboard
     if (url === '/api/parent/students' && req.method === 'GET') return await handleListLinkedStudents(req, res);
     {
-      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress|profile|study-plan|authorise-reminders)$/);
+      const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|activity-summary|quiz-attempts|weak-sections|progress|profile|study-plan|authorise-reminders)$/);
       if (m) {
         const [, studentId, kind] = m;
         if (req.method === 'GET' && kind === 'activity') return await handleStudentActivity(req, res, studentId);
+        if (req.method === 'GET' && kind === 'activity-summary') return await handleGetParentStudentSummary(req, res, studentId);
         if (req.method === 'GET' && kind === 'quiz-attempts') return await handleStudentQuizAttempts(req, res, studentId);
         if (req.method === 'GET' && kind === 'weak-sections') return await handleStudentWeakSections(req, res, studentId);
         if (req.method === 'GET' && kind === 'progress') return await handleStudentProgress(req, res, studentId);
