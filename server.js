@@ -1793,99 +1793,99 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = req.url.split('?')[0];
     // Auth
-    if (url === '/api/auth/signup' && req.method === 'POST') return handleSignupOrLogin(req, res);
-    if (url === '/api/auth/verify' && req.method === 'POST') return handleVerify(req, res);
-    if (url === '/api/auth/logout' && req.method === 'POST') return handleLogout(req, res);
-    if (url === '/api/auth/me' && req.method === 'GET') return handleMe(req, res);
+    if (url === '/api/auth/signup' && req.method === 'POST') return await handleSignupOrLogin(req, res);
+    if (url === '/api/auth/verify' && req.method === 'POST') return await handleVerify(req, res);
+    if (url === '/api/auth/logout' && req.method === 'POST') return await handleLogout(req, res);
+    if (url === '/api/auth/me' && req.method === 'GET') return await handleMe(req, res);
     // Public, unauthenticated config so the landing page can decide
     // whether to show the pricing card without doing a /me round-trip.
-    if (url === '/api/config' && req.method === 'GET') return handleGetConfig(req, res);
+    if (url === '/api/config' && req.method === 'GET') return await handleGetConfig(req, res);
     // Curriculum reference (public read).
-    if (url === '/api/curriculum/subjects' && req.method === 'GET') return handleGetCurriculumSubjects(req, res);
-    if (url === '/api/curriculum/courses' && req.method === 'GET') return handleGetCurriculumCourses(req, res);
+    if (url === '/api/curriculum/subjects' && req.method === 'GET') return await handleGetCurriculumSubjects(req, res);
+    if (url === '/api/curriculum/courses' && req.method === 'GET') return await handleGetCurriculumCourses(req, res);
     if (url.startsWith('/api/curriculum/courses/') && req.method === 'GET') {
       const id = url.slice('/api/curriculum/courses/'.length);
-      return handleGetCurriculumCourseFull(req, res, id);
+      return await handleGetCurriculumCourseFull(req, res, id);
     }
     // Favorites (signed-in user only).
-    if (url === '/api/me/favorites' && req.method === 'GET') return handleListFavorites(req, res);
-    if (url === '/api/me/favorites' && req.method === 'POST') return handleAddFavorite(req, res);
-    if (url === '/api/me/favorites' && req.method === 'DELETE') return handleRemoveFavorite(req, res);
+    if (url === '/api/me/favorites' && req.method === 'GET') return await handleListFavorites(req, res);
+    if (url === '/api/me/favorites' && req.method === 'POST') return await handleAddFavorite(req, res);
+    if (url === '/api/me/favorites' && req.method === 'DELETE') return await handleRemoveFavorite(req, res);
     // Curriculum quiz (cache + on-demand AI generation).
-    if (url === '/api/curriculum/quiz' && req.method === 'POST') return handleGetCurriculumQuiz(req, res);
+    if (url === '/api/curriculum/quiz' && req.method === 'POST') return await handleGetCurriculumQuiz(req, res);
     // Profile, links
-    if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
-    if (url === '/api/me/rich-profile' && req.method === 'GET') return handleGetRichProfile(req, res);
-    if (url === '/api/me/rich-profile' && req.method === 'POST') return handleSaveRichProfile(req, res);
-    if (url === '/api/me/links' && req.method === 'POST') return handleCreateLink(req, res);
+    if (url === '/api/me/profile' && req.method === 'POST') return await handleUpdateProfile(req, res);
+    if (url === '/api/me/rich-profile' && req.method === 'GET') return await handleGetRichProfile(req, res);
+    if (url === '/api/me/rich-profile' && req.method === 'POST') return await handleSaveRichProfile(req, res);
+    if (url === '/api/me/links' && req.method === 'POST') return await handleCreateLink(req, res);
     if (url.startsWith('/api/me/links/') && req.method === 'DELETE') {
-      return handleDeleteLink(req, res, url.slice('/api/me/links/'.length));
+      return await handleDeleteLink(req, res, url.slice('/api/me/links/'.length));
     }
     // Public unsubscribe (no auth — signed token).
-    if (url === '/unsubscribe' && req.method === 'GET') return handleUnsubscribe(req, res);
+    if (url === '/unsubscribe' && req.method === 'GET') return await handleUnsubscribe(req, res);
     // Cron-pingable reminder + digest dispatcher.
-    if (url === '/api/cron/send-reminders' && req.method === 'POST') return handleCronSendReminders(req, res);
+    if (url === '/api/cron/send-reminders' && req.method === 'POST') return await handleCronSendReminders(req, res);
     // Progress
-    if (url === '/api/progress' && req.method === 'GET') return handleGetAllProgress(req, res);
-    if (url === '/api/progress' && req.method === 'POST') return handleSaveProgress(req, res);
+    if (url === '/api/progress' && req.method === 'GET') return await handleGetAllProgress(req, res);
+    if (url === '/api/progress' && req.method === 'POST') return await handleSaveProgress(req, res);
     // Activity + quiz attempts (own)
-    if (url === '/api/me/quiz-attempts' && req.method === 'POST') return handleLogQuizAttempt(req, res);
-    if (url === '/api/me/quiz-attempts' && req.method === 'GET') return handleGetMyQuizAttempts(req, res);
-    if (url === '/api/me/activity' && req.method === 'POST') return handleLogClientActivity(req, res);
-    if (url === '/api/me/activity' && req.method === 'GET') return handleGetMyActivity(req, res);
-    if (url === '/api/me/weak-sections' && req.method === 'GET') return handleGetMyWeakSections(req, res);
-    if (url === '/api/me/review-queue' && req.method === 'GET') return handleGetReviewQueue(req, res);
-    if (url === '/api/me/study-plan' && req.method === 'GET') return handleGetStudyPlan(req, res);
-    if (url === '/api/me/study-plan' && req.method === 'POST') return handleCreateStudyPlan(req, res);
-    if (url === '/api/me/study-plan' && req.method === 'DELETE') return handleDeleteStudyPlan(req, res);
+    if (url === '/api/me/quiz-attempts' && req.method === 'POST') return await handleLogQuizAttempt(req, res);
+    if (url === '/api/me/quiz-attempts' && req.method === 'GET') return await handleGetMyQuizAttempts(req, res);
+    if (url === '/api/me/activity' && req.method === 'POST') return await handleLogClientActivity(req, res);
+    if (url === '/api/me/activity' && req.method === 'GET') return await handleGetMyActivity(req, res);
+    if (url === '/api/me/weak-sections' && req.method === 'GET') return await handleGetMyWeakSections(req, res);
+    if (url === '/api/me/review-queue' && req.method === 'GET') return await handleGetReviewQueue(req, res);
+    if (url === '/api/me/study-plan' && req.method === 'GET') return await handleGetStudyPlan(req, res);
+    if (url === '/api/me/study-plan' && req.method === 'POST') return await handleCreateStudyPlan(req, res);
+    if (url === '/api/me/study-plan' && req.method === 'DELETE') return await handleDeleteStudyPlan(req, res);
     // Admin (only for users where is_admin = true).
-    if (url === '/api/admin/stats' && req.method === 'GET') return handleAdminStats(req, res);
-    if (url === '/api/admin/users' && req.method === 'GET') return handleAdminUsers(req, res);
-    if (url === '/api/admin/activity' && req.method === 'GET') return handleAdminActivity(req, res);
-    if (url === '/api/admin/quiz-analytics' && req.method === 'GET') return handleAdminQuizAnalytics(req, res);
-    if (url === '/api/admin/cost-chart' && req.method === 'GET') return handleAdminCostChart(req, res);
-    if (url === '/api/admin/sessions' && req.method === 'GET') return handleAdminSessions(req, res);
-    if (url === '/api/admin/links' && req.method === 'GET') return handleAdminLinks(req, res);
-    if (url === '/api/admin/lessons' && req.method === 'GET') return handleAdminLessons(req, res);
-    if (url === '/api/admin/prebuild-lessons' && req.method === 'POST') return handleAdminPrebuildStart(req, res);
-    if (url === '/api/admin/prebuild-lessons' && req.method === 'GET') return handleAdminPrebuildStatus(req, res);
-    if (url === '/api/admin/prebuild-lessons/cancel' && req.method === 'POST') return handleAdminPrebuildCancel(req, res);
+    if (url === '/api/admin/stats' && req.method === 'GET') return await handleAdminStats(req, res);
+    if (url === '/api/admin/users' && req.method === 'GET') return await handleAdminUsers(req, res);
+    if (url === '/api/admin/activity' && req.method === 'GET') return await handleAdminActivity(req, res);
+    if (url === '/api/admin/quiz-analytics' && req.method === 'GET') return await handleAdminQuizAnalytics(req, res);
+    if (url === '/api/admin/cost-chart' && req.method === 'GET') return await handleAdminCostChart(req, res);
+    if (url === '/api/admin/sessions' && req.method === 'GET') return await handleAdminSessions(req, res);
+    if (url === '/api/admin/links' && req.method === 'GET') return await handleAdminLinks(req, res);
+    if (url === '/api/admin/lessons' && req.method === 'GET') return await handleAdminLessons(req, res);
+    if (url === '/api/admin/prebuild-lessons' && req.method === 'POST') return await handleAdminPrebuildStart(req, res);
+    if (url === '/api/admin/prebuild-lessons' && req.method === 'GET') return await handleAdminPrebuildStatus(req, res);
+    if (url === '/api/admin/prebuild-lessons/cancel' && req.method === 'POST') return await handleAdminPrebuildCancel(req, res);
     {
       const mUserDetail = url.match(/^\/api\/admin\/users\/([0-9a-f-]+)$/);
       if (mUserDetail) {
-        if (req.method === 'GET') return handleAdminUserDetail(req, res, mUserDetail[1]);
-        if (req.method === 'PATCH' || req.method === 'POST') return handleAdminUpdateUser(req, res, mUserDetail[1]);
-        if (req.method === 'DELETE') return handleAdminDeleteUser(req, res, mUserDetail[1]);
+        if (req.method === 'GET') return await handleAdminUserDetail(req, res, mUserDetail[1]);
+        if (req.method === 'PATCH' || req.method === 'POST') return await handleAdminUpdateUser(req, res, mUserDetail[1]);
+        if (req.method === 'DELETE') return await handleAdminDeleteUser(req, res, mUserDetail[1]);
       }
       const mSession = url.match(/^\/api\/admin\/sessions\/([0-9a-f]+)$/);
-      if (mSession && req.method === 'DELETE') return handleAdminRevokeSession(req, res, mSession[1]);
+      if (mSession && req.method === 'DELETE') return await handleAdminRevokeSession(req, res, mSession[1]);
     }
-    if (url === '/api/me/token-usage' && req.method === 'GET') return handleGetMyTokenUsage(req, res);
-    if (url === '/api/me/token-usage/summary' && req.method === 'GET') return handleGetMyTokenUsageSummary(req, res);
+    if (url === '/api/me/token-usage' && req.method === 'GET') return await handleGetMyTokenUsage(req, res);
+    if (url === '/api/me/token-usage/summary' && req.method === 'GET') return await handleGetMyTokenUsageSummary(req, res);
     // Cached lessons: POST returns the cached lesson or generates+caches it; DELETE busts the cache.
-    if (url === '/api/lessons' && req.method === 'POST') return handleGetLesson(req, res);
-    if (url === '/api/lessons' && req.method === 'DELETE') return handleClearLesson(req, res);
+    if (url === '/api/lessons' && req.method === 'POST') return await handleGetLesson(req, res);
+    if (url === '/api/lessons' && req.method === 'DELETE') return await handleClearLesson(req, res);
     // Parent dashboard
-    if (url === '/api/parent/students' && req.method === 'GET') return handleListLinkedStudents(req, res);
+    if (url === '/api/parent/students' && req.method === 'GET') return await handleListLinkedStudents(req, res);
     {
       const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|quiz-attempts|weak-sections|progress|profile|study-plan|authorise-reminders)$/);
       if (m) {
         const [, studentId, kind] = m;
-        if (req.method === 'GET' && kind === 'activity') return handleStudentActivity(req, res, studentId);
-        if (req.method === 'GET' && kind === 'quiz-attempts') return handleStudentQuizAttempts(req, res, studentId);
-        if (req.method === 'GET' && kind === 'weak-sections') return handleStudentWeakSections(req, res, studentId);
-        if (req.method === 'GET' && kind === 'progress') return handleStudentProgress(req, res, studentId);
-        if (req.method === 'GET' && kind === 'profile') return handleStudentProfile(req, res, studentId);
-        if (req.method === 'GET' && kind === 'study-plan') return handleStudentStudyPlan(req, res, studentId);
-        if (req.method === 'POST' && kind === 'authorise-reminders') return handleParentAuthoriseReminders(req, res, studentId);
+        if (req.method === 'GET' && kind === 'activity') return await handleStudentActivity(req, res, studentId);
+        if (req.method === 'GET' && kind === 'quiz-attempts') return await handleStudentQuizAttempts(req, res, studentId);
+        if (req.method === 'GET' && kind === 'weak-sections') return await handleStudentWeakSections(req, res, studentId);
+        if (req.method === 'GET' && kind === 'progress') return await handleStudentProgress(req, res, studentId);
+        if (req.method === 'GET' && kind === 'profile') return await handleStudentProfile(req, res, studentId);
+        if (req.method === 'GET' && kind === 'study-plan') return await handleStudentStudyPlan(req, res, studentId);
+        if (req.method === 'POST' && kind === 'authorise-reminders') return await handleParentAuthoriseReminders(req, res, studentId);
       }
     }
     // Stripe
-    if (url === '/api/stripe/checkout' && req.method === 'POST') return handleStripeCheckout(req, res);
-    if (url === '/api/stripe/portal'   && req.method === 'POST') return handleStripePortal(req, res);
-    if (url === '/api/stripe/webhook'  && req.method === 'POST') return handleStripeWebhook(req, res);
+    if (url === '/api/stripe/checkout' && req.method === 'POST') return await handleStripeCheckout(req, res);
+    if (url === '/api/stripe/portal'   && req.method === 'POST') return await handleStripePortal(req, res);
+    if (url === '/api/stripe/webhook'  && req.method === 'POST') return await handleStripeWebhook(req, res);
     // Claude proxy
-    if (url.startsWith('/api/claude')) return proxyClaude(req, res);
+    if (url.startsWith('/api/claude')) return await proxyClaude(req, res);
     // Static
     serveStatic(req, res);
   } catch (e) {
@@ -1898,6 +1898,17 @@ const server = http.createServer(async (req, res) => {
 setInterval(() => {
   db.cleanup().catch(err => console.error('cleanup failed:', err.message));
 }, 60 * 60 * 1000);
+
+// Defense in depth: any promise rejection that somehow escapes a
+// request handler should NOT take the whole Node process down. Log it
+// and continue serving. Same for synchronous uncaught exceptions in
+// background tasks (the cleanup interval, etc).
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason && reason.stack ? reason.stack : reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err && err.stack ? err.stack : err);
+});
 
 server.listen(PORT, () => {
   console.log(`📚 Atrium Institute running at http://localhost:${PORT}`);
