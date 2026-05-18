@@ -153,6 +153,11 @@ Which section should we focus on? Once I pick, please walk me through it using t
           if (typeof window.openBook !== 'function') throw new Error('openBook is unavailable.');
 
           document.getElementById('studyPanel').classList.remove('open');
+          // Hide every top-level view (Achievements, Profile, Activity,
+          // Leaderboard, etc.) before opening the course. Without this,
+          // whichever page the student was on stays stacked over the
+          // course view and the click looks like a no-op.
+          if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
           await window.openCourse(courseId);
           window.openBook(bookId);
         } catch (err) {
