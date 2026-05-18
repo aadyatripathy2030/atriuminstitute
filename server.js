@@ -204,6 +204,7 @@ function userPublic(u) {
     role: u.role || 'student',
     link_code: u.link_code || null,
     age: u.age == null ? null : Number(u.age),
+    grade_level: u.grade_level == null ? null : Number(u.grade_level),
     country: u.country || u.state || null,
     consent_required: !!u.consent_required,
     consent_granted_at: u.consent_granted_at || null,
@@ -936,6 +937,31 @@ async function handleAdminLessons(req, res) {
   json(res, 200, { courses });
 }
 
+// ---------- Curriculum reference (public, read-only) ----------
+async function handleGetCurriculumSubjects(req, res) {
+  const subjects = await db.listCurriculumSubjects();
+  json(res, 200, { subjects });
+}
+
+async function handleGetCurriculumCourses(req, res) {
+  const url = new URL(req.url, 'http://localhost');
+  const subject = url.searchParams.get('subject') || null;
+  const gradeRaw = url.searchParams.get('grade');
+  const grade = gradeRaw == null || gradeRaw === '' ? null : Number(gradeRaw);
+  if (gradeRaw != null && (!Number.isInteger(grade) || grade < 1 || grade > 12)) {
+    return json(res, 400, { error: 'Bad grade param (1-12).' });
+  }
+  const courses = await db.listCurriculumCourses({ subject, grade });
+  json(res, 200, { courses });
+}
+
+async function handleGetCurriculumCourseFull(req, res, courseId) {
+  if (!courseId) return json(res, 400, { error: 'Missing course id.' });
+  const course = await db.getCurriculumCourseFull(courseId);
+  if (!course) return json(res, 404, { error: 'Course not found.' });
+  json(res, 200, { course });
+}
+
 // ---------- Server-side bulk prebuild for cached lessons ----------
 //
 // Runs entirely in-process on the Render web service so the operator
@@ -1583,6 +1609,13 @@ const server = http.createServer(async (req, res) => {
     // Public, unauthenticated config so the landing page can decide
     // whether to show the pricing card without doing a /me round-trip.
     if (url === '/api/config' && req.method === 'GET') return handleGetConfig(req, res);
+    // Curriculum reference (public read).
+    if (url === '/api/curriculum/subjects' && req.method === 'GET') return handleGetCurriculumSubjects(req, res);
+    if (url === '/api/curriculum/courses' && req.method === 'GET') return handleGetCurriculumCourses(req, res);
+    if (url.startsWith('/api/curriculum/courses/') && req.method === 'GET') {
+      const id = url.slice('/api/curriculum/courses/'.length);
+      return handleGetCurriculumCourseFull(req, res, id);
+    }
     // Profile, links
     if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
     if (url === '/api/me/rich-profile' && req.method === 'GET') return handleGetRichProfile(req, res);

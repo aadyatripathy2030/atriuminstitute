@@ -40,7 +40,7 @@ function normalizeRole(r) {
   return r === 'parent' ? 'parent' : 'student';
 }
 
-const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, consent_required, consent_granted_at, is_admin, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_plan, current_period_end';
+const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, grade_level, consent_required, consent_granted_at, is_admin, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_plan, current_period_end';
 
 // 8-character link code from an unambiguous alphabet (no 0/O, 1/I/L).
 // Formatted as XXXX-XXXX for display; stored without the dash.
@@ -907,6 +907,66 @@ async function adminLessonStats() {
   );
 }
 
+// ---------- Curriculum (reference data from xlsx imports) ----------
+async function listCurriculumSubjects() {
+  return q(
+    `select id, title, display_order
+     from curriculum_subjects
+     order by display_order, id`
+  );
+}
+
+// Filtered course list. opts.subject / opts.grade are both optional.
+// grade matches the grade_levels array containing that integer.
+async function listCurriculumCourses(opts) {
+  opts = opts || {};
+  const where = [];
+  const params = [];
+  if (opts.subject) { params.push(opts.subject); where.push(`subject_id = $${params.length}`); }
+  if (opts.grade != null) {
+    params.push(opts.grade);
+    where.push(`$${params.length}::integer = any(grade_levels)`);
+  }
+  const sql = `select id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons
+              from curriculum_courses
+              ${where.length ? 'where ' + where.join(' and ') : ''}
+              order by display_order, id`;
+  return q(sql, params);
+}
+
+// Full course detail: course row + its units (each with its lessons).
+async function getCurriculumCourseFull(courseId) {
+  const courseRows = await q(
+    `select id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons
+     from curriculum_courses where id = $1`,
+    [courseId]
+  );
+  if (!courseRows.length) return null;
+  const course = courseRows[0];
+  const units = await q(
+    `select unit_number, unit_title, weeks
+     from curriculum_units where course_id = $1
+     order by unit_number`,
+    [courseId]
+  );
+  const lessons = await q(
+    `select unit_number, lesson_number, lesson_title, learning_objective,
+            ccss_code, key_concepts, prerequisites, key_vocabulary,
+            common_misconceptions, real_world_hook, practices, meta, display_order
+     from curriculum_lessons where course_id = $1
+     order by display_order, lesson_number`,
+    [courseId]
+  );
+  // Group lessons under their unit.
+  const byUnit = new Map();
+  for (const l of lessons) {
+    if (!byUnit.has(l.unit_number)) byUnit.set(l.unit_number, []);
+    byUnit.get(l.unit_number).push(l);
+  }
+  course.units = units.map(u => ({ ...u, lessons: byUnit.get(u.unit_number) || [] }));
+  return course;
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -934,6 +994,7 @@ module.exports = {
   adminUserDetail, adminUpdateUser, adminDeleteUser,
   adminQuizAnalytics, adminCostChart, adminListSessions, adminRevokeSession,
   adminAllLinks, adminLessonStats,
+  listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

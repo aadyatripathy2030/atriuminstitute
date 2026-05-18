@@ -77,6 +77,7 @@
         <div class="nav-menu-items hidden" id="myDetailsMenu" role="menu">
           <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
           <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
+          <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
           <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <div class="nav-menu-footer">
@@ -635,6 +636,49 @@
   </section>
 </div>
 
+<!-- Curriculum browser: reads from curriculum_* DB tables. Filtered by
+     grade with a manual override. Read-only reference for now. -->
+<div id="curriculumPage" class="curr-page hidden">
+  <button class="back-btn" id="currBack">← Back</button>
+  <header class="curr-hero">
+    <h1>Curriculum</h1>
+    <p class="curr-sub">The full scope and sequence. Pick your grade to see what's appropriate; override the dropdown to browse other levels.</p>
+  </header>
+
+  <div class="curr-controls">
+    <label class="curr-control">
+      <span>Subject</span>
+      <select id="currSubject"></select>
+    </label>
+    <label class="curr-control">
+      <span>Grade</span>
+      <select id="currGrade">
+        <option value="">All grades</option>
+        <option value="6">Grade 6</option>
+        <option value="7">Grade 7</option>
+        <option value="8">Grade 8</option>
+        <option value="9">Grade 9</option>
+        <option value="10">Grade 10</option>
+        <option value="11">Grade 11</option>
+        <option value="12">Grade 12</option>
+      </select>
+    </label>
+  </div>
+
+  <section id="currCourseList" class="curr-course-list">
+    <div class="parent-empty">Loading…</div>
+  </section>
+
+  <section id="currCourseDetail" class="curr-course-detail hidden">
+    <button class="back-btn" id="currCourseBack">← All courses</button>
+    <header class="curr-course-hero">
+      <h2 id="currCourseTitle">Course</h2>
+      <div class="curr-course-meta" id="currCourseMeta"></div>
+    </header>
+    <div id="currUnits" class="curr-units"></div>
+  </section>
+</div>
+
 <!-- Token Cost page (per-user view of own AI usage). -->
 <div id="tokenUsagePage" class="activity-page hidden">
   <button class="back-btn" id="tokenUsageBack">← Back</button>
@@ -1144,6 +1188,7 @@
 <script src="activity.js"></script>
 <script src="tokens.js"></script>
 <script src="admin.js"></script>
+<script src="curriculum.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
 <script src="payments.js"></script>

@@ -861,6 +861,13 @@ async function deleteStudyPlan(userId) {
   save();
 }
 
+// Curriculum tables live in Postgres only — the xlsx import script
+// writes there directly. Local jsonfile dev returns empty data so the
+// API endpoints don't blow up.
+async function listCurriculumSubjects() { return []; }
+async function listCurriculumCourses() { return []; }
+async function getCurriculumCourseFull() { return null; }
+
 module.exports = {
   backend: 'jsonfile',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -882,6 +889,7 @@ module.exports = {
   adminUserDetail, adminUpdateUser, adminDeleteUser,
   adminQuizAnalytics, adminCostChart, adminListSessions, adminRevokeSession,
   adminAllLinks, adminLessonStats,
+  listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
