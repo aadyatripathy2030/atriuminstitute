@@ -287,7 +287,15 @@
 
         <details class="admin-user-section">
           <summary>Recent activity (${detail.activity.length})</summary>
-          ${detail.activity.length ? `<ul class="admin-user-list">${detail.activity.slice(0, 30).map(a => `<li><code>${esc(a.kind)}</code> · ${fmtDate(a.created_at)}</li>`).join('')}</ul>` : '<div class="parent-empty">No activity.</div>'}
+          ${detail.activity.length ? `<div class="token-table-wrap"><table class="token-table">
+            <thead><tr><th>When</th><th>Kind</th><th>Details</th><th class="num">Time Spent</th></tr></thead>
+            <tbody>${detail.activity.slice(0, 30).map(a => `<tr>
+              <td>${esc(fmtDate(a.created_at))}</td>
+              <td><code>${esc(a.kind)}</code></td>
+              <td class="muted">${esc(metaDetail(a.meta))}</td>
+              <td class="num">${esc(_fmtDuration(a.meta))}</td>
+            </tr>`).join('')}</tbody>
+          </table></div>` : '<div class="parent-empty">No activity.</div>'}
         </details>
       </div>
     `;
@@ -342,7 +350,7 @@
       : allActivity;
     el('adminActivityCount').textContent = `${filtered.length} of ${allActivity.length}`;
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty">No activity matches.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No activity matches.</td></tr>';
       return;
     }
     tbody.innerHTML = filtered.slice(0, 200).map(a => `
@@ -350,14 +358,33 @@
         <td>${esc(fmtDate(a.created_at))}</td>
         <td>${esc(a.email || a.user_id || '—')}</td>
         <td><code>${esc(a.kind)}</code></td>
-        <td class="muted">${esc(metaPreview(a.meta))}</td>
+        <td class="muted">${esc(metaDetail(a.meta))}</td>
+        <td class="num">${esc(_fmtDuration(a.meta))}</td>
       </tr>
     `).join('');
   }
-  function metaPreview(meta) {
+  function metaDetail(meta) {
     if (!meta || typeof meta !== 'object') return '';
-    const keys = ['courseId', 'bookId', 'sectionTitle', 'sectionIdx', 'score', 'total', 'passed', 'attemptNumber', 'hintLevel'];
-    return keys.filter(k => meta[k] != null).map(k => `${k}=${meta[k]}`).join(', ');
+    const parts = [];
+    if (meta.courseId) parts.push(meta.courseId);
+    if (meta.bookId) parts.push(meta.bookId);
+    if (meta.sectionTitle) parts.push(meta.sectionTitle);
+    else if (meta.sectionIdx != null) parts.push(`sec ${meta.sectionIdx + 1}`);
+    if (meta.score != null && meta.total != null) parts.push(`${meta.score}/${meta.total} ${meta.passed ? 'passed' : 'failed'}`);
+    if (meta.attemptNumber > 1) parts.push(`attempt ${meta.attemptNumber}`);
+    if (meta.hintLevel) parts.push(`hint L${meta.hintLevel}`);
+    if (meta.topic) parts.push(meta.topic);
+    return parts.join(' · ');
+  }
+  function _fmtDuration(meta) {
+    if (!meta || typeof meta !== 'object') return '—';
+    const sec = meta.durationSeconds;
+    if (!sec || sec < 1) return '—';
+    if (sec < 60) return sec + 's';
+    const m = Math.round(sec / 60);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), mm = m % 60;
+    return mm === 0 ? h + ' hr' : `${h}h ${mm}m`;
   }
 
   // ---------- Quiz analytics ----------
