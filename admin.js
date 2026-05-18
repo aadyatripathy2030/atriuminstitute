@@ -397,15 +397,48 @@
     } catch (e) { console.error(e); }
   }
 
-  function populatePrebuildCourseSelect() {
+  // Curriculum-side courses loaded once and cached so the cascade
+  // (course -> topic -> lesson) can look up units / lessons without
+  // refetching on every change.
+  let _prebuildCurriculum = []; // [{ id, title, grade_levels, units: [{unit_number, unit_title, lessons:[{lesson_number, lesson_title}]}] }]
+
+  async function populatePrebuildCourseSelect() {
     const sel = el('prebuildCourse');
     if (!sel || sel.options.length > 1) return;
-    if (typeof COURSES === 'undefined') return;
-    for (const [id, c] of Object.entries(COURSES)) {
-      const opt = document.createElement('option');
-      opt.value = id;
-      opt.textContent = c.title;
-      sel.appendChild(opt);
+    // 1) Legacy courses from window.COURSES.
+    if (typeof COURSES !== 'undefined') {
+      for (const [id, c] of Object.entries(COURSES)) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = c.title;
+        sel.appendChild(opt);
+      }
+    }
+    // 2) Curriculum courses (Grade 6 Math, Grade 7 Math, etc.).
+    // Values prefixed with "curr:" so the server can route them to the
+    // curriculum prebuild path.
+    try {
+      const r = await fetchJSON('/api/curriculum/courses');
+      const courses = (r && r.courses) || [];
+      if (courses.length > 0) {
+        const sep = document.createElement('option');
+        sep.disabled = true;
+        sep.textContent = '— curriculum —';
+        sel.appendChild(sep);
+        for (const c of courses) {
+          // Hydrate units now so cascade doesn't need another fetch.
+          const full = await fetchJSON('/api/curriculum/courses/' + encodeURIComponent(c.id)).catch(() => null);
+          const courseRec = (full && full.course) || c;
+          _prebuildCurriculum.push(courseRec);
+          const opt = document.createElement('option');
+          opt.value = 'curr:' + c.id;
+          opt.textContent = c.title + ' (curriculum)';
+          sel.appendChild(opt);
+        }
+      }
+    } catch (e) {
+      // No curriculum imported / endpoint failed: legacy-only dropdown.
+      console.warn('curriculum dropdown:', e && e.message);
     }
   }
 
@@ -421,6 +454,8 @@
     sel.appendChild(o);
   }
 
+  function _isCurriculumCourseValue(v) { return typeof v === 'string' && v.startsWith('curr:'); }
+
   function refreshPrebuildBookSelect() {
     const bookSel = el('prebuildBook');
     const sectionSel = el('prebuildSection');
@@ -429,7 +464,26 @@
     _resetSelect(sectionSel, 'All lessons');
     sectionSel.disabled = true;
     const courseId = el('prebuildCourse').value;
-    if (!courseId || typeof COURSES === 'undefined' || !COURSES[courseId]) {
+    if (!courseId) { bookSel.disabled = true; return; }
+
+    if (_isCurriculumCourseValue(courseId)) {
+      // Curriculum path: list units from the cached metadata.
+      const currId = courseId.slice('curr:'.length);
+      const cc = _prebuildCurriculum.find(c => c.id === currId);
+      if (!cc || !cc.units || cc.units.length === 0) { bookSel.disabled = true; return; }
+      bookSel.disabled = false;
+      for (const u of cc.units) {
+        const opt = document.createElement('option');
+        // Synthetic book id used by the server's curriculum job builder.
+        opt.value = `curr:${cc.id}:u${u.unit_number}`;
+        opt.textContent = `Unit ${u.unit_number}: ${u.unit_title}`;
+        bookSel.appendChild(opt);
+      }
+      return;
+    }
+
+    // Legacy path.
+    if (typeof COURSES === 'undefined' || !COURSES[courseId]) {
       bookSel.disabled = true;
       return;
     }
@@ -448,16 +502,37 @@
     _resetSelect(sectionSel, 'All lessons');
     const courseId = el('prebuildCourse').value;
     const bookId = el('prebuildBook').value;
-    if (!courseId || !bookId || typeof COURSES === 'undefined' || !COURSES[courseId]) {
-      sectionSel.disabled = true;
+    if (!courseId || !bookId) { sectionSel.disabled = true; return; }
+
+    if (_isCurriculumCourseValue(courseId)) {
+      // Curriculum path: list lessons from the cached metadata.
+      const currId = courseId.slice('curr:'.length);
+      const cc = _prebuildCurriculum.find(c => c.id === currId);
+      if (!cc) { sectionSel.disabled = true; return; }
+      // bookId looks like "curr:<id>:uN" -> extract unit number.
+      const m = /:u(\d+)$/.exec(bookId);
+      const unitNum = m ? Number(m[1]) : null;
+      const unit = (cc.units || []).find(u => u.unit_number === unitNum);
+      if (!unit || !unit.lessons || unit.lessons.length === 0) {
+        sectionSel.disabled = true; return;
+      }
+      sectionSel.disabled = false;
+      unit.lessons.forEach((l, idx) => {
+        const opt = document.createElement('option');
+        opt.value = `s:${idx}`;
+        opt.textContent = `${l.lesson_number}: ${l.lesson_title}`;
+        sectionSel.appendChild(opt);
+      });
       return;
     }
+
+    // Legacy path.
+    if (typeof COURSES === 'undefined' || !COURSES[courseId]) { sectionSel.disabled = true; return; }
     const book = (COURSES[courseId].books || []).find(b => b.id === bookId);
     if (!book) { sectionSel.disabled = true; return; }
     sectionSel.disabled = false;
     (book.sections || []).forEach((sec, idx) => {
       const opt = document.createElement('option');
-      // Value carries kind + idx so the server can disambiguate.
       opt.value = `s:${idx}`;
       opt.textContent = `${idx + 1}. ${sec.title || 'Lesson ' + (idx + 1)}`;
       sectionSel.appendChild(opt);

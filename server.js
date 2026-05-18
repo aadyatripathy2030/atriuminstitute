@@ -1180,6 +1180,66 @@ const prebuildState = {
   cancelled: false,
 };
 
+// Curriculum-driven prebuild jobs. Iterates curriculum_courses +
+// units + lessons and produces synthetic legacy-shaped jobs so the
+// existing worker pipeline can pre-generate per-lesson AI content
+// keyed on the same synthetic ids the runtime UI uses (curr:<id>,
+// curr:<id>:u<n>, lessonIdxInUnit). Each job carries the curriculum
+// lesson metadata so the lesson prompt is calibrated to the
+// learning objective, vocabulary, real-world hook, etc.
+async function buildCurriculumJobList(opts) {
+  const onlySectionIdx = (opts.onlySection === null || opts.onlySection === undefined || opts.onlySection === '')
+    ? null : Number(opts.onlySection);
+  const onlySectionKind = opts.onlySectionKind || null;
+  // Resolve curriculum-side course id. The dropdown values use a
+  // "curr:<id>" prefix to distinguish from legacy course slugs.
+  const wantCurrId = (opts.onlyCourse && opts.onlyCourse.startsWith('curr:'))
+    ? opts.onlyCourse.slice('curr:'.length)
+    : null;
+
+  const jobs = [];
+  const courses = await db.listCurriculumCourses({});
+  for (const cc of courses) {
+    if (wantCurrId && cc.id !== wantCurrId) continue;
+    // If onlyCourse points at a LEGACY id, this curriculum course
+    // isn't selected (the legacy job builder will pick up that path).
+    if (opts.onlyCourse && !opts.onlyCourse.startsWith('curr:')) continue;
+    const full = await db.getCurriculumCourseFull(cc.id);
+    if (!full) continue;
+    const synthCourseId = `curr:${full.id}`;
+    for (const u of (full.units || [])) {
+      const synthBookId = `${synthCourseId}:u${u.unit_number}`;
+      if (opts.onlyBook && opts.onlyBook !== synthBookId) continue;
+      const lessons = u.lessons || [];
+      lessons.forEach((l, sectionIdx) => {
+        if (onlySectionIdx !== null && sectionIdx !== onlySectionIdx) return;
+        if (onlySectionKind && onlySectionKind !== 'section') return;
+        jobs.push({
+          courseId: synthCourseId,
+          bookId: synthBookId,
+          sectionIdx,
+          sectionKind: 'section',
+          courseTitle: full.title,
+          bookTitle: u.unit_title,
+          sectionTitle: l.lesson_title,
+          sampleQuestions: [],
+          curriculumLesson: {
+            learning_objective: l.learning_objective || null,
+            key_concepts: l.key_concepts || null,
+            prerequisites: l.prerequisites || null,
+            key_vocabulary: l.key_vocabulary || null,
+            common_misconceptions: l.common_misconceptions || null,
+            real_world_hook: l.real_world_hook || null,
+            ccss_code: l.ccss_code || null,
+            practices: l.practices || null,
+          },
+        });
+      });
+    }
+  }
+  return jobs;
+}
+
 function buildJobList(courses, opts) {
   const jobs = [];
   // onlySectionIdx is parsed once; treat null as "no filter".
@@ -1248,6 +1308,7 @@ async function _generateWithRetry(job, maxAttempts) {
         sectionTitle: job.sectionTitle,
         sectionKind: job.sectionKind,
         sampleQuestions: job.sampleQuestions,
+        curriculumLesson: job.curriculumLesson || null,
       });
     } catch (e) {
       lastErr = e;
@@ -1321,7 +1382,14 @@ async function handleAdminPrebuildStart(req, res) {
     force: body.force === true,
     concurrency: body.concurrency,
   };
-  const jobs = buildJobList(courses, opts);
+  // Legacy courses (courses.js -> *-data.js) and curriculum courses
+  // (curriculum_* tables imported from xlsx) are both eligible for
+  // prebuild. The course dropdown values are either a legacy slug
+  // ("prealgebra") or "curr:<id>" ("curr:grade6") which lets us tell
+  // them apart.
+  const legacyJobs = buildJobList(courses, opts);
+  const currJobs  = await buildCurriculumJobList(opts);
+  const jobs = legacyJobs.concat(currJobs);
   if (jobs.length === 0) {
     return json(res, 400, { error: 'No sections matched. Did you pass a valid onlyCourse?' });
   }
