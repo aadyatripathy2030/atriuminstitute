@@ -595,3 +595,32 @@ create index if not exists idx_pod_attempts_user
 
 create index if not exists idx_pod_attempts_date
   on user_pod_attempts (pod_date);
+
+-- ------------------------------------------------------------------
+-- Gamification points (drives daily / weekly / monthly leaderboards).
+-- One row per (user, day) with that day's accumulated point total.
+-- Sources of points:
+--   quiz passed       50
+--   quiz attempted    10  (whether or not it passed)
+--   lesson started     5
+--   hint used          2
+--   minute on site     1  (capped at 60/day)
+--   achievement earned 50
+--   POD solved        20
+-- The values are encoded in server.js so they can be tuned without
+-- a schema change. Leaderboard queries sum points across the range.
+-- ------------------------------------------------------------------
+
+create table if not exists user_points_daily (
+  user_id uuid not null references users (id) on delete cascade,
+  day date not null,
+  points integer not null default 0,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+
+create index if not exists idx_points_day_total
+  on user_points_daily (day desc, points desc);
+
+create index if not exists idx_points_user_day
+  on user_points_daily (user_id, day desc);
