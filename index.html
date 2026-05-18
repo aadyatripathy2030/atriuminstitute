@@ -24,6 +24,24 @@
   };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+<script>
+  // Safety net: poll for MathJax independently of app.js. The moment
+  // typesetPromise is a real function, run it across the whole body so
+  // any math sitting in already-rendered content gets typeset. Catches
+  // bugs where app.js never explicitly typesets an element it should.
+  (function() {
+    var tries = 0;
+    function tick() {
+      if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+        try { window.MathJax.typesetPromise([document.body]).catch(function(){}); }
+        catch (e) { /* ignore */ }
+        return;
+      }
+      if (tries++ < 100) setTimeout(tick, 100);
+    }
+    setTimeout(tick, 50);
+  })();
+</script>
 </head>
 <body>
 
