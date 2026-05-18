@@ -62,7 +62,7 @@
     'about', 'contact', 'privacy', 'terms',
     'parentHome', 'parentStudentDetail',
     'profilePage', 'activityPage', 'tokenUsagePage', 'adminPage',
-    'curriculumPage', 'favoritesPage',
+    'curriculumPage', 'favoritesPage', 'achievementsPage', 'leaderboardPage',
   ];
   function hideAllTopLevel() {
     for (const id of TOP_LEVEL_IDS) hide(el(id));

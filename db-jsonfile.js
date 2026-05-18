@@ -878,6 +878,17 @@ async function saveCurriculumQuiz() { /* no-op in jsonfile dev */ }
 // ---------- Time tracking + summary (Postgres-only) ----------
 async function recordHeartbeat() { /* no-op in jsonfile dev */ }
 async function getActivitySummaryAll() { return []; }
+async function getUserStreaks() { return { current_streak: 0, longest_streak: 0, last_active: null }; }
+async function getUserAchievements() { return { badges: [], earned: 0, total: 0 }; }
+async function awardPoints() { /* no-op */ }
+async function getMyPoints() { return 0; }
+async function getLeaderboard() { return []; }
+async function getMyLeaderboardRank() { return { rank: null, points: 0, total: 0 }; }
+async function getOrCreatePOD() { return null; }
+async function savePOD() { /* no-op */ }
+async function getMyPODAttempt() { return null; }
+async function recordPODAttempt() { /* no-op */ }
+async function getPODStats() { return { total: 0, solved: 0 }; }
 async function getActivitySummary() {
   return [
     { subject: 'math', subject_title: 'Math', signins: 0, lessons_started: 0, quizzes_started: 0, quizzes_passed: 0, quizzes_failed: 0, avg_score_pct: 0, study_sessions: 0, hints_used: 0, time_spent_seconds: 0 },
@@ -938,6 +949,9 @@ module.exports = {
   listFavorites, addFavorite, removeFavorite,
   getCurriculumQuiz, saveCurriculumQuiz,
   recordHeartbeat, getActivitySummary, getActivitySummaryAll,
+  getUserStreaks, getUserAchievements,
+  awardPoints, getMyPoints, getLeaderboard, getMyLeaderboardRank,
+  getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

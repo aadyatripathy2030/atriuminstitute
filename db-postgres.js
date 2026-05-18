@@ -1209,6 +1209,237 @@ function _emptySubject(title) {
   };
 }
 
+// ---------- Streaks (derived from activity_log) ----------
+async function getUserStreaks(userId) {
+  const rows = await q(
+    `select to_char(date(created_at), 'YYYY-MM-DD') as d
+     from activity_log
+     where user_id = $1
+     group by 1 order by 1 desc`,
+    [userId]
+  );
+  if (!rows.length) return { current_streak: 0, longest_streak: 0, last_active: null };
+  const active = new Set(rows.map(r => r.d));
+  const oneDay = 86400000;
+  const today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  let cursor = new Date(today);
+  if (!active.has(iso(cursor))) cursor = new Date(cursor - oneDay);
+  let current = 0;
+  while (active.has(iso(cursor))) { current++; cursor = new Date(cursor - oneDay); }
+  const sorted = [...active].sort();
+  let longest = 0, run = 0, prev = null;
+  for (const d of sorted) {
+    if (!prev) run = 1;
+    else run = ((new Date(d) - new Date(prev)) / oneDay === 1) ? run + 1 : 1;
+    if (run > longest) longest = run;
+    prev = d;
+  }
+  return { current_streak: current, longest_streak: longest, last_active: rows[0].d };
+}
+
+// ---------- Achievements ----------
+const BADGE_CATALOG = [
+  { id: 'first_quiz', title: 'First quiz', description: 'Complete your first quiz', icon: '🎯', points: 50 },
+  { id: 'first_pass', title: 'First pass', description: 'Pass your first quiz', icon: '✅', points: 50 },
+  { id: 'pass_10', title: 'Quiz Champion', description: 'Pass 10 quizzes', icon: '🏆', points: 100 },
+  { id: 'pass_50', title: 'Quiz Legend', description: 'Pass 50 quizzes', icon: '👑', points: 250 },
+  { id: 'pass_100', title: 'Centurion', description: 'Pass 100 quizzes', icon: '💯', points: 500 },
+  { id: 'perfect_5', title: 'Sharpshooter', description: '5 perfect-score quizzes', icon: '🎯', points: 100 },
+  { id: 'streak_3', title: 'Streak Starter', description: '3-day streak', icon: '🔥', points: 50 },
+  { id: 'streak_7', title: 'Streak Master', description: '7-day streak', icon: '🔥', points: 150 },
+  { id: 'streak_30', title: 'Streak Hero', description: '30-day streak', icon: '⚡', points: 500 },
+  { id: 'hint_user', title: 'Curious', description: 'Use 5 hints', icon: '💡', points: 30 },
+  { id: 'lesson_5', title: 'Learner', description: 'Start 5 lessons', icon: '📖', points: 50 },
+  { id: 'multi_subject', title: 'Renaissance', description: 'Quizzes in both Math and Language Arts', icon: '🎨', points: 75 },
+  { id: 'pod_5', title: 'Daily Solver', description: 'Solve 5 Problems of the Day', icon: '⭐', points: 100 },
+];
+
+async function _evaluateBadges(userId) {
+  const attempts = await q(
+    `select course_id, score, total, passed, completed_at from quiz_attempts where user_id = $1 order by completed_at asc`,
+    [userId]
+  );
+  const activity = await q(
+    `select kind, created_at from activity_log where user_id = $1 order by created_at asc`,
+    [userId]
+  );
+  const streaks = await getUserStreaks(userId);
+  const podSolved = await q(
+    `select count(*)::int as n from user_pod_attempts where user_id = $1 and correct = true`,
+    [userId]
+  );
+
+  const passes = attempts.filter(a => a.passed);
+  const perfect = attempts.filter(a => a.passed && a.score === a.total);
+  const hintRows = activity.filter(a => a.kind === 'hint_used');
+  const lessons = activity.filter(a => a.kind === 'lesson_started');
+  const subjects = new Set(attempts.map(a => {
+    const c = a.course_id || '';
+    return (c.startsWith('eng') || c.startsWith('la-') || c.startsWith('curr:la-')) ? 'language_arts' : 'math';
+  }));
+
+  const nth = (arr, k) => (arr.length >= k ? arr[k - 1].completed_at || arr[k - 1].created_at : null);
+
+  return {
+    first_quiz:    attempts.length ? attempts[0].completed_at : null,
+    first_pass:    nth(passes, 1),
+    pass_10:       nth(passes, 10),
+    pass_50:       nth(passes, 50),
+    pass_100:      nth(passes, 100),
+    perfect_5:     nth(perfect, 5),
+    streak_3:      streaks.longest_streak >= 3 ? new Date().toISOString() : null,
+    streak_7:      streaks.longest_streak >= 7 ? new Date().toISOString() : null,
+    streak_30:     streaks.longest_streak >= 30 ? new Date().toISOString() : null,
+    hint_user:     hintRows.length >= 5 ? hintRows[4].created_at : null,
+    lesson_5:      lessons.length >= 5 ? lessons[4].created_at : null,
+    multi_subject: subjects.size >= 2 ? (attempts[attempts.length - 1] && attempts[attempts.length - 1].completed_at) : null,
+    pod_5:         (podSolved[0] && podSolved[0].n >= 5) ? new Date().toISOString() : null,
+  };
+}
+
+async function getUserAchievements(userId) {
+  // 1) Evaluate which badges the user should have based on their data.
+  const eval_ = await _evaluateBadges(userId);
+  // 2) Insert any newly-earned badges (idempotent).
+  for (const [badgeId, ts] of Object.entries(eval_)) {
+    if (ts) {
+      await q(
+        `insert into user_achievements (user_id, badge_id, earned_at)
+         values ($1, $2, $3)
+         on conflict (user_id, badge_id) do nothing`,
+        [userId, badgeId, ts]
+      );
+    }
+  }
+  // 3) Read the stored rows (so we have stable earned_at timestamps).
+  const stored = await q(
+    `select badge_id, earned_at from user_achievements where user_id = $1`,
+    [userId]
+  );
+  const storedMap = new Map(stored.map(r => [r.badge_id, r.earned_at]));
+  const badges = BADGE_CATALOG.map(b => {
+    const earned_at = storedMap.get(b.id) || null;
+    return { ...b, earned: !!earned_at, earned_at };
+  });
+  return { badges, earned: badges.filter(b => b.earned).length, total: badges.length };
+}
+
+// ---------- Points (gamification) ----------
+async function awardPoints(userId, amount) {
+  if (!userId || !amount) return;
+  await q(
+    `insert into user_points_daily (user_id, day, points, updated_at)
+     values ($1, current_date, $2, now())
+     on conflict (user_id, day)
+     do update set points = user_points_daily.points + excluded.points, updated_at = now()`,
+    [userId, amount]
+  );
+}
+
+async function getMyPoints(userId, fromDate, toDate) {
+  const rows = await q(
+    `select coalesce(sum(points), 0)::int as points
+     from user_points_daily where user_id = $1 and day >= $2::date and day <= $3::date`,
+    [userId, fromDate, toDate]
+  );
+  return (rows[0] && rows[0].points) || 0;
+}
+
+async function getLeaderboard(fromDate, toDate, limit) {
+  limit = Math.min(Math.max(parseInt(limit, 10) || 25, 1), 100);
+  // Top users + display name (first part of email before @ if no display).
+  const rows = await q(
+    `select p.user_id, sum(p.points)::int as points,
+            u.email,
+            coalesce(sp.display_name, pp.display_name, split_part(u.email, '@', 1)) as display_name
+     from user_points_daily p
+     join users u on u.id = p.user_id
+     left join student_profiles sp on sp.user_id = p.user_id
+     left join parent_profiles  pp on pp.user_id = p.user_id
+     where p.day >= $1::date and p.day <= $2::date
+     group by p.user_id, u.email, sp.display_name, pp.display_name
+     having sum(p.points) > 0
+     order by sum(p.points) desc, max(p.updated_at) asc
+     limit $3`,
+    [fromDate, toDate, limit]
+  );
+  return rows;
+}
+
+async function getMyLeaderboardRank(userId, fromDate, toDate) {
+  // Compute the user's rank by counting how many users have more points.
+  const myRow = await q(
+    `select coalesce(sum(points), 0)::int as points
+     from user_points_daily where user_id = $1 and day >= $2::date and day <= $3::date`,
+    [userId, fromDate, toDate]
+  );
+  const myPoints = (myRow[0] && myRow[0].points) || 0;
+  if (myPoints === 0) return { rank: null, points: 0, total: 0 };
+  const aboveRow = await q(
+    `with totals as (
+       select user_id, sum(points)::int as points
+       from user_points_daily
+       where day >= $1::date and day <= $2::date
+       group by user_id
+     )
+     select count(*)::int + 1 as rank,
+            (select count(*) from totals where points > 0)::int as total
+     from totals where points > $3`,
+    [fromDate, toDate, myPoints]
+  );
+  return { rank: aboveRow[0].rank, points: myPoints, total: aboveRow[0].total };
+}
+
+// ---------- Problem of the Day ----------
+async function getOrCreatePOD(dateISO) {
+  const rows = await q(
+    `select * from problem_of_the_day where pod_date = $1::date limit 1`,
+    [dateISO]
+  );
+  return rows[0] || null;
+}
+
+async function savePOD(pod) {
+  await q(
+    `insert into problem_of_the_day
+       (pod_date, question_text, question_type, correct_answer, solution, difficulty, source_course_id, source_book_id, source_section_idx, subject)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     on conflict (pod_date) do nothing`,
+    [pod.pod_date, pod.question_text, pod.question_type || 'regular', pod.correct_answer,
+     pod.solution || null, pod.difficulty || 'medium', pod.source_course_id || null,
+     pod.source_book_id || null, pod.source_section_idx || null, pod.subject || 'math']
+  );
+}
+
+async function getMyPODAttempt(userId, dateISO) {
+  const rows = await q(
+    `select user_answer, correct, attempted_at
+     from user_pod_attempts where user_id = $1 and pod_date = $2::date limit 1`,
+    [userId, dateISO]
+  );
+  return rows[0] || null;
+}
+
+async function recordPODAttempt(userId, dateISO, userAnswer, correct) {
+  await q(
+    `insert into user_pod_attempts (user_id, pod_date, user_answer, correct, attempted_at)
+     values ($1, $2::date, $3, $4, now())
+     on conflict (user_id, pod_date)
+     do update set user_answer = excluded.user_answer, correct = excluded.correct, attempted_at = now()`,
+    [userId, dateISO, userAnswer, correct]
+  );
+}
+
+async function getPODStats(dateISO) {
+  const rows = await q(
+    `select count(*)::int as total, count(*) filter (where correct = true)::int as solved
+     from user_pod_attempts where pod_date = $1::date`,
+    [dateISO]
+  );
+  return rows[0] || { total: 0, solved: 0 };
+}
+
 // ---------- User favorites (legacy course + book ids) ----------
 async function listFavorites(userId) {
   return q(
@@ -1268,6 +1499,9 @@ module.exports = {
   listFavorites, addFavorite, removeFavorite,
   getCurriculumQuiz, saveCurriculumQuiz,
   recordHeartbeat, getActivitySummary, getActivitySummaryAll,
+  getUserStreaks, getUserAchievements,
+  awardPoints, getMyPoints, getLeaderboard, getMyLeaderboardRank,
+  getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

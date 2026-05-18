@@ -68,6 +68,7 @@
     <button class="nav-link" id="aboutLink" onclick="showAbout()">About</button>
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
+    <button type="button" class="streak-chip hidden" id="streakChip" title="Your activity streak">🔥 <span id="streakChipCount">0</span></button>
     <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
     <button class="nav-link hidden" id="navSignInBtn" type="button">Sign in</button>
     <button class="nav-cta hidden" id="navSignUpBtn" type="button">Sign up</button>
@@ -78,6 +79,8 @@
           <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
           <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
           <button class="nav-menu-item" id="favoritesNavBtn" type="button" role="menuitem">My Favorites</button>
+          <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem">Achievements</button>
+          <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem">Leaderboard</button>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
           <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
@@ -701,6 +704,37 @@
   </section>
 </div>
 
+<!-- Achievements page. -->
+<div id="achievementsPage" class="curr-page hidden">
+  <button class="back-btn" id="achievementsBack">← Back</button>
+  <header class="curr-hero">
+    <h1>Achievements</h1>
+    <p class="curr-sub" id="achievementsSub">Loading…</p>
+  </header>
+  <div class="badges-grid" id="achievementsGrid"></div>
+</div>
+
+<!-- Leaderboard page. -->
+<div id="leaderboardPage" class="curr-page hidden">
+  <button class="back-btn" id="leaderboardBack">← Back</button>
+  <header class="curr-hero">
+    <h1>Leaderboard</h1>
+    <p class="curr-sub">Top learners by points. Names are first-initial only.</p>
+  </header>
+  <div class="summary-range-tabs" id="leaderboardTabs" style="margin-bottom:16px">
+    <button class="summary-tab" data-range="daily">Today</button>
+    <button class="summary-tab active" data-range="weekly">This week</button>
+    <button class="summary-tab" data-range="monthly">This month</button>
+  </div>
+  <div id="leaderboardMyRank" class="leaderboard-my-rank"></div>
+  <div class="summary-table-wrap">
+    <table class="summary-table" id="leaderboardTable">
+      <thead><tr><th>#</th><th>Student</th><th class="num">Points</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
 <!-- My Favorites: topics the user has starred. -->
 <div id="favoritesPage" class="curr-page hidden">
   <button class="back-btn" id="favBack">← Back</button>
@@ -876,6 +910,7 @@
     <p>Interactive, auto-graded quizzes with a built-in AI tutor who checks your work, walks you through your mistakes, and answers any question.</p>
   </header>
   <div id="recBox"></div>
+  <div id="podBox"></div>
   <div class="section-heading">
     <h2>📖 Your Courses</h2>
     <div class="sub">Pick a course to begin</div>
@@ -1329,6 +1364,7 @@
 <script src="tokens.js"></script>
 <script src="admin.js"></script>
 <script src="favorites.js"></script>
+<script src="gamification.js"></script>
 <script src="curriculum.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>

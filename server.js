@@ -471,6 +471,8 @@ async function handleLogQuizAttempt(req, res) {
     }));
   }
   const row = await db.logQuizAttempt(u.id, { ...body, answers });
+  // Award points (fire-and-forget). Passes are worth more than attempts.
+  _awardPointsAsync(u.id, body && body.passed ? POINT_VALUES.quiz_passed : POINT_VALUES.quiz_attempted);
   json(res, 200, { ok: true, attempt: row });
 }
 
@@ -501,6 +503,9 @@ async function handleLogClientActivity(req, res) {
   }
   if (typeof meta.correct === 'boolean') safeMeta.correct = meta.correct;
   await db.logActivity(u.id, body.kind, safeMeta);
+  // Gamification points (fire-and-forget).
+  if (body.kind === 'lesson_started') _awardPointsAsync(u.id, POINT_VALUES.lesson_started);
+  else if (body.kind === 'hint_used') _awardPointsAsync(u.id, POINT_VALUES.hint_used);
   json(res, 200, { ok: true });
 }
 
@@ -1159,6 +1164,139 @@ async function handleGetParentStudentSummary(req, res, studentId) {
   const [from, to] = _rangeBounds(range);
   const subjects = await db.getActivitySummary(studentId, from, to);
   json(res, 200, { range, from, to, subjects });
+}
+
+// ---------- Streaks ----------
+async function handleGetMyStreaks(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const s = await db.getUserStreaks(u.id);
+  json(res, 200, s);
+}
+
+// ---------- Achievements ----------
+async function handleGetMyAchievements(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const a = await db.getUserAchievements(u.id);
+  json(res, 200, a);
+}
+
+// ---------- Points + leaderboard ----------
+const POINT_VALUES = {
+  quiz_passed: 50,
+  quiz_attempted: 10,
+  lesson_started: 5,
+  hint_used: 2,
+  pod_solved: 20,
+  achievement_earned: 50,
+};
+
+// Fire-and-forget point award. Failures are logged but don't propagate.
+function _awardPointsAsync(userId, amount) {
+  if (!userId || !amount) return;
+  db.awardPoints(userId, amount).catch(err => console.warn('awardPoints failed:', err.message));
+}
+
+async function handleGetLeaderboard(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in to view the leaderboard.' });
+  const url = new URL(req.url, 'http://localhost');
+  const range = url.searchParams.get('range') || 'weekly';
+  const [from, to] = _rangeBounds(range);
+  const [top, me] = await Promise.all([
+    db.getLeaderboard(from, to, 25),
+    db.getMyLeaderboardRank(u.id, from, to),
+  ]);
+  json(res, 200, { range, from, to, top, me });
+}
+
+// ---------- Problem of the Day ----------
+async function _pickPODFromCurriculum(dateISO) {
+  // Deterministic: hash the date to pick a question from the legacy
+  // course bank. We use the existing curriculum loader so we don't have
+  // to maintain a separate POD content set.
+  let courses;
+  try { courses = loadCourses(); } catch (_) { return null; }
+  // Flatten all (section, course, book) question rows into a single list.
+  const flat = [];
+  for (const [courseId, course] of Object.entries(courses)) {
+    for (const book of (course.books || [])) {
+      (book.sections || []).forEach((sec, sectionIdx) => {
+        (sec.questions || []).forEach(qq => {
+          if (qq && qq.q && qq.answer) {
+            flat.push({
+              question_text: qq.q, question_type: qq.type || 'regular',
+              correct_answer: qq.answer, solution: qq.solution || '',
+              source_course_id: courseId, source_book_id: book.id, source_section_idx: sectionIdx,
+              subject: course.subject === 'english' ? 'language_arts' : 'math',
+            });
+          }
+        });
+      });
+    }
+  }
+  if (flat.length === 0) return null;
+  // Hash YYYY-MM-DD to a stable index.
+  let h = 0;
+  for (let i = 0; i < dateISO.length; i++) h = ((h << 5) - h + dateISO.charCodeAt(i)) | 0;
+  const idx = Math.abs(h) % flat.length;
+  return { ...flat[idx], pod_date: dateISO };
+}
+
+async function handleGetPOD(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in to see the daily problem.' });
+  const today = new Date().toISOString().slice(0, 10);
+  let pod = await db.getOrCreatePOD(today);
+  if (!pod) {
+    const picked = await _pickPODFromCurriculum(today);
+    if (!picked) return json(res, 503, { error: 'No problem available today.' });
+    await db.savePOD(picked);
+    pod = await db.getOrCreatePOD(today);
+  }
+  const attempt = await db.getMyPODAttempt(u.id, today);
+  const stats = await db.getPODStats(today);
+  json(res, 200, {
+    pod: {
+      pod_date: pod.pod_date,
+      question_text: pod.question_text,
+      question_type: pod.question_type,
+      subject: pod.subject,
+      difficulty: pod.difficulty,
+    },
+    my_attempt: attempt,
+    stats,
+  });
+}
+
+async function handlePostPODAttempt(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in to answer.' });
+  const body = await readJSON(req);
+  const today = new Date().toISOString().slice(0, 10);
+  const pod = await db.getOrCreatePOD(today);
+  if (!pod) return json(res, 404, { error: 'No problem today.' });
+  const userAnswer = String((body && body.answer) || '').trim();
+  if (!userAnswer) return json(res, 400, { error: 'Answer required.' });
+  // Trim/normalise for simple match. The legacy quiz grader uses
+  // Claude; for the POD a string-equal-after-normalisation is good
+  // enough and avoids paying an AI call.
+  const norm = s => String(s).toLowerCase().replace(/[\s.,;:'"()$%]/g, '');
+  const correct = norm(userAnswer) === norm(pod.correct_answer);
+  const previous = await db.getMyPODAttempt(u.id, today);
+  await db.recordPODAttempt(u.id, today, userAnswer, correct);
+  // Award POD points only on the first correct attempt.
+  if (correct && (!previous || !previous.correct)) {
+    _awardPointsAsync(u.id, POINT_VALUES.pod_solved);
+  }
+  const stats = await db.getPODStats(today);
+  json(res, 200, {
+    correct,
+    correct_answer: correct ? null : pod.correct_answer,
+    solution: pod.solution || null,
+    stats,
+  });
 }
 
 // ---------- User favorites ----------
@@ -1946,6 +2084,12 @@ const server = http.createServer(async (req, res) => {
     // Time tracking + activity rollups.
     if (url === '/api/me/heartbeat' && req.method === 'POST') return await handleHeartbeat(req, res);
     if (url === '/api/me/activity-summary' && req.method === 'GET') return await handleGetMyActivitySummary(req, res);
+    // Gamification.
+    if (url === '/api/me/streaks' && req.method === 'GET') return await handleGetMyStreaks(req, res);
+    if (url === '/api/me/achievements' && req.method === 'GET') return await handleGetMyAchievements(req, res);
+    if (url === '/api/leaderboard' && req.method === 'GET') return await handleGetLeaderboard(req, res);
+    if (url === '/api/problem-of-day' && req.method === 'GET') return await handleGetPOD(req, res);
+    if (url === '/api/problem-of-day/attempt' && req.method === 'POST') return await handlePostPODAttempt(req, res);
     // Favorites (signed-in user only).
     if (url === '/api/me/favorites' && req.method === 'GET') return await handleListFavorites(req, res);
     if (url === '/api/me/favorites' && req.method === 'POST') return await handleAddFavorite(req, res);

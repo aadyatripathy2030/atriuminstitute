@@ -4096,3 +4096,76 @@ body > .site-footer {
 
 .rollup-student { font-weight: 500; }
 .rollup-student-role { font-size: 11px; color: var(--text-muted, #4a4d63); text-transform: capitalize; }
+
+/* =============== Streak chip =============== */
+.streak-chip {
+  font: inherit; font-size: 13px; padding: 5px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  background: linear-gradient(135deg, #fff4e6, #ffe2c2);
+  color: #b65a14;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.streak-chip:hover { border-color: #f0a060; transform: translateY(-1px); }
+.streak-chip.hidden { display: none; }
+
+/* =============== Problem of the Day =============== */
+#podBox { max-width: 1200px; margin: 0 auto 18px; padding: 0 32px; }
+.pod-card {
+  background: linear-gradient(135deg, #fff7e6 0%, #ffeacc 100%);
+  border: 1px solid #f0c98a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.pod-card.solved { background: linear-gradient(135deg, #e6f4ec 0%, #c9eed5 100%); border-color: #76c894; }
+.pod-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.pod-eyebrow { font-weight: 700; font-size: 13px; color: #a16110; letter-spacing: 0.2px; }
+.pod-card.solved .pod-eyebrow { color: #1f7a4a; }
+.pod-subject { font-size: 12px; color: var(--text-muted, #4a4d63); margin-top: 2px; }
+.pod-stats { font-size: 12px; color: var(--text-muted, #4a4d63); }
+.pod-question {
+  font-size: 17px; line-height: 1.55; color: var(--text, #1e2238);
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 8px; padding: 12px 14px;
+}
+.pod-input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.pod-input {
+  flex: 1; min-width: 0; font: inherit; font-size: 14px;
+  padding: 10px 14px; border: 1px solid var(--border, #e6e2d7);
+  border-radius: 8px; background: #fff;
+}
+.pod-result { font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 8px; }
+.pod-result.ok { background: rgba(40, 140, 80, 0.15); color: #1f7a4a; }
+.pod-result.err { background: rgba(220, 80, 80, 0.12); color: #c43c5b; }
+.pod-correct { font-size: 14px; color: var(--text-muted, #4a4d63); }
+.pod-hint.muted { font-size: 12px; color: var(--text-muted, #4a4d63); }
+
+/* =============== Achievements grid =============== */
+.badges-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px;
+}
+.badge {
+  border: 1px solid var(--border, #e6e2d7); border-radius: 12px;
+  padding: 16px; text-align: center;
+  background: var(--card-bg, #fff);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.badge.earned { background: linear-gradient(135deg, #f7f4ec, #fdf8e8); border-color: #d4b878; }
+.badge.earned:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); }
+.badge.locked { opacity: 0.45; }
+.badge-icon { font-size: 36px; margin-bottom: 8px; }
+.badge-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; color: var(--text, #1e2238); }
+.badge-desc { font-size: 12px; color: var(--text-muted, #4a4d63); margin-bottom: 8px; min-height: 32px; }
+.badge-points { font-size: 11px; color: var(--accent, #4a6fa5); font-weight: 600; }
+.badge-status { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted, #4a4d63); margin-top: 4px; }
+.badge.earned .badge-status { color: #1f7a4a; }
+
+/* =============== Leaderboard =============== */
+.leaderboard-my-rank {
+  padding: 12px 16px; background: rgba(74, 111, 165, 0.06);
+  border: 1px solid var(--border, #e6e2d7); border-radius: 10px;
+  margin-bottom: 14px; font-size: 14px;
+}
