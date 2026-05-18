@@ -18,6 +18,7 @@ const db = require('./db');
 const email = require('./email');
 const prompts = require('./prompts');
 const { loadCourses } = require('./curriculum-loader');
+const stripeLib = require('./stripe-lib');
 
 // Anthropic pricing per million tokens (USD), as of mid-2026. If a model
 // is not listed we charge using Sonnet rates (conservative). Update when
@@ -207,6 +208,10 @@ function userPublic(u) {
     consent_required: !!u.consent_required,
     consent_granted_at: u.consent_granted_at || null,
     is_admin: !!u.is_admin,
+    subscription_status: u.subscription_status || null,
+    subscription_plan: u.subscription_plan || null,
+    current_period_end: u.current_period_end || null,
+    is_pro: stripeLib.isActiveStatus(u.subscription_status),
   };
 }
 
@@ -1217,11 +1222,141 @@ async function handleUnsubscribe(req, res) {
   </body></html>`);
 }
 
+// ---------- Stripe routes ----------
+async function handleStripeCheckout(req, res) {
+  if (req.method !== 'POST') { res.writeHead(405); return res.end('method'); }
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in first to subscribe.' });
+  if (!stripeLib.isConfigured()) return json(res, 503, { error: 'Stripe is not configured on the server.' });
+  const body = await readJSON(req);
+  const plan = (body && body.plan === 'yearly') ? 'yearly' : 'monthly';
+  try {
+    const url = await stripeLib.createCheckoutSession(u, db, plan);
+    json(res, 200, { url });
+  } catch (e) {
+    console.error('Stripe checkout error:', e.message);
+    json(res, 502, { error: e.message || 'Could not create checkout session.' });
+  }
+}
+
+async function handleStripePortal(req, res) {
+  if (req.method !== 'POST') { res.writeHead(405); return res.end('method'); }
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in first.' });
+  if (!stripeLib.isConfigured()) return json(res, 503, { error: 'Stripe is not configured on the server.' });
+  if (!u.stripe_customer_id) return json(res, 400, { error: 'No subscription on file. Start one first.' });
+  try {
+    const url = await stripeLib.createPortalSession(u, db);
+    json(res, 200, { url });
+  } catch (e) {
+    console.error('Stripe portal error:', e.message);
+    json(res, 502, { error: e.message || 'Could not open billing portal.' });
+  }
+}
+
+// Webhook handler — needs the RAW body for signature verification, so we
+// read it ourselves and bypass readJSON.
+async function handleStripeWebhook(req, res) {
+  if (req.method !== 'POST') { res.writeHead(405); return res.end('method'); }
+  let raw;
+  try { raw = await readRawBuffer(req); } catch (_e) { res.writeHead(400); return res.end('bad body'); }
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripeLib.constructWebhookEvent(raw, sig);
+  } catch (e) {
+    console.warn('Stripe webhook signature failed:', e.message);
+    res.writeHead(400); return res.end(`Webhook Error: ${e.message}`);
+  }
+  try {
+    await processStripeEvent(event);
+  } catch (e) {
+    console.error('Stripe event handler failed:', event.type, e.message);
+    res.writeHead(500); return res.end('handler failed');
+  }
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end('{"received":true}');
+}
+
+async function processStripeEvent(event) {
+  const obj = event.data && event.data.object;
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      // Subscription was set up. The customer.subscription.created event
+      // usually fires immediately after with the full subscription, so we
+      // only persist the customer<->user link here.
+      const customerId = obj.customer;
+      const userId = (obj.metadata && obj.metadata.atrium_user_id) || obj.client_reference_id;
+      if (userId && customerId) await db.setStripeCustomerId(userId, customerId);
+      return;
+    }
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated': {
+      const customerId = obj.customer;
+      const userByMeta = obj.metadata && obj.metadata.atrium_user_id;
+      let user = null;
+      if (userByMeta) user = await db.getUser(userByMeta);
+      if (!user) user = await db.findUserByStripeCustomerId(customerId);
+      if (!user) {
+        console.warn('Stripe subscription event for unknown customer:', customerId);
+        return;
+      }
+      await db.updateSubscription(user.id, stripeLib.subscriptionRow(obj));
+      return;
+    }
+    case 'customer.subscription.deleted': {
+      const customerId = obj.customer;
+      const user = await db.findUserByStripeCustomerId(customerId);
+      if (!user) return;
+      await db.updateSubscription(user.id, {
+        stripe_subscription_id: obj.id,
+        subscription_status: 'canceled',
+        current_period_end: obj.current_period_end ? new Date(obj.current_period_end * 1000).toISOString() : null,
+      });
+      return;
+    }
+    case 'invoice.payment_failed': {
+      const customerId = obj.customer;
+      const user = await db.findUserByStripeCustomerId(customerId);
+      if (user) await db.updateSubscription(user.id, { subscription_status: 'past_due' });
+      return;
+    }
+    default:
+      // Ignore everything we didn't ask for.
+      return;
+  }
+}
+
+function readRawBuffer(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let total = 0;
+    req.on('data', c => {
+      total += c.length;
+      if (total > 1_000_000) { reject(new Error('too big')); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
 // ---------- Claude proxy ----------
 async function proxyClaude(req, res) {
   if (req.method !== 'POST') { res.writeHead(405); return res.end('method'); }
   if (!API_KEY) return json(res, 503, { error: { message: 'Server has no API key configured.' } });
-  // No auth required — open access. Cost is still bounded by per-IP + daily cap.
+
+  // Premium gate: Max requires an active subscription (or active trial).
+  // If Stripe isn't configured at all, fall back to open access so local
+  // development still works.
+  if (stripeLib.isConfigured()) {
+    const u = await currentUser(req);
+    if (!u) return json(res, 401, { error: { message: 'Sign in to use Max.' } });
+    if (!stripeLib.isActiveStatus(u.subscription_status)) {
+      return json(res, 402, { error: { message: 'Max is a Pro feature. Start a 3-day free trial to chat with Max.', code: 'upgrade_required' } });
+    }
+  }
+
   const ip = ipOf(req);
   if (!rateLimitCheck(ip)) return json(res, 429, { error: { message: `Rate limit: ${RATE_LIMIT_PER_HOUR} requests/hour per IP.` } });
   if (!budgetCheck()) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
@@ -1441,6 +1576,10 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'POST' && kind === 'authorise-reminders') return handleParentAuthoriseReminders(req, res, studentId);
       }
     }
+    // Stripe
+    if (url === '/api/stripe/checkout' && req.method === 'POST') return handleStripeCheckout(req, res);
+    if (url === '/api/stripe/portal'   && req.method === 'POST') return handleStripePortal(req, res);
+    if (url === '/api/stripe/webhook'  && req.method === 'POST') return handleStripeWebhook(req, res);
     // Claude proxy
     if (url.startsWith('/api/claude')) return proxyClaude(req, res);
     // Static

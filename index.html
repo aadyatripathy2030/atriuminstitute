@@ -296,18 +296,46 @@
   </section>
 
   <section class="landing-pricing">
-    <div class="pricing-card">
-      <div class="pricing-badge">Open access</div>
-      <div class="pricing-amount">Free</div>
-      <div class="pricing-trial">No account · no credit card · open the site and start</div>
-      <ul class="pricing-list">
-        <li>✓ All 14 math courses + 7 English grades, every quiz, test, and final exam</li>
-        <li>✓ Unlimited access to Max, the AI tutor</li>
-        <li>✓ All study tools (Pomodoro, spaced rep, recall timer, and more)</li>
-        <li>✓ Progress saved automatically in your browser</li>
-        <li>✓ No ads, no streaks, no upsells</li>
-      </ul>
-      <button class="cta-primary cta-full" onclick="openAuth('signup')">Sign up free</button>
+    <h2 class="landing-h2">Pricing</h2>
+    <p class="landing-section-sub">A free tier covers the core. Upgrade to Pro for the AI tutor &amp; advanced tools.</p>
+    <div class="pricing-grid">
+
+      <div class="pricing-card pricing-card-free">
+        <div class="pricing-badge">Free forever</div>
+        <div class="pricing-amount">$0</div>
+        <div class="pricing-trial">No card · sign up with email</div>
+        <ul class="pricing-list">
+          <li>✓ All 14 math courses + 7 English grades</li>
+          <li>✓ Every quiz, cumulative test, and topic</li>
+          <li>✓ Auto-graded scoring + per-section feedback</li>
+          <li>✓ Progress saved to your account</li>
+        </ul>
+        <button class="cta-secondary cta-full" onclick="openAuth('signup')">Sign up free</button>
+      </div>
+
+      <div class="pricing-card pricing-card-pro">
+        <div class="pricing-badge pricing-badge-pro">Pro · 3-day free trial</div>
+
+        <div class="pricing-toggle" role="tablist" aria-label="Billing period">
+          <button type="button" class="pricing-toggle-btn active" data-plan="monthly" role="tab" aria-selected="true">Monthly</button>
+          <button type="button" class="pricing-toggle-btn" data-plan="yearly" role="tab" aria-selected="false">Yearly <span class="pricing-save">Save $30</span></button>
+        </div>
+
+        <div class="pricing-amount" id="pricingAmount">$15<span>/month</span></div>
+        <div class="pricing-trial" id="pricingTrial">Billed monthly · cancel anytime · 3-day free trial</div>
+
+        <ul class="pricing-list">
+          <li>✓ Everything in Free, plus:</li>
+          <li>✨ <strong>Max</strong>, the AI tutor — unlimited chat &amp; lessons</li>
+          <li>📚 Study Methods panel — Pomodoro, Active Recall, Spaced Rep</li>
+          <li>🏁 Final Exams for every course</li>
+          <li>💬 Walk-throughs after every missed quiz answer</li>
+        </ul>
+
+        <button class="cta-primary cta-full" id="pricingSubscribeBtn" onclick="startProCheckout()">Start 3-day free trial →</button>
+        <div class="pricing-fine">After the trial: $15/month or $150/year. Cancel anytime, instantly.</div>
+      </div>
+
     </div>
   </section>
 
@@ -925,6 +953,29 @@
   </div>
 </div>
 
+<!-- Upgrade-to-Pro modal (triggered when a free user tries Max / a Pro feature) -->
+<div class="upgrade-overlay hidden" id="upgradeOverlay">
+  <div class="upgrade-card">
+    <button class="upgrade-close" id="upgradeClose" aria-label="Close">✕</button>
+    <div class="upgrade-emoji">✨</div>
+    <h2 class="upgrade-title">Upgrade to <em>Atrium Pro</em></h2>
+    <p class="upgrade-sub">Max the AI tutor, full Study Methods, and Final Exams are Pro features. Start a 3-day free trial — no commitment.</p>
+    <div class="pricing-toggle" role="tablist" aria-label="Billing period">
+      <button type="button" class="pricing-toggle-btn active" data-plan-modal="monthly" role="tab" aria-selected="true">Monthly</button>
+      <button type="button" class="pricing-toggle-btn" data-plan-modal="yearly" role="tab" aria-selected="false">Yearly <span class="pricing-save">Save $30</span></button>
+    </div>
+    <div class="upgrade-amount" id="upgradeAmount">$15<span>/month</span></div>
+    <ul class="upgrade-list">
+      <li>✨ Max — unlimited chat &amp; lessons</li>
+      <li>📚 Study Methods (Pomodoro, Spaced Rep, more)</li>
+      <li>🏁 Final Exams</li>
+      <li>💬 Walk-throughs after every missed answer</li>
+    </ul>
+    <button class="cta-primary cta-full" id="upgradeSubscribeBtn">Start 3-day free trial →</button>
+    <div class="upgrade-fine" id="upgradeFine">After trial: $15/month. Cancel anytime.</div>
+  </div>
+</div>
+
 <button class="back-to-top hidden" id="backToTop" title="Back to top" aria-label="Back to top">↑</button>
 
 <!-- Dedicated Study page (concept lesson + ~10 practice questions, no grading) -->
@@ -1070,6 +1121,7 @@
 <script src="admin.js"></script>
 <script src="app.js"></script>
 <script src="study.js"></script>
+<script src="payments.js"></script>
 </body>
 </html>
 

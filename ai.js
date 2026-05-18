@@ -12,10 +12,15 @@ const AI = {
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      credentials: 'same-origin'
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      // 402 = server is saying Max is Pro-gated. Pop the upgrade modal.
+      if (res.status === 402 && typeof openUpgradeModal === 'function') {
+        openUpgradeModal();
+      }
       throw new Error(err.error?.message || `API ${res.status}`);
     }
     return res;

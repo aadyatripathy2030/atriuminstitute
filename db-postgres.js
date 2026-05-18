@@ -40,7 +40,7 @@ function normalizeRole(r) {
   return r === 'parent' ? 'parent' : 'student';
 }
 
-const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, consent_required, consent_granted_at, is_admin';
+const USER_COLS = 'id, email, role, verified, created_at, link_code, age, country, consent_required, consent_granted_at, is_admin, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_plan, current_period_end';
 
 // 8-character link code from an unambiguous alphabet (no 0/O, 1/I/L).
 // Formatted as XXXX-XXXX for display; stored without the dash.
@@ -267,6 +267,42 @@ async function createLinkFromCode(initiatedByUserId, otherLinkCode) {
   // mark consent granted now.
   await grantConsent(studentId);
   return { ok: true, link: rows[0] };
+}
+
+async function setStripeCustomerId(userId, customerId) {
+  const rows = await q(
+    `update users set stripe_customer_id = $2 where id = $1 returning ${USER_COLS}`,
+    [userId, customerId],
+  );
+  return rows[0] || null;
+}
+
+async function findUserByStripeCustomerId(customerId) {
+  const rows = await q(
+    `select ${USER_COLS} from users where stripe_customer_id = $1 limit 1`,
+    [customerId],
+  );
+  return rows[0] || null;
+}
+
+async function updateSubscription(userId, fields) {
+  const rows = await q(
+    `update users
+       set stripe_subscription_id = coalesce($2, stripe_subscription_id),
+           subscription_status   = coalesce($3, subscription_status),
+           current_period_end    = coalesce($4, current_period_end),
+           subscription_plan     = coalesce($5, subscription_plan)
+     where id = $1
+     returning ${USER_COLS}`,
+    [
+      userId,
+      fields.stripe_subscription_id ?? null,
+      fields.subscription_status ?? null,
+      fields.current_period_end ?? null,
+      fields.plan ?? null,
+    ],
+  );
+  return rows[0] || null;
 }
 
 async function listLinkedStudents(parentUserId) {
@@ -881,6 +917,7 @@ module.exports = {
   backend: 'postgres',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
   updateUserProfile, grantConsent,
+  setStripeCustomerId, findUserByStripeCustomerId, updateSubscription,
   createCode, verifyCode,
   createSession, getSession, deleteSession,
   getProgress, getAllProgress, setProgress,

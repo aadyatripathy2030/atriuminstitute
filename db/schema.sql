@@ -72,6 +72,17 @@ alter table users add column if not exists consent_granted_at timestamptz;
 -- renders for users where this is true.
 alter table users add column if not exists is_admin boolean not null default false;
 
+-- ------------------------------------------------------------------
+-- Stripe subscription state (added May 2026). Free tier uses none of
+-- these; subscribers fill them via the /api/stripe/webhook handler.
+-- ------------------------------------------------------------------
+alter table users add column if not exists stripe_customer_id      text;
+alter table users add column if not exists stripe_subscription_id  text;
+alter table users add column if not exists subscription_status     text;  -- trialing | active | past_due | canceled | …
+alter table users add column if not exists subscription_plan       text;  -- monthly | yearly
+alter table users add column if not exists current_period_end      timestamptz;
+create unique index if not exists users_stripe_customer_id_uq on users(stripe_customer_id) where stripe_customer_id is not null;
+
 create unique index if not exists idx_users_link_code on users (link_code) where link_code is not null;
 
 -- ------------------------------------------------------------------

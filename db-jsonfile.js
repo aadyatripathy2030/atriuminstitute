@@ -114,10 +114,48 @@ async function upsertUser(email, role) {
       country: null,
       consent_required: false,
       consent_granted_at: null,
+      // Stripe subscription state (null until the user starts a checkout)
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      subscription_status: null,        // 'trialing' | 'active' | 'past_due' | 'canceled' | 'incomplete' | ...
+      subscription_plan: null,          // 'monthly' | 'yearly'
+      current_period_end: null,         // ISO string
     };
     state.users.push(u);
     save();
   }
+  // Backfill the columns on older user records.
+  if (!('stripe_customer_id' in u)) u.stripe_customer_id = null;
+  if (!('stripe_subscription_id' in u)) u.stripe_subscription_id = null;
+  if (!('subscription_status' in u)) u.subscription_status = null;
+  if (!('subscription_plan' in u)) u.subscription_plan = null;
+  if (!('current_period_end' in u)) u.current_period_end = null;
+  return u;
+}
+
+async function setStripeCustomerId(userId, customerId) {
+  load();
+  const u = state.users.find(x => x.id === userId);
+  if (!u) return null;
+  u.stripe_customer_id = customerId;
+  save();
+  return u;
+}
+
+async function findUserByStripeCustomerId(customerId) {
+  load();
+  return state.users.find(u => u.stripe_customer_id === customerId) || null;
+}
+
+async function updateSubscription(userId, fields) {
+  load();
+  const u = state.users.find(x => x.id === userId);
+  if (!u) return null;
+  if ('stripe_subscription_id' in fields) u.stripe_subscription_id = fields.stripe_subscription_id;
+  if ('subscription_status' in fields) u.subscription_status = fields.subscription_status;
+  if ('current_period_end' in fields) u.current_period_end = fields.current_period_end;
+  if ('plan' in fields) u.subscription_plan = fields.plan;
+  save();
   return u;
 }
 
@@ -827,6 +865,7 @@ module.exports = {
   backend: 'jsonfile',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
   updateUserProfile, grantConsent,
+  setStripeCustomerId, findUserByStripeCustomerId, updateSubscription,
   createCode, verifyCode,
   createSession, getSession, deleteSession,
   getProgress, getAllProgress, setProgress,
