@@ -766,16 +766,33 @@ function sanitizeLessonContent(content) {
   return out;
 }
 
-async function generateLesson({ courseTitle, bookTitle, sectionTitle, sectionKind, sampleQuestions, studentName }) {
+async function generateLesson({ courseTitle, bookTitle, sectionTitle, sectionKind, sampleQuestions, studentName, curriculumLesson }) {
   const seedLines = (sampleQuestions || []).slice(0, 6)
     .map((q, i) => `${i + 1}. (${q.type || 'regular'}) ${q.q} → ${q.answer}`)
     .join('\n');
+  // Curriculum-driven sections include a learning_objective, key
+  // vocabulary, common misconceptions, and a real-world hook from the
+  // master scope and sequence. Inject that so the AI lesson is
+  // calibrated to the curriculum rather than guessing from the title.
+  let curriculumBlock = '';
+  if (curriculumLesson) {
+    const parts = [];
+    if (curriculumLesson.learning_objective) parts.push(`Learning objective: ${curriculumLesson.learning_objective}`);
+    if (curriculumLesson.key_concepts) parts.push(`Key concepts: ${curriculumLesson.key_concepts}`);
+    if (curriculumLesson.prerequisites) parts.push(`Prerequisites: ${curriculumLesson.prerequisites}`);
+    if (curriculumLesson.key_vocabulary) parts.push(`Key vocabulary: ${curriculumLesson.key_vocabulary}`);
+    if (curriculumLesson.common_misconceptions) parts.push(`Common misconceptions to address: ${curriculumLesson.common_misconceptions}`);
+    if (curriculumLesson.real_world_hook) parts.push(`Real-world hook (use in The simple idea): ${curriculumLesson.real_world_hook}`);
+    if (curriculumLesson.ccss_code) parts.push(`Standards: ${curriculumLesson.ccss_code}`);
+    if (parts.length) {
+      curriculumBlock = '\n\nCurriculum context for this lesson (use it):\n' + parts.join('\n') + '\n';
+    }
+  }
   const userMsg = `Course: ${courseTitle || 'Unknown course'}
 Topic / chapter: ${bookTitle || 'Unknown chapter'}
 Section title: ${sectionTitle || 'Unknown section'}
 Section kind: ${sectionKind || 'section'}
-${studentName ? `Student name: ${studentName}` : ''}
-
+${studentName ? `Student name: ${studentName}` : ''}${curriculumBlock}
 Sample seed questions for this section (use to calibrate difficulty + style of your examples):
 ${seedLines || '(no seed questions available — use your judgement based on the section title)'}
 
@@ -838,6 +855,7 @@ async function handleGetLesson(req, res) {
       sectionKind,
       sampleQuestions: body.sampleQuestions,
       studentName: body.studentName,
+      curriculumLesson: body.curriculumLesson || null,
     });
   } catch (e) {
     console.error('lesson generation failed:', e.message);
