@@ -929,7 +929,7 @@ async function listCurriculumCourses(opts) {
     params.push(opts.grade);
     where.push(`$${params.length}::integer = any(grade_levels)`);
   }
-  const sql = `select id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons
+  const sql = `select id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons, legacy_course_id
               from curriculum_courses
               ${where.length ? 'where ' + where.join(' and ') : ''}
               order by display_order, id`;
@@ -939,7 +939,7 @@ async function listCurriculumCourses(opts) {
 // Full course detail: course row + its units (each with its lessons).
 async function getCurriculumCourseFull(courseId) {
   const courseRows = await q(
-    `select id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons
+    `select id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons, legacy_course_id
      from curriculum_courses where id = $1`,
     [courseId]
   );

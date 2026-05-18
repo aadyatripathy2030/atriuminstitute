@@ -526,7 +526,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "prealgebra"
     },
     {
       "id": "grade7",
@@ -1075,7 +1076,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "prealgebra"
     },
     {
       "id": "grade8",
@@ -1611,7 +1613,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "prealgebra"
     },
     {
       "id": "algebra1",
@@ -2115,7 +2118,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "algebra"
     },
     {
       "id": "geometry",
@@ -2665,7 +2669,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "geometry"
     },
     {
       "id": "algebra2",
@@ -3195,7 +3200,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "algebra2"
     },
     {
       "id": "precalculus",
@@ -3581,7 +3587,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "precalc"
     },
     {
       "id": "ap-calc-ab",
@@ -4105,7 +4112,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "calculus"
     },
     {
       "id": "ap-stats",
@@ -4649,7 +4657,8 @@
             }
           ]
         }
-      ]
+      ],
+      "legacy_course_id": "statistics"
     }
   ],
   "practices": [

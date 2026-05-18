@@ -3768,3 +3768,25 @@ body > .site-footer {
   .curr-lesson-fields { grid-template-columns: 1fr; gap: 2px 0; }
   .curr-lesson-fields dt { margin-top: 6px; font-weight: 600; }
 }
+
+/* Existing-content / needs-new-content badge on curriculum cards. */
+.curr-legacy-badge {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.curr-legacy-existing {
+  background: rgba(40, 140, 80, 0.12);
+  color: #1f7a4a;
+  border: 1px solid rgba(40, 140, 80, 0.3);
+}
+.curr-legacy-new {
+  background: rgba(220, 140, 30, 0.12);
+  color: #a36a18;
+  border: 1px solid rgba(220, 140, 30, 0.35);
+}
+.curr-course-meta .curr-legacy-badge { margin-top: 0; margin-left: 8px; }

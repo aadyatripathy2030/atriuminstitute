@@ -304,6 +304,18 @@ create table if not exists curriculum_courses (
 alter table curriculum_courses
   add column if not exists subject_id text references curriculum_subjects(id) on delete cascade;
 
+-- legacy_course_id points to the existing courses.js course (e.g.
+-- "prealgebra", "algebra") whose content already covers this curriculum
+-- course, so we don't generate duplicate quizzes/lessons. Multiple
+-- curriculum_courses rows can share a legacy id (e.g. grade6, grade7,
+-- grade8 all map to prealgebra). Free-form text since the existing
+-- course catalogue lives in JS, not in the DB.
+alter table curriculum_courses
+  add column if not exists legacy_course_id text;
+
+create index if not exists idx_curriculum_courses_legacy
+  on curriculum_courses (legacy_course_id);
+
 create index if not exists idx_curriculum_courses_grades
   on curriculum_courses using gin (grade_levels);
 create index if not exists idx_curriculum_courses_subject

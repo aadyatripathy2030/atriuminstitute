@@ -94,6 +94,7 @@
         <div class="curr-course-card-meta">
           ${c.total_weeks ? `${c.total_weeks} weeks` : ''}${c.total_weeks && c.total_lessons ? ' · ' : ''}${c.total_lessons ? `${c.total_lessons} lessons` : ''}
         </div>
+        ${legacyBadge(c)}
       </div>
     `).join('');
     list.querySelectorAll('.curr-course-card').forEach(card => {
@@ -121,7 +122,7 @@
     el('currCourseTitle').textContent = course.title;
     const grades = (course.grade_levels || []).map(g => 'Grade ' + g).join(', ');
     const bits = [grades, course.total_weeks ? course.total_weeks + ' weeks' : null, course.total_lessons ? course.total_lessons + ' lessons' : null].filter(Boolean);
-    el('currCourseMeta').textContent = bits.join(' · ');
+    el('currCourseMeta').innerHTML = esc(bits.join(' · ')) + ' ' + legacyBadge(course);
     const units = course.units || [];
     if (!units.length) {
       el('currUnits').innerHTML = '<div class="parent-empty">No units loaded for this course.</div>';
@@ -167,6 +168,17 @@
         </dl>
       </div>
     `;
+  }
+
+  // Badge showing whether this curriculum course reuses content from an
+  // existing courses.js course (legacy_course_id is set) or needs fresh
+  // content generation. Useful at a glance for "where does effort go?"
+  function legacyBadge(c) {
+    if (c && c.legacy_course_id) {
+      const title = window.COURSES && window.COURSES[c.legacy_course_id] ? window.COURSES[c.legacy_course_id].title : c.legacy_course_id;
+      return `<span class="curr-legacy-badge curr-legacy-existing" title="Reuses content from the existing &quot;${esc(title)}&quot; course (id: ${esc(c.legacy_course_id)})">✓ Existing content: ${esc(title)}</span>`;
+    }
+    return `<span class="curr-legacy-badge curr-legacy-new" title="No existing courses.js course maps to this. Content needs to be generated.">✱ Needs new content</span>`;
   }
 
   function backToList() {

@@ -105,10 +105,10 @@ async function importSubject(client, data) {
   for (const c of (data.courses || [])) {
     await client.query(
       `insert into curriculum_courses
-         (id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons, updated_at)
-       values ($1, $2, $3, $4, $5, $6, $7, now())`,
+         (id, subject_id, title, grade_levels, display_order, total_weeks, total_lessons, legacy_course_id, updated_at)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, now())`,
       [c.id, subjectId, c.title, c.grade_levels || [], c.display_order || 0,
-       c.total_weeks || null, c.total_lessons || 0]
+       c.total_weeks || null, c.total_lessons || 0, c.legacy_course_id || null]
     );
     let lessonOrder = 0;
     for (const u of (c.units || [])) {
