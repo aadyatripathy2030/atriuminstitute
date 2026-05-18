@@ -3856,3 +3856,27 @@ body > .site-footer {
   margin-bottom: 4px;
   font-style: normal;
 }
+
+/* =============== Favorites (heart) =============== */
+.course-card.topic-card { position: relative; }
+.fav-heart-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted, #4a4d63);
+  border-radius: 50%;
+  transition: transform 0.1s, color 0.15s, background 0.15s;
+  z-index: 2;
+}
+.fav-heart-btn:hover { background: rgba(0, 0, 0, 0.04); color: #c43c5b; transform: scale(1.1); }
+.fav-heart-btn.favorited { color: #e0245e; }
+.fav-heart-btn:focus-visible { outline: 2px solid var(--accent, #4a6fa5); outline-offset: 2px; }
+.fav-heart { color: #e0245e; font-size: 16px; }

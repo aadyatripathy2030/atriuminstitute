@@ -951,6 +951,37 @@ async function handleAdminLessons(req, res) {
   json(res, 200, { courses });
 }
 
+// ---------- User favorites ----------
+async function handleListFavorites(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const favorites = await db.listFavorites(u.id);
+  json(res, 200, { favorites });
+}
+
+async function handleAddFavorite(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.courseId !== 'string' || typeof body.bookId !== 'string'
+      || !body.courseId.trim() || !body.bookId.trim()) {
+    return json(res, 400, { error: 'courseId and bookId required.' });
+  }
+  await db.addFavorite(u.id, body.courseId.trim(), body.bookId.trim());
+  json(res, 200, { ok: true });
+}
+
+async function handleRemoveFavorite(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.courseId !== 'string' || typeof body.bookId !== 'string') {
+    return json(res, 400, { error: 'courseId and bookId required.' });
+  }
+  await db.removeFavorite(u.id, body.courseId.trim(), body.bookId.trim());
+  json(res, 200, { ok: true });
+}
+
 // ---------- Curriculum reference (public, read-only) ----------
 async function handleGetCurriculumSubjects(req, res) {
   const subjects = await db.listCurriculumSubjects();
@@ -1630,6 +1661,10 @@ const server = http.createServer(async (req, res) => {
       const id = url.slice('/api/curriculum/courses/'.length);
       return handleGetCurriculumCourseFull(req, res, id);
     }
+    // Favorites (signed-in user only).
+    if (url === '/api/me/favorites' && req.method === 'GET') return handleListFavorites(req, res);
+    if (url === '/api/me/favorites' && req.method === 'POST') return handleAddFavorite(req, res);
+    if (url === '/api/me/favorites' && req.method === 'DELETE') return handleRemoveFavorite(req, res);
     // Profile, links
     if (url === '/api/me/profile' && req.method === 'POST') return handleUpdateProfile(req, res);
     if (url === '/api/me/rich-profile' && req.method === 'GET') return handleGetRichProfile(req, res);

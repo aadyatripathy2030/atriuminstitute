@@ -871,6 +871,34 @@ async function listCurriculumSubjects() { return []; }
 async function listCurriculumCourses() { return []; }
 async function getCurriculumCourseFull() { return null; }
 
+// ---------- User favorites ----------
+async function listFavorites(userId) {
+  load();
+  state.favorites = state.favorites || [];
+  return state.favorites
+    .filter(f => f.user_id === userId)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+async function addFavorite(userId, courseId, bookId) {
+  load();
+  state.favorites = state.favorites || [];
+  const exists = state.favorites.find(f => f.user_id === userId && f.course_id === courseId && f.book_id === bookId);
+  if (exists) return;
+  state.favorites.push({
+    user_id: userId, course_id: courseId, book_id: bookId,
+    created_at: new Date().toISOString(),
+  });
+  save();
+}
+
+async function removeFavorite(userId, courseId, bookId) {
+  load();
+  state.favorites = state.favorites || [];
+  state.favorites = state.favorites.filter(f => !(f.user_id === userId && f.course_id === courseId && f.book_id === bookId));
+  save();
+}
+
 module.exports = {
   backend: 'jsonfile',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -893,6 +921,7 @@ module.exports = {
   adminQuizAnalytics, adminCostChart, adminListSessions, adminRevokeSession,
   adminAllLinks, adminLessonStats,
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
+  listFavorites, addFavorite, removeFavorite,
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

@@ -482,3 +482,22 @@ update curriculum_glossary             set subject_id = 'math' where subject_id 
 -- us yet.
 alter table users add column if not exists grade_level integer
   check (grade_level is null or (grade_level between 1 and 12));
+
+-- ------------------------------------------------------------------
+-- User favorites. Students can star a topic (book) from the courses
+-- grid so it shows up on their My Favorites page. Keyed by the
+-- existing courses.js course + book ids -- not the curriculum_courses
+-- ids -- because favorites are used to launch the legacy learn/quiz
+-- flow directly.
+-- ------------------------------------------------------------------
+
+create table if not exists user_favorites (
+  user_id uuid not null references users (id) on delete cascade,
+  course_id text not null,
+  book_id text not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, course_id, book_id)
+);
+
+create index if not exists idx_favorites_user_created
+  on user_favorites (user_id, created_at desc);

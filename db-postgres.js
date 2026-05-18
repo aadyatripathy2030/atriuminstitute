@@ -969,6 +969,34 @@ async function getCurriculumCourseFull(courseId) {
   return course;
 }
 
+// ---------- User favorites (legacy course + book ids) ----------
+async function listFavorites(userId) {
+  return q(
+    `select course_id, book_id, created_at
+     from user_favorites
+     where user_id = $1
+     order by created_at desc`,
+    [userId]
+  );
+}
+
+async function addFavorite(userId, courseId, bookId) {
+  await q(
+    `insert into user_favorites (user_id, course_id, book_id)
+     values ($1, $2, $3)
+     on conflict (user_id, course_id, book_id) do nothing`,
+    [userId, courseId, bookId]
+  );
+}
+
+async function removeFavorite(userId, courseId, bookId) {
+  await q(
+    `delete from user_favorites
+     where user_id = $1 and course_id = $2 and book_id = $3`,
+    [userId, courseId, bookId]
+  );
+}
+
 // ---------- Maintenance ----------
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
@@ -997,6 +1025,7 @@ module.exports = {
   adminQuizAnalytics, adminCostChart, adminListSessions, adminRevokeSession,
   adminAllLinks, adminLessonStats,
   listCurriculumSubjects, listCurriculumCourses, getCurriculumCourseFull,
+  listFavorites, addFavorite, removeFavorite,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,
