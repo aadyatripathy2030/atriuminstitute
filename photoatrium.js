@@ -160,9 +160,9 @@
         grid.innerHTML = `
           <div class="pa-list-empty">
             <div class="pa-list-empty-icon">📸</div>
-            <h3>No scans yet</h3>
-            <p>Tap the 📸 button to scan your first math problem. Every solve is saved here automatically.</p>
-            <button class="cta-primary" onclick="openPhotoScanner()">Scan a problem</button>
+            <h3>No solves yet</h3>
+            <p>Tap the 📸 Snap &amp; Solve button to take a photo of your first math problem. Every solve is saved here automatically.</p>
+            <button class="cta-primary" onclick="openPhotoScanner()">Snap a problem</button>
           </div>
         `;
         return;
@@ -268,7 +268,7 @@
       renderResult(data.parsed, { id: data.id, created_at: data.created_at, thumbnail_data: thumbImg });
       // Reward toast
       if (typeof window.showPointToast === 'function') {
-        window.showPointToast(10, 'Problem solved', { icon: '📸' });
+        window.showPointToast(10, 'Snap & Solve', { icon: '📸' });
       }
       if (typeof window.checkForNewBadges === 'function') {
         setTimeout(window.checkForNewBadges, 600);
@@ -366,7 +366,7 @@
       ${parsed.note ? `<section class="pa-note"><strong>Note:</strong> ${esc(parsed.note)}</section>` : ''}
 
       <div class="pa-result-actions">
-        <button class="cta-secondary" id="paAnotherBtn" type="button">📸 Scan another</button>
+        <button class="cta-secondary" id="paAnotherBtn" type="button">📸 Snap another</button>
         <button class="cta-link" id="paHistoryBtn" type="button">📜 See history</button>
         <button class="pa-delete-btn" id="paDeleteBtn" type="button">🗑 Delete</button>
       </div>
@@ -391,7 +391,7 @@
   async function deleteCurrentSolve() {
     const id = el('paResultMeta').dataset.id;
     if (!id) return;
-    if (!confirm('Delete this solve from your PhotoAtrium history?')) return;
+    if (!confirm('Delete this solve from your Snap & Solve history?')) return;
     try {
       const r = await fetch(`/api/photo-atrium/${encodeURIComponent(id)}`, {
         method: 'DELETE',
