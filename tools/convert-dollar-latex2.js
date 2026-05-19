@@ -46,12 +46,12 @@ function looksLikeMath(inner) {
 function convertString(content) {
   let fixed = 0;
   // Display first.
-  content = content.replace(/\$\$([^\$\n]+?)\$\$/g, (m, inner) => {
+  content = content.replace(/\$\$([^$\n]+?)\$\$/g, (m, inner) => {
     if (looksLikeMath(inner)) { fixed++; return `\\\\[${inner}\\\\]`; }
     return m;
   });
   // Inline.
-  content = content.replace(/\$([^\$\n]{1,400}?)\$/g, (m, inner) => {
+  content = content.replace(/\$([^$\n]{1,400}?)\$/g, (m, inner) => {
     if (looksLikeMath(inner)) { fixed++; return `\\\\(${inner}\\\\)`; }
     return m;
   });

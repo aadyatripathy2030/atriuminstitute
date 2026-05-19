@@ -59,14 +59,14 @@ function convert(src) {
   let inlineFixed = 0, displayFixed = 0;
 
   // Display math: $$...$$
-  out = out.replace(/\$\$([^\$\n]+?)\$\$/g, (match, inner) => {
+  out = out.replace(/\$\$([^$\n]+?)\$\$/g, (match, inner) => {
     if (looksLikeMath(inner)) { displayFixed++; return `\\\\[${inner}\\\\]`; }
     return match;
   });
 
   // Inline math: $...$ (single $). Must NOT cross newlines. Must NOT match
   // currency like $5 or $1,000.00 — looksLikeMath handles that.
-  out = out.replace(/\$([^\$\n]{1,400}?)\$/g, (match, inner) => {
+  out = out.replace(/\$([^$\n]{1,400}?)\$/g, (match, inner) => {
     if (looksLikeMath(inner)) { inlineFixed++; return `\\\\(${inner}\\\\)`; }
     return match;
   });
