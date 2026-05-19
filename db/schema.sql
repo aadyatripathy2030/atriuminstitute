@@ -735,3 +735,44 @@ create index if not exists idx_section_mastery_user_course
   on section_mastery (user_id, course_id);
 create index if not exists idx_section_mastery_level
   on section_mastery (user_id, mastery_level);
+
+-- ------------------------------------------------------------------
+-- Behavior tracking — every meaningful student action
+-- ------------------------------------------------------------------
+create table if not exists behavior_events (
+  id bigserial primary key,
+  user_id uuid not null references users (id) on delete cascade,
+  session_id text not null,                    -- client-generated session UUID
+  event_type text not null,                    -- e.g. lesson_step_view, quiz_answer, hint_request
+  course_id text,
+  book_id text,
+  section_idx integer,
+  -- Flexible payload for event-specific data (step number, question index,
+  -- answer text, time_on_step_ms, scroll_depth_pct, etc.)
+  payload jsonb not null default '{}',
+  duration_ms integer,                         -- how long the action took (null if instant)
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_behavior_events_user
+  on behavior_events (user_id, created_at desc);
+create index if not exists idx_behavior_events_session
+  on behavior_events (session_id);
+create index if not exists idx_behavior_events_type
+  on behavior_events (user_id, event_type);
+
+-- Aggregated behavior signals per session (computed periodically or on session end)
+create table if not exists behavior_signals (
+  id bigserial primary key,
+  user_id uuid not null references users (id) on delete cascade,
+  session_id text not null,
+  signal_type text not null,                   -- rushing, struggling, disengaged, focused, improving
+  confidence numeric(4,2) not null default 0,  -- 0-1 how confident we are in this signal
+  evidence jsonb not null default '{}',        -- what triggered it
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_behavior_signals_user
+  on behavior_signals (user_id, created_at desc);
+create index if not exists idx_behavior_signals_type
+  on behavior_signals (user_id, signal_type);

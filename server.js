@@ -802,6 +802,43 @@ async function handleGetAdaptiveDifficulty(req, res) {
   json(res, 200, { recommendation });
 }
 
+// ---------- Behavior tracking ----------
+
+async function handleBehaviorEvents(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readBody(req);
+  const { session_id, events } = body;
+  if (!session_id || !Array.isArray(events) || !events.length) {
+    return json(res, 400, { error: 'session_id and events[] required.' });
+  }
+  // Validate event types
+  const VALID_TYPES = new Set([
+    'session_start', 'session_end',
+    'lesson_open', 'lesson_close', 'lesson_step_view', 'lesson_regenerate',
+    'quiz_start', 'quiz_answer', 'quiz_submit', 'answer_changed',
+    'hint_request', 'chat_message', 'study_with_max',
+    'section_visit', 'course_visit',
+    'tab_blur', 'tab_focus',
+  ]);
+  const filtered = events.filter(e => e.event_type && VALID_TYPES.has(e.event_type));
+  if (!filtered.length) return json(res, 200, { accepted: 0 });
+
+  await db.insertBehaviorEvents(u.id, session_id, filtered);
+
+  // Fire-and-forget: analyze session for behavioral signals
+  db.analyzeBehaviorSession(u.id, session_id).catch(() => {});
+
+  json(res, 200, { accepted: filtered.length });
+}
+
+async function handleBehaviorSummary(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const summary = await db.getBehaviorSummary(u.id);
+  json(res, 200, summary);
+}
+
 // ---------- Parent dashboard ----------
 function isParentOnly(u) {
   return u && u.role === 'parent';
@@ -2337,6 +2374,15 @@ async function proxyClaude(req, res) {
         if (weakLines.length) ctx += `\n- Struggling with: ${weakLines.join('; ')}.`;
         if (hints > 0) ctx += `\n- Total hints used: ${hints}.`;
 
+        // Behavior signals (rushing, struggling, focused, etc.)
+        try {
+          const signals = await db.getBehaviorSignals(me2.id, 5);
+          if (signals.length) {
+            const sigLines = signals.map(s => `${s.signal_type} (confidence ${s.confidence})`);
+            ctx += `\n- Recent behavior signals: ${sigLines.join(', ')}.`;
+          }
+        } catch (_) { /* non-fatal */ }
+
         // Append to system_extra so it ends up in the non-cached dynamic block.
         body.system_extra = body.system_extra
           ? body.system_extra + '\n\n' + ctx
@@ -2553,6 +2599,9 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/student-insights' && req.method === 'GET') return await handleGetStudentInsights(req, res);
     if (url === '/api/section-mastery' && req.method === 'GET') return await handleGetSectionMastery(req, res);
     if (url === '/api/adaptive-difficulty' && req.method === 'GET') return await handleGetAdaptiveDifficulty(req, res);
+    // Behavior tracking.
+    if (url === '/api/behavior/events' && req.method === 'POST') return await handleBehaviorEvents(req, res);
+    if (url === '/api/behavior/summary' && req.method === 'GET') return await handleBehaviorSummary(req, res);
     // Admin (only for users where is_admin = true).
     if (url === '/api/admin/stats' && req.method === 'GET') return await handleAdminStats(req, res);
     if (url === '/api/admin/users' && req.method === 'GET') return await handleAdminUsers(req, res);

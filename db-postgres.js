@@ -2023,6 +2023,190 @@ async function listSectionMastery(userId, courseId) {
   );
 }
 
+// ------------------------------------------------------------------
+// Behavior tracking
+// ------------------------------------------------------------------
+
+/**
+ * Insert a batch of behavior events (client sends them in bursts).
+ * Each event: { event_type, course_id?, book_id?, section_idx?, payload?, duration_ms? }
+ */
+async function insertBehaviorEvents(userId, sessionId, events) {
+  if (!events || !events.length) return;
+  // Build a multi-row INSERT for efficiency (batch up to 100 events)
+  const batch = events.slice(0, 100);
+  const values = [];
+  const params = [];
+  let idx = 1;
+  for (const e of batch) {
+    values.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
+    params.push(
+      userId, sessionId, e.event_type,
+      e.course_id || null, e.book_id || null,
+      e.section_idx != null ? e.section_idx : null,
+      JSON.stringify(e.payload || {}),
+      e.duration_ms != null ? e.duration_ms : null,
+    );
+  }
+  await pool.query(
+    `insert into behavior_events (user_id, session_id, event_type, course_id, book_id, section_idx, payload, duration_ms)
+     values ${values.join(', ')}`,
+    params,
+  );
+}
+
+/**
+ * Analyze a session's behavior and produce signals.
+ * Called after a batch of events or on session end.
+ */
+async function analyzeBehaviorSession(userId, sessionId) {
+  const { rows } = await pool.query(
+    `select event_type, payload, duration_ms, created_at
+     from behavior_events
+     where user_id = $1 and session_id = $2
+     order by created_at`,
+    [userId, sessionId],
+  );
+  if (!rows.length) return [];
+
+  const signals = [];
+
+  // --- Rushing detection: lesson steps viewed < 3 seconds ---
+  const stepViews = rows.filter(r => r.event_type === 'lesson_step_view' && r.duration_ms != null);
+  const rushedSteps = stepViews.filter(r => r.duration_ms < 3000);
+  if (stepViews.length >= 3 && rushedSteps.length / stepViews.length > 0.5) {
+    signals.push({
+      signal_type: 'rushing',
+      confidence: Math.min(1, rushedSteps.length / stepViews.length),
+      evidence: { rushed_steps: rushedSteps.length, total_steps: stepViews.length,
+                  avg_time_ms: Math.round(stepViews.reduce((s, r) => s + r.duration_ms, 0) / stepViews.length) },
+    });
+  }
+
+  // --- Struggling detection: many wrong answers, many hints ---
+  const answers = rows.filter(r => r.event_type === 'quiz_answer');
+  const wrong = answers.filter(r => r.payload && !r.payload.correct);
+  const hints = rows.filter(r => r.event_type === 'hint_request');
+  if (answers.length >= 3 && (wrong.length / answers.length > 0.6 || hints.length >= 3)) {
+    signals.push({
+      signal_type: 'struggling',
+      confidence: Math.min(1, (wrong.length / Math.max(answers.length, 1) + hints.length * 0.1)),
+      evidence: { wrong_answers: wrong.length, total_answers: answers.length, hints_used: hints.length },
+    });
+  }
+
+  // --- Disengaged detection: long idle gaps, tab blurs ---
+  const blurs = rows.filter(r => r.event_type === 'tab_blur');
+  const totalIdleMs = blurs.reduce((s, r) => s + (r.duration_ms || 0), 0);
+  if (blurs.length >= 3 || totalIdleMs > 120000) {
+    signals.push({
+      signal_type: 'disengaged',
+      confidence: Math.min(1, (blurs.length * 0.15 + totalIdleMs / 300000)),
+      evidence: { blur_count: blurs.length, total_idle_ms: totalIdleMs },
+    });
+  }
+
+  // --- Focused detection: good time on steps, reading, few distractions ---
+  const focusedSteps = stepViews.filter(r => r.duration_ms >= 10000 && r.duration_ms <= 180000);
+  if (stepViews.length >= 3 && focusedSteps.length / stepViews.length > 0.6 && blurs.length <= 1) {
+    signals.push({
+      signal_type: 'focused',
+      confidence: Math.min(1, focusedSteps.length / stepViews.length),
+      evidence: { focused_steps: focusedSteps.length, total_steps: stepViews.length },
+    });
+  }
+
+  // --- Answer change detection: indecision ---
+  const changes = rows.filter(r => r.event_type === 'answer_changed');
+  if (changes.length >= 3) {
+    signals.push({
+      signal_type: 'indecisive',
+      confidence: Math.min(1, changes.length * 0.15),
+      evidence: { answer_changes: changes.length },
+    });
+  }
+
+  // Insert signals
+  for (const sig of signals) {
+    await pool.query(
+      `insert into behavior_signals (user_id, session_id, signal_type, confidence, evidence)
+       values ($1, $2, $3, $4, $5)`,
+      [userId, sessionId, sig.signal_type, sig.confidence, JSON.stringify(sig.evidence)],
+    );
+  }
+  return signals;
+}
+
+/**
+ * Get recent behavior signals for a student (for AI prompt enrichment).
+ */
+async function getBehaviorSignals(userId, limit = 10) {
+  const { rows } = await pool.query(
+    `select signal_type, confidence, evidence, session_id, created_at
+     from behavior_signals
+     where user_id = $1
+     order by created_at desc
+     limit $2`,
+    [userId, limit],
+  );
+  return rows;
+}
+
+/**
+ * Get behavior summary for a student (for insights dashboard).
+ */
+async function getBehaviorSummary(userId) {
+  // Aggregate event counts by type in the last 30 days
+  const { rows: eventCounts } = await pool.query(
+    `select event_type, count(*)::int as cnt,
+            avg(duration_ms)::int as avg_duration_ms,
+            sum(duration_ms)::int as total_duration_ms
+     from behavior_events
+     where user_id = $1 and created_at > now() - interval '30 days'
+     group by event_type
+     order by cnt desc`,
+    [userId],
+  );
+
+  // Recent signals
+  const { rows: recentSignals } = await pool.query(
+    `select signal_type, count(*)::int as cnt,
+            avg(confidence)::numeric(4,2) as avg_confidence
+     from behavior_signals
+     where user_id = $1 and created_at > now() - interval '30 days'
+     group by signal_type
+     order by cnt desc`,
+    [userId],
+  );
+
+  // Session stats
+  const { rows: [sessionStats] } = await pool.query(
+    `select count(distinct session_id)::int as session_count,
+            count(*)::int as total_events
+     from behavior_events
+     where user_id = $1 and created_at > now() - interval '30 days'`,
+    [userId],
+  );
+
+  // Average lesson step time
+  const { rows: [stepAvg] } = await pool.query(
+    `select avg(duration_ms)::int as avg_step_time_ms,
+            count(*)::int as step_count,
+            count(*) filter (where duration_ms < 3000)::int as rushed_count
+     from behavior_events
+     where user_id = $1 and event_type = 'lesson_step_view' and duration_ms is not null
+           and created_at > now() - interval '30 days'`,
+    [userId],
+  );
+
+  return {
+    event_counts: eventCounts,
+    signals: recentSignals,
+    sessions: sessionStats || { session_count: 0, total_events: 0 },
+    lesson_engagement: stepAvg || { avg_step_time_ms: null, step_count: 0, rushed_count: 0 },
+  };
+}
+
 module.exports = {
   backend: 'postgres',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -2056,6 +2240,7 @@ module.exports = {
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   searchSchoolDistricts, recordUserDistrict,
   deleteUserAccount,
+  insertBehaviorEvents, analyzeBehaviorSession, getBehaviorSignals, getBehaviorSummary,
   cleanup,
   // Internals exposed for the migration tool and (rarely) tests.
   _pool: pool,

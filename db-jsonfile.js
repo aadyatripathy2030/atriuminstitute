@@ -1079,6 +1079,11 @@ module.exports = {
   getAdaptiveDifficulty: async () => ({ level: 'normal', reason: 'Mastery tracking requires Postgres.' }),
   incrementHintUsage: async () => {},
   listSectionMastery: async () => [],
+  // Behavior tracking stubs (Postgres-only).
+  insertBehaviorEvents: async () => {},
+  analyzeBehaviorSession: async () => [],
+  getBehaviorSignals: async () => [],
+  getBehaviorSummary: async () => ({ event_counts: [], signals: [], sessions: { session_count: 0, total_events: 0 }, lesson_engagement: { avg_step_time_ms: null, step_count: 0, rushed_count: 0 } }),
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,
