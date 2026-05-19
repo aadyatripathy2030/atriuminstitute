@@ -260,14 +260,23 @@ One short sentence naming the exact skill they just learned, then 2-3 bullet poi
 
 **B) Math diagrams (for "The formulas" section).** Geometry shapes with labelled sides + angles, coordinate planes with a plotted line or point, number lines with marked positions, fraction-pies, bar charts, simple geometric proofs, pie-chart probabilities, parallel lines with a transversal. Keep SVG small (under 400px wide, viewBox-based, semantic). **Match viewBox aspect ratio to the actual shape you're drawing** — a square diagram needs a square viewBox like \`viewBox="0 0 120 120"\`, a tall right triangle needs \`viewBox="0 0 100 140"\`. CSS scales the rendered size automatically, so you can OMIT width/height attributes entirely (or just keep them as a hint; viewBox is what controls aspect). Use bright, student-friendly colors to make visuals eye-catching and easy to read. Use strokes in bold colors like \`#4a90d9\` (blue), \`#2ecc71\` (green), \`#e74c3c\` (red), \`#f39c12\` (orange), \`#9b59b6\` (purple). Use light fills like \`#eaf4fe\` (light blue), \`#eafaf1\` (light green), \`#fdecea\` (light red) to highlight areas. Color-code different parts (e.g. one side blue, another green, the hypotenuse red) so students can visually distinguish them. Add labels in matching colors. Add a \`<title>\` element for screen readers. NEVER use \`<script>\`, \`<foreignObject>\`, event handlers (on*), or external URLs in src/href. Structural reference (the markup pattern you should emit, on its own line, NOT inside backticks):
 
-  <svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Right triangle with sides 3, 4, 5"><title>Right triangle with sides 3, 4, 5</title><polygon points="20,100 140,100 20,40" fill="#eaf4fe" stroke="#4a90d9" stroke-width="2.5"/><text x="78" y="116" font-size="12" fill="#4a90d9" font-weight="600">4</text><text x="4" y="74" font-size="12" fill="#2ecc71" font-weight="600">3</text><text x="86" y="64" font-size="12" fill="#e74c3c" font-weight="600">5</text></svg>
+  <svg viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Right triangle with sides 3, 4, 5"><title>Right triangle with sides 3, 4, 5</title><polygon points="40,100 160,100 40,40" fill="#eaf4fe" stroke="#4a90d9" stroke-width="2.5"/><text x="95" y="122" font-size="13" fill="#4a90d9" font-weight="600">4</text><text x="14" y="74" font-size="13" fill="#2ecc71" font-weight="600">3</text><text x="110" y="58" font-size="13" fill="#e74c3c" font-weight="600">5</text></svg>
 
-SVG label discipline (CRITICAL — past lessons have shipped broken labels):
+Note how every label is OUTSIDE the triangle shape with clear spacing — "4" is below the base (y=122, base is at y=100), "3" is left of the vertical side (x=14, shape starts at x=40), "5" is to the upper-right of the hypotenuse. No text sits on top of a filled region.
+
+SVG label discipline (CRITICAL — past lessons have shipped broken, overlapping labels):
 - Every label appears ONCE. Never write the same number/word as two \`<text>\` elements (e.g. do NOT include both \`side = √49 = 7\` AND a separate \`<text>7</text>\` underneath).
 - Never draw a \`<line>\` or stroke across a \`<text>\` element. No strikethroughs, no "answer = " bars cutting through labels, no horizontal rules under labels.
 - Label text uses plain Unicode characters only — √, ³√, ², ³, π, °. Do NOT put LaTeX like \`\\sqrt\` or \`\\frac\` inside an SVG \`<text>\` element; LaTeX does not render inside SVG.
 - Show ONE final answer per label line. \`side = √49 = 7\` is complete; do not add \`= 7\` again below.
-- Keep \`<text>\` y-coordinates at least 14 units apart so labels never visually overlap.
+
+**Anti-overlap rules (MANDATORY — text overlap is the #1 SVG bug):**
+- Keep \`<text>\` y-coordinates at least **20 units** apart vertically. Keep x-coordinates at least **50 units** apart for adjacent horizontal labels (or more for longer text).
+- **Never place a \`<text>\` element inside or overlapping a \`<rect>\`, \`<polygon>\`, or \`<circle>\`.** Labels go OUTSIDE shapes — above, below, or to the side with ≥10 units of clearance from the shape edge.
+- For dimension labels (like "4 units", "2 units"), place them OUTSIDE the shape on the relevant side with a thin leader line if needed. Never overlay dimension text on top of the shape fill.
+- For shape names (like "Rectangle A"), place them as a centered label BELOW the shape (y = shape bottom + 16), not inside it.
+- Side annotations and computed values (like "Area A = 4 × 2") go in a separate column to the RIGHT of the diagram, vertically stacked with 20+ unit spacing between lines.
+- **Before finalizing:** Mentally check every \`<text>\` element's (x, y) coordinates against every shape's bounding box and every other text element. If ANY text overlaps a shape edge or another text, move it.
 
 **Mermaid (for flowcharts, decision trees, concept maps, sequence diagrams, process flows).** Wrap in a Markdown code fence with the language tag \`mermaid\`. The page will render it client-side. Use for: "how to decide which technique applies", "the chain of steps in a proof", "the parts of a sentence as a tree", "the lifecycle of a function call". Example:
 
