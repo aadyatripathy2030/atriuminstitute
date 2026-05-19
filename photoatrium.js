@@ -17,6 +17,40 @@
     return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   }
 
+  // ---------- Homework Mode ----------
+
+  const HW_KEY = 'atrium_homework_mode';
+  // Default ON. Snap & Solve is a learning tool first; if a student
+  // wants the bare answer they can flip the toggle off explicitly.
+  // Stored in localStorage so it persists across reloads on the same
+  // device.
+  function isHomeworkMode() {
+    try {
+      const v = localStorage.getItem(HW_KEY);
+      // Treat unset as ON so first-time users default to learn mode.
+      return v === null ? true : v === '1';
+    } catch (_e) { return true; }
+  }
+  function setHomeworkMode(v) {
+    try { localStorage.setItem(HW_KEY, v ? '1' : '0'); } catch (_e) {}
+    syncHomeworkToggles();
+  }
+  // Two toggle inputs (one on each page) need to stay in sync.
+  function syncHomeworkToggles() {
+    const on = isHomeworkMode();
+    document.querySelectorAll('.pa-hw-checkbox').forEach(c => {
+      c.checked = on;
+    });
+    // Re-render the currently-open result so the answer reveals / hides.
+    const resultEl = el('photoAtriumResultPage');
+    if (resultEl && !resultEl.classList.contains('hidden')) {
+      const id = el('paResultMeta').dataset.id;
+      if (id && _lastParsed && _lastItem) {
+        renderResult(_lastParsed, _lastItem);
+      }
+    }
+  }
+
   // ---------- Image capture + compression ----------
 
   let mediaStream = null;
@@ -213,6 +247,9 @@
   // ---------- Solve flow ----------
 
   let lastSolve = null; // { id, parsed }
+  // Cached for the Homework Mode toggle: re-render without refetching.
+  let _lastParsed = null;
+  let _lastItem = null;
 
   async function doSolve(rawDataUrl) {
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
@@ -310,27 +347,45 @@
       wrap.innerHTML = '<div class="pa-error"><h3>Empty result</h3></div>';
       return;
     }
+    _lastParsed = parsed;
+    _lastItem = item;
+    const hw = isHomeworkMode();
     const subj = parsed.subject || 'other';
     const dateText = item && item.created_at ? formatDate(item.created_at) : '';
     const thumbHtml = item && item.thumbnail_data
       ? `<img class="pa-result-thumb" src="${esc(item.thumbnail_data)}" alt="Scanned problem">` : '';
 
-    const methodsHtml = (parsed.methods || []).map((m, i) => `
-      <details class="pa-method" ${i === 0 ? 'open' : ''}>
-        <summary>${esc(m.name || `Method ${i + 1}`)}</summary>
-        <ol class="pa-steps">
-          ${(m.steps || []).map(s => `
-            <li class="pa-step">
-              <div class="pa-step-eq">${renderLatexBlock(s.eq)}</div>
-              <details class="pa-step-why">
-                <summary>Why this step?</summary>
-                <div class="pa-step-why-body">${esc(s.why)}</div>
-              </details>
-            </li>
-          `).join('')}
-        </ol>
-      </details>
-    `).join('');
+    // Homework Mode hides the equation of the LAST step of each method
+    // (that's where the final answer lands) and replaces it with a
+    // reveal button. The reasoning ("why") stays visible because that's
+    // the actual learning signal.
+    const methodsHtml = (parsed.methods || []).map((m, i) => {
+      const steps = m.steps || [];
+      const lastIdx = steps.length - 1;
+      return `
+        <details class="pa-method" ${i === 0 ? 'open' : ''}>
+          <summary>${esc(m.name || `Method ${i + 1}`)}</summary>
+          <ol class="pa-steps">
+            ${steps.map((s, si) => {
+              const isLast = si === lastIdx && hw;
+              const eqHtml = isLast
+                ? `<button type="button" class="pa-reveal-btn" data-reveal="step">🎯 Try this step yourself, then tap to reveal</button>
+                   <div class="pa-step-eq pa-hidden">${renderLatexBlock(s.eq)}</div>`
+                : `<div class="pa-step-eq">${renderLatexBlock(s.eq)}</div>`;
+              return `
+                <li class="pa-step">
+                  ${eqHtml}
+                  <details class="pa-step-why">
+                    <summary>Why this step?</summary>
+                    <div class="pa-step-why-body">${esc(s.why)}</div>
+                  </details>
+                </li>
+              `;
+            }).join('')}
+          </ol>
+        </details>
+      `;
+    }).join('');
 
     wrap.innerHTML = `
       <div class="pa-result-head">
@@ -351,9 +406,13 @@
         </details>
       </section>
 
-      <section class="pa-answer-block">
+      <section class="pa-answer-block${hw ? ' pa-answer-hidden' : ''}">
         <div class="pa-block-label">Answer</div>
-        <div class="pa-answer-eq">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>
+        ${hw
+          ? `<button type="button" class="pa-reveal-btn pa-reveal-answer" data-reveal="answer">🎯 Work it out yourself, then tap to reveal the answer</button>
+             <div class="pa-answer-eq pa-hidden">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>`
+          : `<div class="pa-answer-eq">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>`
+        }
       </section>
 
       ${parsed.illustration ? `<section class="pa-illustration">${parsed.illustration}</section>` : ''}
@@ -382,6 +441,23 @@
     wrap.querySelector('#paAnotherBtn').addEventListener('click', openScanner);
     wrap.querySelector('#paHistoryBtn').addEventListener('click', openList);
     wrap.querySelector('#paDeleteBtn').addEventListener('click', deleteCurrentSolve);
+
+    // Wire any Homework-Mode reveal buttons: click swaps the placeholder
+    // for the actual answer / equation and triggers MathJax on the now-
+    // visible content. One reveal at a time; no auto-cascade so the
+    // student still has to choose to see each hidden value.
+    wrap.querySelectorAll('.pa-reveal-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const eqNode = btn.nextElementSibling;
+        btn.classList.add('pa-hidden');
+        if (eqNode && eqNode.classList.contains('pa-hidden')) {
+          eqNode.classList.remove('pa-hidden');
+          if (typeof window.typesetMath === 'function') {
+            try { window.typesetMath(eqNode); } catch (_e) {}
+          }
+        }
+      });
+    });
 
     if (typeof window.typesetMath === 'function') {
       try { window.typesetMath(wrap); } catch (_e) {}
@@ -437,6 +513,12 @@
     // FAB
     const fab = el('photoAtriumFab');
     if (fab) fab.addEventListener('click', handleFabClick);
+
+    // Homework Mode toggles (one per page, kept in sync via storage).
+    document.querySelectorAll('.pa-hw-checkbox').forEach(c => {
+      c.addEventListener('change', () => setHomeworkMode(c.checked));
+    });
+    syncHomeworkToggles();
 
     // Desktop "best on phone" confirmation
     const dCancel = el('paDesktopCancel');

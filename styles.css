@@ -5803,6 +5803,105 @@ body.nav-open .nav-hamburger-bar:nth-child(3) {
 
 /* ---------- PhotoAtrium ---------- */
 
+/* Warning banner + Homework Mode toggle. Shown at the top of the
+   scanner result page and the history list. Same look on both. */
+.pa-warning-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: rgba(184, 132, 43, 0.08);
+  border: 1px solid rgba(220, 160, 30, 0.30);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0 auto 18px;
+  max-width: 960px;
+}
+.pa-warning-text {
+  flex: 1;
+  min-width: 220px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text, #1e2238);
+}
+.pa-warning-text strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #8a6300;
+  font-size: 14px;
+}
+.pa-warning-text span { color: var(--text-muted, #4a4d63); }
+
+.pa-hw-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #1e2238);
+  flex-shrink: 0;
+}
+.pa-hw-toggle input { display: none; }
+.pa-hw-slider {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  background: rgba(30, 34, 56, 0.20);
+  border-radius: 999px;
+  transition: background 200ms ease;
+}
+.pa-hw-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20);
+  transition: transform 200ms ease;
+}
+.pa-hw-toggle input:checked + .pa-hw-slider {
+  background: #b8842b;
+}
+.pa-hw-toggle input:checked + .pa-hw-slider::after {
+  transform: translateX(16px);
+}
+.pa-hw-label { white-space: nowrap; }
+
+/* Homework Mode reveal placeholder buttons. Replace the hidden eq
+   element when the toggle is on; click swaps to the actual answer. */
+.pa-reveal-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(184, 132, 43, 0.08);
+  border: 2px dashed rgba(220, 160, 30, 0.45);
+  color: #8a6300;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 200ms ease, transform 100ms ease;
+}
+.pa-reveal-btn:hover {
+  background: rgba(184, 132, 43, 0.14);
+}
+.pa-reveal-btn:active { transform: scale(0.98); }
+.pa-reveal-btn.pa-hidden,
+.pa-step-eq.pa-hidden,
+.pa-answer-eq.pa-hidden {
+  display: none !important;
+}
+.pa-reveal-answer {
+  padding: 18px 16px;
+  font-size: 15px;
+}
+
 /* "Best on mobile" confirmation modal — desktop-only. */
 .pa-confirm-overlay {
   position: fixed;
