@@ -3135,13 +3135,8 @@ button.logo:focus-visible {
 .lesson-step-body p { margin: 8px 0; }
 .lesson-step-body ul, .lesson-step-body ol { margin: 8px 0 12px; padding-left: 22px; }
 .lesson-step-body li { margin: 4px 0; }
-/* Photomath-style *Why?* annotation lines — paragraphs that are purely italic
-   (rendered from Markdown *Why? reason.*). The :has(> em:only-child) selector
-   targets <p> tags whose sole child is an <em>, which matches the annotation
-   pattern without false-positiving on paragraphs with mixed italic spans. */
-.lesson-step-body p:has(> em:only-child),
-.hint-body p:has(> em:only-child),
-.ai-output p:has(> em:only-child) {
+/* Photomath-style *Why?* annotation lines — tagged by mdToHtml with .why-annotation */
+.why-annotation {
   color: #6b4d00;
   background: linear-gradient(90deg, #fff8e1 0%, #fffdf5 100%);
   border-left: 3px solid #f5c97a;
@@ -3151,15 +3146,25 @@ button.logo:focus-visible {
   font-size: 13px;
 }
 
-/* Colorful numbered step badges in worked examples */
-.lesson-step-body ol { counter-reset: step-counter; list-style: none; padding-left: 0; }
-.lesson-step-body ol > li {
+/* Colorful numbered step badges in worked examples.
+   The AI outputs each step separated by a *Why?* paragraph, so the markdown
+   parser creates a NEW <ol> per step. We scope counter-reset to the parent
+   container so numbering continues across multiple <ol> elements. */
+.lesson-step-body, .hint-body, .ai-output { counter-reset: step-counter; }
+.lesson-step-body ol,
+.hint-body ol,
+.ai-output ol { list-style: none; padding-left: 0; }
+.lesson-step-body ol > li,
+.hint-body ol > li,
+.ai-output ol > li {
   counter-increment: step-counter;
   position: relative;
   padding-left: 36px;
   margin: 10px 0;
 }
-.lesson-step-body ol > li::before {
+.lesson-step-body ol > li::before,
+.hint-body ol > li::before,
+.ai-output ol > li::before {
   content: counter(step-counter);
   position: absolute;
   left: 0;
@@ -3177,11 +3182,15 @@ button.logo:focus-visible {
   box-shadow: 0 2px 4px rgba(74, 144, 217, 0.3);
 }
 /* Alternate badge colors for variety */
-.lesson-step-body ol > li:nth-child(3n+2)::before {
+.lesson-step-body ol > li:nth-child(3n+2)::before,
+.hint-body ol > li:nth-child(3n+2)::before,
+.ai-output ol > li:nth-child(3n+2)::before {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   box-shadow: 0 2px 4px rgba(46, 204, 113, 0.3);
 }
-.lesson-step-body ol > li:nth-child(3n)::before {
+.lesson-step-body ol > li:nth-child(3n)::before,
+.hint-body ol > li:nth-child(3n)::before,
+.ai-output ol > li:nth-child(3n)::before {
   background: linear-gradient(135deg, #9b59b6, #8e44ad);
   box-shadow: 0 2px 4px rgba(155, 89, 182, 0.3);
 }
