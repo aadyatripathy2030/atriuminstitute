@@ -169,6 +169,7 @@
     resetSummary();
     _wireSummaryTabsOnce('self');
     reloadActivitySummary('self');
+    loadInsights();
 
     try {
       const [{ sections }, { attempts }, { activity }] = await Promise.all([
@@ -282,6 +283,56 @@
     } catch (e) {
       body.classList.add('err');
       body.innerHTML = `Couldn't generate a summary just now: ${esc(e.message)}.`;
+    }
+  }
+
+  // ---- Student Insights rendering ----
+  function _renderInsightItem(r) {
+    const { course, book, section } = resolveCourseBookSection(r.course_id, r.book_id, r.section_idx);
+    const pct = Number(r.avg_score) || 0;
+    const lvl = r.mastery_level || 'not_started';
+    const badgeCls = { mastered: 'badge-mastered', proficient: 'badge-proficient', developing: 'badge-developing', struggling: 'badge-struggling' };
+    return `<div class="insight-item mastery-${lvl}">
+      <div class="insight-item-name" title="${esc(course)} · ${esc(book)} · ${esc(section)}">${esc(section)}</div>
+      <div class="insight-bar"><div class="insight-bar-fill" style="width:${Math.min(pct, 100)}%"></div></div>
+      <div class="insight-item-score">${Math.round(pct)}%</div>
+      <span class="insight-badge ${badgeCls[lvl] || ''}">${lvl.replace('_', ' ')}</span>
+    </div>`;
+  }
+
+  async function loadInsights() {
+    try {
+      const { insights } = await fetchJSON('/api/student-insights');
+      if (!insights) return;
+      const o = insights.overview || {};
+      const acc = el('insightAccuracy');
+      const mast = el('insightMastered');
+      const time = el('insightTime');
+      const trend = el('insightTrend');
+      if (acc) acc.textContent = o.overallAccuracy != null ? o.overallAccuracy + '%' : '—';
+      if (mast) mast.textContent = o.sectionsMastered != null ? o.sectionsMastered : '—';
+      if (time) time.textContent = o.totalTimeMinutes != null ? (o.totalTimeMinutes >= 60 ? Math.round(o.totalTimeMinutes / 60 * 10) / 10 + 'h' : Math.round(o.totalTimeMinutes) + 'm') : '—';
+      if (trend) {
+        const t = insights.recentTrend || 'steady';
+        const icons = { improving: '📈', steady: '➡️', declining: '📉' };
+        trend.textContent = (icons[t] || '') + ' ' + t.charAt(0).toUpperCase() + t.slice(1);
+        trend.className = 'insight-stat-value trend-' + t;
+      }
+      const strEl = el('insightStrengths');
+      const weakEl = el('insightWeaknesses');
+      const sugEl = el('insightSuggestions');
+      if (strEl) strEl.innerHTML = (insights.strengths || []).length
+        ? insights.strengths.slice(0, 8).map(_renderInsightItem).join('')
+        : '<div class="insights-empty">Complete some quizzes to see your strengths.</div>';
+      if (weakEl) weakEl.innerHTML = (insights.weaknesses || []).length
+        ? insights.weaknesses.slice(0, 8).map(_renderInsightItem).join('')
+        : '<div class="insights-empty">Nothing here yet — keep going!</div>';
+      if (sugEl) sugEl.innerHTML = (insights.suggestedNext || []).length
+        ? insights.suggestedNext.slice(0, 6).map(_renderInsightItem).join('')
+        : '<div class="insights-empty">Take a few quizzes and Max will suggest what to focus on.</div>';
+    } catch (e) {
+      const sec = el('insightsSection');
+      if (sec) sec.style.display = 'none';
     }
   }
 
