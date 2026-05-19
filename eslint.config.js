@@ -30,6 +30,7 @@ module.exports = [
       'tokens.js',
       'payments.js',
       'data.json',
+      'tools/**',
     ],
   },
   js.configs.recommended,
