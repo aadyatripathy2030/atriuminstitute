@@ -4013,6 +4013,64 @@ body > .site-footer {
   vertical-align: super;
 }
 
+/* Trig / log function names rendered upright (sin, cos, log, lim, …) so
+   they don't look like a product of italic single letters. Mirrors
+   MathJax's default treatment. */
+.m-fn {
+  font-style: normal;
+  font-family: var(--font, system-ui), sans-serif;
+  margin-right: 1px;
+}
+
+/* Accents — small mark above the wrapped letter. We achieve the bar /
+   hat / tilde / arrow with a CSS overline-ish trick so the mark
+   stretches naturally over multi-character content. */
+.m-bar, .m-overline {
+  border-top: 1.2px solid currentColor;
+  padding-top: 1px;
+  display: inline-block;
+  line-height: 1.1;
+}
+.m-underline {
+  border-bottom: 1.2px solid currentColor;
+  padding-bottom: 1px;
+  display: inline-block;
+  line-height: 1.1;
+}
+.m-hat::before, .m-tilde::before, .m-vec::before, .m-dot::before, .m-ddot::before {
+  position: absolute;
+  left: 50%;
+  top: -0.55em;
+  transform: translateX(-50%);
+  font-size: 0.85em;
+  line-height: 1;
+  pointer-events: none;
+}
+.m-hat, .m-tilde, .m-vec, .m-dot, .m-ddot {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.4em;       /* room above for the mark */
+  margin-top: -0.4em;       /* keep the baseline aligned with surrounding text */
+}
+.m-hat::before   { content: '^'; }
+.m-tilde::before { content: '~'; }
+.m-vec::before   { content: '→'; font-size: 0.7em; top: -0.4em; }
+.m-dot::before   { content: '·'; }
+.m-ddot::before  { content: '··'; letter-spacing: -0.1em; }
+
+/* Binomial coefficient \binom{n}{k} — vertical pair inside big parentheses */
+.m-binom {
+  display: inline-flex; align-items: center;
+  font-size: 1em; line-height: 1;
+  margin: 0 1px;
+}
+.m-binom-stack {
+  display: inline-flex; flex-direction: column;
+  align-items: center; line-height: 1.1;
+  margin: 0 2px;
+  font-size: 0.85em;
+}
+
 /* =============== Big-popup Learn modal =============== */
 .lesson-modal {
   position: fixed;
