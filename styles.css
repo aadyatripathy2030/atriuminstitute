@@ -3135,25 +3135,74 @@ button.logo:focus-visible {
 .lesson-step-body p { margin: 8px 0; }
 .lesson-step-body ul, .lesson-step-body ol { margin: 8px 0 12px; padding-left: 22px; }
 .lesson-step-body li { margin: 4px 0; }
-/* SVG diagrams inside lesson steps. Without these rules Max-generated SVGs
-   render at whatever raw width/height attributes the model picked, which
-   sometimes have non-matching aspect ratios — making a square diagram
-   look like a 5:3 rectangle. Force preserve-aspect-ratio scaling and a
-   reasonable max-width so the shape always reads correctly. */
-.lesson-step-body svg {
+/* Photomath-style *Why?* annotation lines — paragraphs that are purely italic
+   (rendered from Markdown *Why? reason.*). The :has(> em:only-child) selector
+   targets <p> tags whose sole child is an <em>, which matches the annotation
+   pattern without false-positiving on paragraphs with mixed italic spans. */
+.lesson-step-body p:has(> em:only-child),
+.hint-body p:has(> em:only-child),
+.ai-output p:has(> em:only-child) {
+  color: #6b4d00;
+  background: linear-gradient(90deg, #fff8e1 0%, #fffdf5 100%);
+  border-left: 3px solid #f5c97a;
+  padding: 4px 10px;
+  border-radius: 0 6px 6px 0;
+  margin: 2px 0 10px;
+  font-size: 13px;
+}
+
+/* Colorful numbered step badges in worked examples */
+.lesson-step-body ol { counter-reset: step-counter; list-style: none; padding-left: 0; }
+.lesson-step-body ol > li {
+  counter-increment: step-counter;
+  position: relative;
+  padding-left: 36px;
+  margin: 10px 0;
+}
+.lesson-step-body ol > li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #4a90d9, #357abd);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(74, 144, 217, 0.3);
+}
+/* Alternate badge colors for variety */
+.lesson-step-body ol > li:nth-child(3n+2)::before {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  box-shadow: 0 2px 4px rgba(46, 204, 113, 0.3);
+}
+.lesson-step-body ol > li:nth-child(3n)::before {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  box-shadow: 0 2px 4px rgba(155, 89, 182, 0.3);
+}
+
+/* SVG diagrams inside lesson steps — aspect-ratio-safe scaling + colorful container */
+.lesson-step-body svg,
+.hint-body svg,
+.ai-output svg {
   display: block;
-  margin: 12px auto;
+  margin: 14px auto;
   max-width: min(360px, 100%);
   height: auto;
-  color: var(--text, #1e2238);
+  border-radius: 8px;
+  background: #fafcff;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(74, 144, 217, 0.12);
 }
 .lesson-step-body svg[viewBox] {
-  /* Force scaling to viewBox proportions, ignore mis-sized width/height attrs */
   width: auto;
   max-width: min(360px, 100%);
 }
-/* Text labels inside SVG should never be tinier than 11px regardless of
-   viewBox scaling — readability over fidelity. */
 .lesson-step-body svg text { font-size: 12px; }
 .lesson-step-body blockquote {
   margin: 10px 0;
