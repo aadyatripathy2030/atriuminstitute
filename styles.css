@@ -5803,6 +5803,60 @@ body.nav-open .nav-hamburger-bar:nth-child(3) {
 
 /* ---------- PhotoAtrium ---------- */
 
+/* "Best on mobile" confirmation modal — desktop-only. */
+.pa-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8200;
+  background: rgba(20, 22, 36, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.pa-confirm-card {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 460px;
+  width: 100%;
+  padding: 32px 30px 24px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.30);
+}
+.pa-confirm-icon {
+  font-size: 44px;
+  margin-bottom: 8px;
+}
+.pa-confirm-card h2 {
+  font-family: var(--serif, Georgia, serif);
+  font-weight: 500;
+  font-size: 22px;
+  margin: 0 0 12px;
+  color: var(--text, #1e2238);
+}
+.pa-confirm-card p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted, #4a4d63);
+}
+.pa-confirm-sub {
+  font-weight: 600;
+  color: var(--text, #1e2238) !important;
+  margin-top: 6px !important;
+}
+.pa-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.pa-confirm-actions .cta-primary,
+.pa-confirm-actions .cta-secondary {
+  min-width: 140px;
+}
+
 /* Floating action button: scan a math problem from any signed-in page. */
 .pa-fab {
   position: fixed;

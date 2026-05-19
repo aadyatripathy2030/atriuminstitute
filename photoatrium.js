@@ -92,7 +92,48 @@
 
   // ---------- Top-level navigation ----------
 
+  // True for mouse-first devices (laptops, desktops, large monitors).
+  // matchMedia('(pointer: coarse)') is true on phones / tablets with a
+  // touchscreen as primary input. The negation isolates "the user is on
+  // a real computer" so we can warn them PhotoAtrium is built for phones.
+  function isDesktopPointer() {
+    try {
+      return window.matchMedia('(pointer: fine)').matches
+          && !window.matchMedia('(pointer: coarse)').matches;
+    } catch (_e) {
+      // No matchMedia (old browser). Fall back to a screen-size check.
+      return (window.innerWidth || 0) >= 1024;
+    }
+  }
+
+  // Called by the FAB. On phones / tablets we go straight to the
+  // scanner. On desktop we show the "PhotoAtrium works best on a phone"
+  // confirmation first — Cancel aborts, Continue anyway opens the
+  // scanner (which will fall back to the file-picker if the desktop
+  // has no usable camera).
+  function handleFabClick() {
+    if (isDesktopPointer()) {
+      showDesktopWarn();
+    } else {
+      openScanner();
+    }
+  }
+
+  function showDesktopWarn() {
+    const overlay = el('paDesktopWarn');
+    if (!overlay) { openScanner(); return; }
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('hidden');
+  }
+  function hideDesktopWarn() {
+    const overlay = el('paDesktopWarn');
+    if (!overlay) return;
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.classList.add('hidden');
+  }
+
   function openScanner() {
+    hideDesktopWarn();
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
     show(el('photoAtriumScannerPage'));
     window.scrollTo({ top: 0 });
@@ -395,7 +436,23 @@
 
     // FAB
     const fab = el('photoAtriumFab');
-    if (fab) fab.addEventListener('click', openScanner);
+    if (fab) fab.addEventListener('click', handleFabClick);
+
+    // Desktop "best on phone" confirmation
+    const dCancel = el('paDesktopCancel');
+    const dContinue = el('paDesktopContinue');
+    if (dCancel) dCancel.addEventListener('click', hideDesktopWarn);
+    if (dContinue) dContinue.addEventListener('click', openScanner);
+    // Click on the dim backdrop also dismisses.
+    const dOverlay = el('paDesktopWarn');
+    if (dOverlay) dOverlay.addEventListener('click', (e) => {
+      if (e.target === dOverlay) hideDesktopWarn();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dOverlay && !dOverlay.classList.contains('hidden')) {
+        hideDesktopWarn();
+      }
+    });
 
     // Scanner controls
     const shutter = el('paShutterBtn');
