@@ -501,11 +501,13 @@
     <div class="pa-confirm-icon">📱</div>
     <h2 id="paDesktopWarnTitle">Snap &amp; Solve works best on a phone</h2>
     <p>Snap &amp; Solve is designed for your phone's camera — take a picture of a math problem and get a step-by-step solution. On desktop you can still pick a photo from your files, but the experience is smoother on mobile.</p>
-    <p class="pa-confirm-sub">Are you sure you want to continue?</p>
+    <p class="pa-confirm-sub">Pick an image from your computer, or keep going with the camera.</p>
     <div class="pa-confirm-actions">
       <button type="button" class="cta-secondary" id="paDesktopCancel">Cancel</button>
-      <button type="button" class="cta-primary" id="paDesktopContinue">Continue anyway</button>
+      <button type="button" class="cta-primary" id="paDesktopUpload">📁 Upload an image</button>
+      <button type="button" class="cta-link" id="paDesktopContinue">Use camera anyway</button>
     </div>
+    <input type="file" accept="image/*" id="paDesktopFileInput" hidden>
   </div>
 </div>
 

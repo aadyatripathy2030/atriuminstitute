@@ -441,8 +441,27 @@
     // Desktop "best on phone" confirmation
     const dCancel = el('paDesktopCancel');
     const dContinue = el('paDesktopContinue');
+    const dUpload = el('paDesktopUpload');
+    const dFile = el('paDesktopFileInput');
     if (dCancel) dCancel.addEventListener('click', hideDesktopWarn);
     if (dContinue) dContinue.addEventListener('click', openScanner);
+    // "Upload an image" opens the OS file picker without going through
+    // the camera-first scanner page. Saves desktop users a step.
+    if (dUpload && dFile) {
+      dUpload.addEventListener('click', () => dFile.click());
+      dFile.addEventListener('change', async (e) => {
+        const f = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (!f) return;
+        hideDesktopWarn();
+        try {
+          const data = await readFileAsDataURL(f);
+          await doSolve(data);
+        } catch (err) {
+          alert('Could not read that image: ' + (err && err.message || err));
+        }
+      });
+    }
     // Click on the dim backdrop also dismisses.
     const dOverlay = el('paDesktopWarn');
     if (dOverlay) dOverlay.addEventListener('click', (e) => {
