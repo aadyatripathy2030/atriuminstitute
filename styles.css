@@ -4267,20 +4267,33 @@ body > .site-footer {
   margin-right: 4px;
 }
 .practice-btn, .study-section-link {
-  font: inherit; font-size: 13.5px; line-height: 1.2;
-  padding: 9px 16px;
+  font-family: var(--font); font-size: 14px;
+  line-height: 20px; /* match emoji height so the pill is a clean oval */
+  padding: 10px 18px;
+  min-height: 40px;
   border: 1px solid var(--border, #e6e2d7);
   background: var(--paper, #ffffff);
   color: var(--text, #1e2238); cursor: pointer;
   border-radius: 999px;
-  transition: background 0.1s, border-color 0.1s, transform 0.1s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   white-space: nowrap;
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  box-shadow: 0 1px 0 rgba(30, 34, 56, 0.02);
 }
 .practice-btn:hover, .study-section-link:hover {
   background: rgba(74, 111, 165, 0.08);
   border-color: var(--accent, #4a6fa5);
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(30, 34, 56, 0.06);
+}
+/* Give the row itself a tiny bit more room so the pills don't feel cramped
+   under the section title row, and break to a new line on narrow screens. */
+.practice-row {
+  padding: 12px 18px 14px;
+  gap: 10px;
 }
 
 /* =============== Multi-child parent grid =============== */
