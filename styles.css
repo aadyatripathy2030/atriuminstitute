@@ -5662,3 +5662,141 @@ body.survey-open {
   cursor: pointer;
 }
 .account-deleted-banner button:hover { color: #fff; }
+
+/* ---------- Mobile hamburger nav ---------- */
+
+/* The hamburger sits on the right edge of the nav bar and is only
+   visible at phone widths. Three bars stack into a tidy "X" when
+   the menu is open. */
+.nav-hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border-strong, rgba(30, 34, 56, 0.18));
+  border-radius: 8px;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.nav-hamburger-bar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text, #1e2238);
+  border-radius: 2px;
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+body.nav-open .nav-hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+body.nav-open .nav-hamburger-bar:nth-child(2) { opacity: 0; }
+body.nav-open .nav-hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 720px) {
+  .nav { padding: 12px 18px; position: relative; }
+  .nav-hamburger { display: flex; }
+
+  /* Hide the right-side cluster by default on phones. When the
+     hamburger toggles body.nav-open, slide it down as a full-width
+     panel under the nav. */
+  .nav-right {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 16px 20px;
+    background: var(--nav-bg, rgba(247, 245, 240, 0.98));
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 200ms ease, opacity 200ms ease;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+  :root[data-theme="dark"] .nav-right {
+    background: rgba(10, 14, 22, 0.97);
+  }
+  body.nav-open .nav-right {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* In the drawer, every child becomes a full-width row. */
+  .nav-right > * {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .nav-right .nav-search {
+    display: block;
+    width: 100%;
+    height: 40px;
+  }
+  .nav-right .nav-link,
+  .nav-right .nav-cta {
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    width: 100%;
+  }
+  .nav-right .theme-toggle {
+    width: 100%;
+    height: 40px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  /* The two existing dropdown menus (About Atrium, My Details) become
+     inline expanding sections in the drawer instead of floating
+     popovers. */
+  .nav-right .nav-menu {
+    display: block;
+    width: 100%;
+  }
+  .nav-right .nav-menu-items {
+    position: static;
+    box-shadow: none;
+    border: 0;
+    background: rgba(30, 34, 56, 0.04);
+    border-radius: 8px;
+    margin: 4px 0 6px;
+    padding: 4px;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-theme="dark"] .nav-right .nav-menu-items {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .nav-right .nav-menu-item {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+  }
+  .nav-right .progress-pill,
+  .nav-right .greeting,
+  .nav-right .streak-chip {
+    text-align: left;
+  }
+  .nav-right #navUser {
+    display: block;
+    width: 100%;
+  }
+}
+
+/* Prevent the body from scrolling behind the drawer on phones; users
+   tend to "pull" the drawer area and end up scrolling the page
+   underneath. */
+@media (max-width: 720px) {
+  body.nav-open { overflow: hidden; }
+}

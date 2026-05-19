@@ -1068,6 +1068,51 @@
         toggleMyDetailsMenu();
       });
     }
+    // Mobile hamburger: toggles the right-side cluster as a slide-down
+    // drawer at phone widths. Desktop layout ignores it (the CSS hides
+    // the hamburger over 720px).
+    const hamburger = el('navHamburger');
+    if (hamburger) {
+      const closeNavDrawer = () => {
+        document.body.classList.remove('nav-open');
+        hamburger.setAttribute('aria-expanded', 'false');
+      };
+      hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willOpen = !document.body.classList.contains('nav-open');
+        document.body.classList.toggle('nav-open', willOpen);
+        hamburger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      });
+      // Any nav action inside the drawer should close it after firing.
+      const navRight = el('navRight');
+      if (navRight) {
+        navRight.addEventListener('click', (e) => {
+          const t = e.target;
+          if (!t || t.tagName !== 'BUTTON') return;
+          // The nested "About Atrium" / "My Details" toggle buttons
+          // need to keep the drawer open so the submenu can expand.
+          if (t.id === 'aboutAtriumBtn' || t.id === 'myDetailsBtn') return;
+          closeNavDrawer();
+        });
+      }
+      // Outside click and Escape close the drawer.
+      document.addEventListener('click', (e) => {
+        if (!document.body.classList.contains('nav-open')) return;
+        if (e.target === hamburger || hamburger.contains(e.target)) return;
+        const navRightEl = el('navRight');
+        if (navRightEl && navRightEl.contains(e.target)) return;
+        closeNavDrawer();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeNavDrawer();
+      });
+      // Resizing back to desktop should clear the open state so the
+      // drawer styles don't leak onto a wide screen.
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 720) closeNavDrawer();
+      });
+    }
+
     // "About Atrium" dropdown: Why Atrium, FAQ, About us. Always
     // visible (signed-in or not).
     const aboutBtn = el('aboutAtriumBtn');
