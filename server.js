@@ -956,7 +956,93 @@ function sanitizeLessonContent(content) {
   out = out.replace(/<(iframe|object|embed)[\s\S]*?<\/\1>/gi, '');
   out = out.replace(/<(iframe|object|embed)[^>]*\/?>/gi, '');
   out = sanitizeLessonMath(out);
+  out = sanitizeLessonSvg(out);
   return out;
+}
+
+// Clean up known-bad SVG patterns from Max-generated diagrams. The model has
+// shipped lessons where it duplicates labels ("side = √49 = 7" followed by a
+// stand-alone "7") and draws stray <line> elements across text. These render
+// as orphan numbers and apparent strikethroughs. We can't ask the cache to
+// regenerate every old lesson, so we scrub on serve.
+function sanitizeLessonSvg(content) {
+  if (typeof content !== 'string' || content.indexOf('<svg') === -1) return content;
+  return content.replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, (svg) => {
+    let body = svg;
+
+    // 1) De-dup labels. Two cases:
+    //    (a) literal duplicate: the same trimmed text appears twice → keep the
+    //        first, drop the rest.
+    //    (b) short-answer echo: a <text> whose entire content is a short
+    //        token (e.g. "7", "4", "= 7") and that token already appears as
+    //        the tail of a longer label (e.g. "side = √49 = 7"). Max often
+    //        emits the final answer twice — once at the end of the equation
+    //        and once on its own line beneath. Drop the standalone echo.
+    //    We do (a) first by collecting unique labels, then (b) by looking
+    //    for short labels whose content is contained in any longer label.
+    const labels = []; // {text, full match}
+    body.replace(/<text\b[^>]*>([\s\S]*?)<\/text>/gi, (m, inner) => {
+      labels.push((inner || '').replace(/\s+/g, ' ').trim());
+      return m;
+    });
+    const seen = new Set();
+    const isShortEcho = (norm) => {
+      if (!norm || norm.length > 6) return false;
+      // Must be purely numeric (digits + optional unit suffix). Single letters
+      // like "x" or "y" are axis labels — never strip those.
+      const stripped = norm.replace(/^[=\s]+/, '').trim();
+      if (!/^-?\d+(?:\.\d+)?(?:°|π)?$/.test(stripped)) return false;
+      // Only drop when the SAME number appears as the final answer of a
+      // longer label, i.e. preceded by "= " near the end. This avoids
+      // false positives like "5" being a coordinate when another label
+      // happens to contain "5" mid-expression.
+      const tailPat = new RegExp('=\\s*' + stripped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$');
+      return labels.some(other => other !== norm && other.length > norm.length && tailPat.test(other));
+    };
+    body = body.replace(/<text\b([^>]*)>([\s\S]*?)<\/text>/gi, (m, attrs, inner) => {
+      const norm = inner.replace(/\s+/g, ' ').trim();
+      if (!norm) return m;
+      if (seen.has(norm)) return '';      // literal duplicate
+      if (isShortEcho(norm)) return '';   // standalone "answer" echo
+      seen.add(norm);
+      return m;
+    });
+
+    // 2) Drop strikethrough <line> elements — short horizontal lines that
+    //    sit at the same y as a <text>. Two guards to avoid killing axes:
+    //    (a) line span must be SHORT relative to the viewBox width (axes
+    //        typically span the full canvas; strikethroughs are local).
+    //    (b) line y must fall within ±6 of a <text>'s y.
+    const textYs = [];
+    body.replace(/<text\b[^>]*\by\s*=\s*["']?(-?\d+(?:\.\d+)?)["']?/gi, (_m, y) => {
+      textYs.push(parseFloat(y));
+      return _m;
+    });
+    const vbMatch = /viewBox\s*=\s*["']\s*-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s+(\d+(?:\.\d+)?)\s+\d+(?:\.\d+)?\s*["']/i.exec(body);
+    const vbWidth = vbMatch ? parseFloat(vbMatch[1]) : 0;
+    if (textYs.length) {
+      body = body.replace(/<line\b[^>]*\/?>/gi, (line) => {
+        const y1m = /\by1\s*=\s*["']?(-?\d+(?:\.\d+)?)["']?/.exec(line);
+        const y2m = /\by2\s*=\s*["']?(-?\d+(?:\.\d+)?)["']?/.exec(line);
+        const x1m = /\bx1\s*=\s*["']?(-?\d+(?:\.\d+)?)["']?/.exec(line);
+        const x2m = /\bx2\s*=\s*["']?(-?\d+(?:\.\d+)?)["']?/.exec(line);
+        if (!y1m || !y2m || !x1m || !x2m) return line;
+        const y1 = parseFloat(y1m[1]);
+        const y2 = parseFloat(y2m[1]);
+        if (Math.abs(y1 - y2) > 1.5) return line;  // not horizontal — keep
+        const ymid = (y1 + y2) / 2;
+        if (!textYs.some(ty => Math.abs(ty - ymid) <= 6)) return line;
+        // Width guard: only drop if line spans less than 60% of viewBox width
+        // (real strikethroughs hug their label). If we don't know the viewBox
+        // width, be conservative and keep the line.
+        if (vbWidth <= 0) return line;
+        const span = Math.abs(parseFloat(x2m[1]) - parseFloat(x1m[1]));
+        return (span / vbWidth) < 0.6 ? '' : line;
+      });
+    }
+
+    return body;
+  });
 }
 
 // Scrub common LaTeX patterns that render badly in our in-house fallback.

@@ -229,6 +229,13 @@ One short sentence naming the exact skill they just learned, then 2-3 bullet poi
 
   <svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Right triangle with sides 3, 4, 5"><title>Right triangle with sides 3, 4, 5</title><polygon points="20,100 140,100 20,40" fill="none" stroke="currentColor" stroke-width="2"/><text x="78" y="116" font-size="12">4</text><text x="4" y="74" font-size="12">3</text><text x="86" y="64" font-size="12">5</text></svg>
 
+SVG label discipline (CRITICAL — past lessons have shipped broken labels):
+- Every label appears ONCE. Never write the same number/word as two \`<text>\` elements (e.g. do NOT include both \`side = √49 = 7\` AND a separate \`<text>7</text>\` underneath).
+- Never draw a \`<line>\` or stroke across a \`<text>\` element. No strikethroughs, no "answer = " bars cutting through labels, no horizontal rules under labels.
+- Label text uses plain Unicode characters only — √, ³√, ², ³, π, °. Do NOT put LaTeX like \`\\sqrt\` or \`\\frac\` inside an SVG \`<text>\` element; LaTeX does not render inside SVG.
+- Show ONE final answer per label line. \`side = √49 = 7\` is complete; do not add \`= 7\` again below.
+- Keep \`<text>\` y-coordinates at least 14 units apart so labels never visually overlap.
+
 **Mermaid (for flowcharts, decision trees, concept maps, sequence diagrams, process flows).** Wrap in a Markdown code fence with the language tag \`mermaid\`. The page will render it client-side. Use for: "how to decide which technique applies", "the chain of steps in a proof", "the parts of a sentence as a tree", "the lifecycle of a function call". Example:
 
 \`\`\`mermaid
