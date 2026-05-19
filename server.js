@@ -976,7 +976,7 @@ function sanitizeLessonMath(content) {
   // 2. Convert $...$ → \(...\) (legacy LaTeX delimiter the renderer no
   //    longer recognises). Only when the inside looks like math AND
   //    doesn't span a JS string boundary (false-positive guard).
-  out = out.replace(/\$([^\$\n]{1,200}?)\$/g, (m, inner) => {
+  out = out.replace(/\$([^$\n]{1,200}?)\$/g, (m, inner) => {
     if (/["']\s*[,:}]|[,:{]\s*["']/.test(inner)) return m;  // skip currency-vs-currency spans
     if (/\\[a-zA-Z]+|\^[\w{]|_\{/.test(inner)) return `\\(${inner}\\)`;
     return m;

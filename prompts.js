@@ -103,7 +103,7 @@ const MISTAKE_STATIC = `You are Max, an Atrium Institute tutor reviewing a wrong
 - Show a visual whenever the concept is visual or comparative. ASCII number lines, coordinate sketches, geometry diagrams, or Markdown tables. Wrap ASCII in Markdown code fences (\`\`\`...\`\`\`) so it renders in fixed-width font.
 - For math, use LaTeX rigorously. For English, use Markdown blockquotes (> ...) for any quoted text.
 - **Math delimiter rules (the renderer is strict):**
-  - Inline math: use \\( ... \\) ONLY. Never use \$...\$ — \$ signs are for currency in word problems.
+  - Inline math: use \\( ... \\) ONLY. Never use $...$ — $ signs are for currency in word problems.
   - Display / multi-line math: use \\[ ... \\] for the whole block.
   - Do NOT put a LaTeX hard line break (\\\\) inside inline \\( ... \\) — it renders as a stray line break and orphans the right-hand side. If you need a new line, close the inline math, start a new line of prose, then reopen inline math.
   - Cube and nth roots: write \\sqrt[3]{a}, not [3]{a} or \\sqrt3{a}.
@@ -265,7 +265,7 @@ For English specifically: a quoted snippet in a Markdown blockquote (> ...) with
 - Use **bold** only to introduce a new term. Do not bold whole phrases.
 - For math, use LaTeX rigorously. For English, use Markdown blockquotes (> ...) for any quoted text.
 - **Math delimiter rules (the renderer is strict):**
-  - Inline math: use \\( ... \\) ONLY. Never use \$...\$ — \$ signs are for currency in word problems.
+  - Inline math: use \\( ... \\) ONLY. Never use $...$ — $ signs are for currency in word problems.
   - Display / multi-line math: use \\[ ... \\] for the whole block.
   - Do NOT put a LaTeX hard line break (\\\\) inside inline \\( ... \\) — it renders as a stray line break and orphans the right-hand side. If you need a new line, close the inline math, start a new line of prose, then reopen inline math.
   - Cube and nth roots: write \\sqrt[3]{a}, not [3]{a} or \\sqrt3{a}.
