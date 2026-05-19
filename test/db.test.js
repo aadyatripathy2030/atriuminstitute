@@ -205,6 +205,46 @@ test('createLinkFromCode rejects same-role and self links', async () => {
   assert.equal(self.reason, 'self');
 });
 
+test('PhotoAtrium: save / list / get / delete round-trip per user', async () => {
+  const u = await db.upsertUser('photo-test@example.com', 'student');
+  // Empty list to start.
+  let list = await db.listPhotoSolves(u.id);
+  assert.equal(list.length, 0);
+  assert.equal(await db.countPhotoSolves(u.id), 0);
+
+  // Save one solve.
+  const saved = await db.savePhotoSolve(u.id, {
+    thumbnailData: 'data:image/jpeg;base64,iVBOR',
+    detectedProblem: '2x + 4 = 10',
+    solutionContent: '<problem>2x + 4 = 10</problem><answer>x = 3</answer>',
+    subject: 'algebra',
+    model: 'claude-test',
+  });
+  assert.ok(saved.id, 'save should return an id');
+
+  // List shows it.
+  list = await db.listPhotoSolves(u.id);
+  assert.equal(list.length, 1);
+  assert.equal(list[0].detected_problem, '2x + 4 = 10');
+  assert.equal(list[0].subject, 'algebra');
+  assert.ok((list[0].preview || '').length > 0, 'list rows include a solution preview');
+  assert.equal(await db.countPhotoSolves(u.id), 1);
+
+  // Get the full row.
+  const full = await db.getPhotoSolve(u.id, saved.id);
+  assert.ok(full);
+  assert.ok(full.solution_content.includes('<answer>x = 3</answer>'));
+
+  // Another user cannot read or delete this user's row.
+  const stranger = await db.upsertUser('photo-stranger@example.com', 'student');
+  assert.equal(await db.getPhotoSolve(stranger.id, saved.id), null);
+  assert.equal(await db.deletePhotoSolve(stranger.id, saved.id), false);
+
+  // Owner deletes successfully.
+  assert.equal(await db.deletePhotoSolve(u.id, saved.id), true);
+  assert.equal(await db.countPhotoSolves(u.id), 0);
+});
+
 test('deleteUserAccount removes the user and cascades cleanly', async () => {
   const me = await db.upsertUser('del-me@example.com', 'student');
   await db.updateUserProfile(me.id, { age: 14, country: 'United States' });

@@ -88,6 +88,7 @@
     'parentHome', 'parentStudentDetail',
     'profilePage', 'activityPage', 'tokenUsagePage', 'adminPage',
     'curriculumPage', 'favoritesPage', 'achievementsPage', 'leaderboardPage',
+    'photoAtriumScannerPage', 'photoAtriumResultPage', 'photoAtriumListPage',
   ];
   function hideAllTopLevel() {
     for (const id of TOP_LEVEL_IDS) hide(el(id));
@@ -391,6 +392,11 @@
     if (studyFab) {
       if (user.role === 'parent') hide(studyFab); else show(studyFab);
     }
+    // PhotoAtrium scanner FAB: students only, hidden for parents.
+    const photoFab = el('photoAtriumFab');
+    if (photoFab) {
+      if (user.role === 'parent') hide(photoFab); else show(photoFab);
+    }
     // Swap the landing hero's CTAs from "Sign up / Sign in" to
     // "Continue learning →" so a signed-in user who lands here never sees
     // the public-visitor buttons.
@@ -411,6 +417,8 @@
     if (signUpBtn) show(signUpBtn);
     if (navUser) hide(navUser);
     if (studyFab) hide(studyFab);
+    const photoFab = el('photoAtriumFab');
+    if (photoFab) hide(photoFab);
     if (menu) hide(menu);
     // Restore the public CTAs for signed-out visitors.
     show(el('landingCtaSignedOut'));

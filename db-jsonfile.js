@@ -987,6 +987,49 @@ async function getPODStats() { return { total: 0, solved: 0 }; }
 async function searchSchoolDistricts() { return []; }
 async function recordUserDistrict() { /* no-op */ }
 
+// ---------- PhotoAtrium (jsonfile stubs) ----------
+async function savePhotoSolve(userId, fields) {
+  load();
+  if (!Array.isArray(state.photoSolves)) state.photoSolves = [];
+  const row = {
+    id: crypto.randomUUID(),
+    user_id: userId,
+    thumbnail_data: fields.thumbnailData || null,
+    detected_problem: String(fields.detectedProblem || '').slice(0, 4000),
+    solution_content: String(fields.solutionContent || '').slice(0, 80000),
+    subject: fields.subject || 'other',
+    model: fields.model || null,
+    created_at: new Date().toISOString(),
+  };
+  state.photoSolves.push(row);
+  save();
+  return row;
+}
+async function listPhotoSolves(userId, limit) {
+  load();
+  const lim = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
+  return (state.photoSolves || [])
+    .filter(p => p.user_id === userId)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, lim)
+    .map(p => ({ ...p, preview: (p.solution_content || '').slice(0, 200) }));
+}
+async function getPhotoSolve(userId, id) {
+  load();
+  return (state.photoSolves || []).find(p => p.id === id && p.user_id === userId) || null;
+}
+async function deletePhotoSolve(userId, id) {
+  load();
+  const before = (state.photoSolves || []).length;
+  state.photoSolves = (state.photoSolves || []).filter(p => !(p.id === id && p.user_id === userId));
+  save();
+  return state.photoSolves.length !== before;
+}
+async function countPhotoSolves(userId) {
+  load();
+  return (state.photoSolves || []).filter(p => p.user_id === userId).length;
+}
+
 async function deleteUserAccount(userId) {
   load();
   const before = state.users.length;
@@ -1072,6 +1115,7 @@ module.exports = {
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   searchSchoolDistricts, recordUserDistrict,
+  savePhotoSolve, listPhotoSolves, getPhotoSolve, deletePhotoSolve, countPhotoSolves,
   deleteUserAccount,
   // Mastery stubs (Postgres-only features; no-ops for jsonfile).
   updateSectionMastery: async () => {},

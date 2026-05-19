@@ -29,6 +29,8 @@ module.exports = [
       'survey.js',
       'tokens.js',
       'payments.js',
+      'photoatrium.js',
+      'behavior.js',
       'data.json',
       'tools/**',
     ],

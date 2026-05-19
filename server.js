@@ -508,6 +508,263 @@ async function handleDeleteAccount(req, res) {
   res.end(JSON.stringify({ ok: true }));
 }
 
+// ---------- PhotoAtrium ----------
+
+// Allow-list of subjects matches the DB CHECK constraint approximation.
+const PHOTO_ALLOWED_SUBJECTS = new Set([
+  'arithmetic', 'prealgebra', 'algebra', 'geometry', 'trigonometry',
+  'precalculus', 'calculus', 'statistics', 'linear_algebra',
+  'differential_equations', 'other',
+]);
+
+// Parse the structured Photomath-style response from Claude. The model is
+// instructed to emit <problem>, <subject>, <answer>, <methods>, optionally
+// <illustration> and <note>. We return them in a JSON shape the client can
+// render directly.
+function parsePhotoSolveResponse(text) {
+  if (typeof text !== 'string') text = '';
+  const grab = (tag) => {
+    const m = text.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+    return m ? m[1].trim() : '';
+  };
+  const problem = grab('problem');
+  const subject = (grab('subject') || 'other').toLowerCase().trim();
+  const answer = grab('answer');
+  const illustration = grab('illustration');
+  const note = grab('note');
+
+  // Methods can contain multiple <method> blocks each with <step> children.
+  const methods = [];
+  const methodsBlock = grab('methods');
+  const methodRe = /<method\b([^>]*)>([\s\S]*?)<\/method>/gi;
+  let mm;
+  while ((mm = methodRe.exec(methodsBlock)) !== null) {
+    const attrs = mm[1] || '';
+    const nameMatch = attrs.match(/name=["']([^"']+)["']/i);
+    const name = nameMatch ? nameMatch[1].trim() : 'Solution';
+    const body = mm[2] || '';
+    const steps = [];
+    const stepRe = /<step\b([^>]*)>([\s\S]*?)<\/step>/gi;
+    let sm;
+    while ((sm = stepRe.exec(body)) !== null) {
+      const stepAttrs = sm[1] || '';
+      const nMatch = stepAttrs.match(/n=["']?(\d+)["']?/);
+      const n = nMatch ? parseInt(nMatch[1], 10) : (steps.length + 1);
+      const stepBody = sm[2] || '';
+      const eqMatch = stepBody.match(/<eq\b[^>]*>([\s\S]*?)<\/eq>/i);
+      const whyMatch = stepBody.match(/<why\b[^>]*>([\s\S]*?)<\/why>/i);
+      const eq = (eqMatch ? eqMatch[1] : '').trim();
+      const why = (whyMatch ? whyMatch[1] : '').trim();
+      steps.push({ n, eq, why });
+    }
+    methods.push({ name, steps });
+  }
+
+  return {
+    problem,
+    subject: PHOTO_ALLOWED_SUBJECTS.has(subject) ? subject : 'other',
+    answer,
+    methods,
+    illustration,
+    note,
+  };
+}
+
+// POST /api/photo-atrium/solve
+// Body: { imageBase64: 'data:image/jpeg;base64,...', imageMediaType?: 'image/jpeg' }
+// Calls Claude vision, parses structured response, auto-saves to DB.
+// Returns the parsed solve + DB row id.
+async function handlePhotoSolve(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in to use PhotoAtrium.' });
+  if (!API_KEY) return json(res, 503, { error: 'Photo solve unavailable: server has no ANTHROPIC_API_KEY.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.imageBase64 !== 'string') {
+    return json(res, 400, { error: 'imageBase64 required.' });
+  }
+  // The client sends a data URL: data:image/jpeg;base64,<payload>.
+  // Strip the prefix and validate the media type.
+  let media = 'image/jpeg';
+  let b64 = body.imageBase64;
+  const dataUrlMatch = b64.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/);
+  if (dataUrlMatch) {
+    media = dataUrlMatch[1] === 'image/jpg' ? 'image/jpeg' : dataUrlMatch[1];
+    b64 = dataUrlMatch[2];
+  } else if (typeof body.imageMediaType === 'string' && /^image\/(jpeg|png|webp)$/i.test(body.imageMediaType)) {
+    media = body.imageMediaType.toLowerCase();
+  }
+  // Cap upload size at ~6MB raw base64 (~4.5MB binary) — well below
+  // Anthropic's image limit. The client compresses to <200KB normally.
+  if (b64.length > 6 * 1024 * 1024) {
+    return json(res, 413, { error: 'Image too large. Compress and retry.' });
+  }
+
+  const thumbnail = typeof body.thumbnailDataUrl === 'string' && body.thumbnailDataUrl.length < 200000
+    ? body.thumbnailDataUrl : null;
+
+  const model = 'claude-sonnet-4-5-20250929';
+  let result;
+  try {
+    result = await callClaudeDirect({
+      model,
+      system: prompts.buildSystem('photo-solve'),
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: media, data: b64 } },
+          { type: 'text', text: 'Solve this math problem using the structured format described in the system prompt.' },
+        ],
+      }],
+      max_tokens: 4000,
+      temperature: 0.3,
+    });
+  } catch (e) {
+    return json(res, 502, { error: 'Could not reach the math solver. Try again in a moment.', detail: e.message });
+  }
+
+  if (result.usage) {
+    const cost = computeCost(model, result.usage);
+    db.recordAiUsage({
+      userId: u.id,
+      userEmail: u.email,
+      intent: 'photo-solve',
+      model,
+      inputTokens: result.usage.input_tokens || 0,
+      outputTokens: result.usage.output_tokens || 0,
+      cacheReadTokens: result.usage.cache_read_input_tokens || 0,
+      cacheCreationTokens: result.usage.cache_creation_input_tokens || 0,
+      costUsd: cost,
+    }).catch(err => console.error('recordAiUsage failed:', err.message));
+  }
+
+  // Sanitise SVG / scripty content the same way lesson content is scrubbed.
+  const safe = sanitizeLessonContent(result.text);
+  const parsed = parsePhotoSolveResponse(safe);
+
+  // Refuse to save a clearly-failed solve. Tell the client.
+  if (!parsed.problem || parsed.problem === 'unreadable' || !parsed.methods.length) {
+    return json(res, 200, {
+      ok: false,
+      reason: 'unreadable',
+      message: 'I could not read this image clearly. Try again with better lighting, no glare, and the whole problem in the frame.',
+      parsed,
+    });
+  }
+
+  // Auto-save the solve (Photomath-style: every scan goes to history).
+  const row = await db.savePhotoSolve(u.id, {
+    thumbnailData: thumbnail,
+    detectedProblem: parsed.problem,
+    solutionContent: safe,
+    subject: parsed.subject,
+    model,
+  });
+
+  // Activity + points.
+  await db.logActivity(u.id, 'photo_solve', { id: row.id, subject: parsed.subject });
+  _awardPointsAsync(u.id, 10);
+
+  json(res, 200, {
+    ok: true,
+    id: row.id,
+    created_at: row.created_at,
+    parsed,
+    model,
+  });
+}
+
+// POST /api/photo-atrium/re-solve
+// Body: { problemText: '\\frac{x^2-9}{x-3} = ?' }
+// Used when the user edits the auto-transcribed LaTeX and wants to re-solve
+// the corrected version. Text-only, no vision tokens.
+async function handlePhotoReSolve(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in to use PhotoAtrium.' });
+  if (!API_KEY) return json(res, 503, { error: 'Photo solve unavailable.' });
+  const body = await readJSON(req);
+  if (!body || typeof body.problemText !== 'string' || !body.problemText.trim()) {
+    return json(res, 400, { error: 'problemText required.' });
+  }
+  const text = body.problemText.trim().slice(0, 2000);
+  const model = 'claude-sonnet-4-5-20250929';
+  let result;
+  try {
+    result = await callClaudeDirect({
+      model,
+      system: prompts.buildSystem('photo-solve'),
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: `The student typed this problem manually. Solve it using the structured format described in the system prompt. There is no image — treat the text below as the transcription.\n\nProblem:\n${text}` },
+        ],
+      }],
+      max_tokens: 4000,
+      temperature: 0.3,
+    });
+  } catch (e) {
+    return json(res, 502, { error: 'Solver unavailable. Try again.', detail: e.message });
+  }
+  if (result.usage) {
+    const cost = computeCost(model, result.usage);
+    db.recordAiUsage({
+      userId: u.id, userEmail: u.email,
+      intent: 'photo-resolve', model,
+      inputTokens: result.usage.input_tokens || 0,
+      outputTokens: result.usage.output_tokens || 0,
+      cacheReadTokens: result.usage.cache_read_input_tokens || 0,
+      cacheCreationTokens: result.usage.cache_creation_input_tokens || 0,
+      costUsd: cost,
+    }).catch(err => console.error('recordAiUsage failed:', err.message));
+  }
+  const safe = sanitizeLessonContent(result.text);
+  const parsed = parsePhotoSolveResponse(safe);
+  if (!parsed.problem || !parsed.methods.length) {
+    return json(res, 200, { ok: false, reason: 'parse-failed', parsed });
+  }
+  const row = await db.savePhotoSolve(u.id, {
+    thumbnailData: null, // text-only re-solve has no image
+    detectedProblem: parsed.problem,
+    solutionContent: safe,
+    subject: parsed.subject,
+    model,
+  });
+  await db.logActivity(u.id, 'photo_solve', { id: row.id, subject: parsed.subject, retyped: true });
+  _awardPointsAsync(u.id, 10);
+  json(res, 200, { ok: true, id: row.id, created_at: row.created_at, parsed, model });
+}
+
+// GET /api/photo-atrium/list
+async function handlePhotoList(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in.' });
+  const url = new URL(req.url, 'http://localhost');
+  const limit = url.searchParams.get('limit');
+  const rows = await db.listPhotoSolves(u.id, limit);
+  json(res, 200, { items: rows });
+}
+
+// GET /api/photo-atrium/:id  (full solution)
+async function handlePhotoGet(req, res, id) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in.' });
+  if (!id) return json(res, 400, { error: 'id required.' });
+  const row = await db.getPhotoSolve(u.id, id);
+  if (!row) return json(res, 404, { error: 'Not found.' });
+  const parsed = parsePhotoSolveResponse(row.solution_content || '');
+  json(res, 200, { item: row, parsed });
+}
+
+// DELETE /api/photo-atrium/:id
+async function handlePhotoDelete(req, res, id) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Sign in.' });
+  if (!id) return json(res, 400, { error: 'id required.' });
+  const ok = await db.deletePhotoSolve(u.id, id);
+  if (!ok) return json(res, 404, { error: 'Not found.' });
+  await db.logActivity(u.id, 'photo_delete', { id });
+  json(res, 200, { ok: true });
+}
+
 async function handleSaveSurvey(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
@@ -2552,6 +2809,17 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/survey' && req.method === 'POST') return await handleSaveSurvey(req, res);
     if (url === '/api/me/survey/skip' && req.method === 'POST') return await handleSkipSurvey(req, res);
     if (url === '/api/me/account/delete' && req.method === 'POST') return await handleDeleteAccount(req, res);
+    if (url === '/api/photo-atrium/solve' && req.method === 'POST') return await handlePhotoSolve(req, res);
+    if (url === '/api/photo-atrium/re-solve' && req.method === 'POST') return await handlePhotoReSolve(req, res);
+    if (url === '/api/photo-atrium/list' && req.method === 'GET') return await handlePhotoList(req, res);
+    if (url.startsWith('/api/photo-atrium/') && req.method === 'GET') {
+      const id = url.slice('/api/photo-atrium/'.length);
+      return await handlePhotoGet(req, res, id);
+    }
+    if (url.startsWith('/api/photo-atrium/') && req.method === 'DELETE') {
+      const id = url.slice('/api/photo-atrium/'.length);
+      return await handlePhotoDelete(req, res, id);
+    }
     if (url === '/api/leaderboard' && req.method === 'GET') return await handleGetLeaderboard(req, res);
     if (url === '/api/problem-of-day' && req.method === 'GET') return await handleGetPOD(req, res);
     if (url === '/api/problem-of-day/attempt' && req.method === 'POST') return await handlePostPODAttempt(req, res);

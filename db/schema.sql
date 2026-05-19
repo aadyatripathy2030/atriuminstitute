@@ -776,3 +776,26 @@ create index if not exists idx_behavior_signals_user
   on behavior_signals (user_id, created_at desc);
 create index if not exists idx_behavior_signals_type
   on behavior_signals (user_id, signal_type);
+
+-- ------------------------------------------------------------------
+-- PhotoAtrium (added May 2026). Students point their phone at a math
+-- problem, the system OCRs + solves it via Claude vision, and the
+-- result is optionally saved here so they can review it later. Only
+-- a small thumbnail of the scanned image is stored (longest side
+-- ~200px JPEG) to keep table bloat down; the full-resolution image
+-- is sent to Anthropic and discarded.
+-- ------------------------------------------------------------------
+
+create table if not exists photo_solutions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users (id) on delete cascade,
+  thumbnail_data text,             -- base64 data URL, ~10-20KB
+  detected_problem text not null,  -- LaTeX as Claude transcribed it
+  solution_content text not null,  -- full Photomath-style markdown
+  subject text,                    -- 'algebra' | 'geometry' | 'calculus' | 'arithmetic' | 'other'
+  model text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_photo_solutions_user_created
+  on photo_solutions (user_id, created_at desc);

@@ -94,6 +94,7 @@
           <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
           <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
           <button class="nav-menu-item" id="favoritesNavBtn" type="button" role="menuitem">My Favorites</button>
+          <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">PhotoAtrium 📸</button>
           <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem">Achievements</button>
           <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem">Leaderboard</button>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -491,6 +492,60 @@
     </div>
   </div>
 </div>
+
+<!-- PhotoAtrium scanner: full-screen page with live camera + tap-to-capture.
+     File-input fallback for browsers without camera permission or for desktop. -->
+<div id="photoAtriumScannerPage" class="pa-scanner-page hidden">
+  <button class="pa-scanner-close" id="paScannerClose" aria-label="Close scanner">✕</button>
+  <div class="pa-scanner-frame">
+    <video id="paCameraVideo" playsinline autoplay muted></video>
+    <div class="pa-scanner-overlay" aria-hidden="true">
+      <span class="pa-reticle pa-reticle-tl"></span>
+      <span class="pa-reticle pa-reticle-tr"></span>
+      <span class="pa-reticle pa-reticle-bl"></span>
+      <span class="pa-reticle pa-reticle-br"></span>
+    </div>
+    <div class="pa-scanner-hint">Point at the math problem · keep it in frame · tap the shutter</div>
+  </div>
+  <div id="paCameraError" class="pa-camera-error hidden"></div>
+  <div class="pa-scanner-controls">
+    <button id="paShutterBtn" class="pa-shutter" type="button" aria-label="Take photo">
+      <span class="pa-shutter-inner"></span>
+    </button>
+    <label class="pa-file-fallback">
+      <span>or pick a photo</span>
+      <input type="file" accept="image/*" capture="environment" id="paFileInput" hidden>
+    </label>
+  </div>
+</div>
+
+<!-- PhotoAtrium result: problem + answer + step-by-step. Auto-saved. -->
+<div id="photoAtriumResultPage" class="pa-result-page hidden">
+  <button class="back-btn" id="paResultBack">← History</button>
+  <header class="pa-result-hero">
+    <h1>📸 PhotoAtrium</h1>
+    <p class="pa-result-sub">Your step-by-step solution.</p>
+  </header>
+  <div id="paResultMeta" data-id=""></div>
+  <div id="paResultContent" class="pa-result-content"></div>
+</div>
+
+<!-- PhotoAtrium history list: every past scan. -->
+<div id="photoAtriumListPage" class="pa-list-page hidden">
+  <button class="back-btn" id="paListBack">← Back</button>
+  <header class="pa-list-hero">
+    <h1>📸 PhotoAtrium</h1>
+    <p class="pa-list-sub">Every problem you've scanned. Tap any card to revisit the solution.</p>
+    <button id="paListScanBtn" class="cta-primary" type="button">📸 Scan a new problem</button>
+  </header>
+  <div id="paListGrid" class="pa-list-grid"></div>
+</div>
+
+<!-- Floating Action Button for quick access from any signed-in page. -->
+<button type="button" id="photoAtriumFab" class="pa-fab hidden" aria-label="Scan a math problem" title="Scan a math problem">
+  <span class="pa-fab-icon">📸</span>
+  <span class="pa-fab-label">Scan</span>
+</button>
 
 <!-- Account deletion: four-step confirmation modal. Each step blocks
      the next until the prior input validates. Closing or pressing
@@ -1714,13 +1769,44 @@
     </details>
   </section>
 
+  <section class="faq-group" data-group="photoatrium">
+    <h2>PhotoAtrium (scan a math problem)</h2>
+    <details><summary>What is PhotoAtrium?</summary>
+      <p>Point your phone (or any camera-capable device) at a math problem, tap the shutter, and Atrium reads the problem and writes out a Photomath-style step-by-step solution. Every solve is auto-saved to your PhotoAtrium history so you can come back and review it later.</p>
+    </details>
+    <details><summary>How do I use it?</summary>
+      <p>Tap the <strong>📸 Scan</strong> floating button in the bottom-right (visible on every page once you're signed in). The scanner opens with your camera live. Frame the problem inside the corner brackets, tap the white shutter, and wait 10-20 seconds while Max reads the image and writes the solution. If your camera isn't available, tap "or pick a photo" to upload an existing image from your device.</p>
+    </details>
+    <details><summary>What does the solution look like?</summary>
+      <p>Three sections: the recognised <strong>problem</strong> at the top (as LaTeX), the final <strong>answer</strong> in a highlighted card, and a <strong>step-by-step</strong> walkthrough with numbered steps. Each step has a "Why this step?" expander you can tap to see the reasoning. When a problem has more than one reasonable solution method, both methods appear as separate expandable sections so you can compare approaches.</p>
+    </details>
+    <details><summary>What if it reads the problem wrong?</summary>
+      <p>Under the recognised problem there's a "Not quite right? Edit and re-solve" expander. Tap it, fix the LaTeX in the textarea, and tap Re-solve. The edited version goes back to Max as text only (no second photo), so you don't burn another image upload.</p>
+    </details>
+    <details><summary>What does it work on?</summary>
+      <p>Printed and handwritten math problems across arithmetic, pre-algebra, algebra, geometry, trigonometry, pre-calculus, calculus, statistics, linear algebra, and differential equations. It also handles word problems if the entire problem fits in the frame. Best results: good lighting, no glare, the whole problem visible.</p>
+    </details>
+    <details><summary>Where do my scans go?</summary>
+      <p>Every solve auto-saves to your PhotoAtrium history. Open it from <strong>My Details → PhotoAtrium 📸</strong>. Tap any card to revisit the full step-by-step. We keep a small thumbnail (~200px wide) of the original image alongside the solution; the full-resolution image is sent to Anthropic for the OCR + solve and is then discarded from our end.</p>
+    </details>
+    <details><summary>Can I delete a scan?</summary>
+      <p>Yes. Open the solve and tap the 🗑 Delete button at the bottom. That removes the row, the thumbnail, and the solution from our database. Single-tap confirm; we don't use the four-step flow here because the blast radius is one card.</p>
+    </details>
+    <details><summary>Does it cost anything?</summary>
+      <p>Free today. Each scan uses Anthropic vision tokens (the image plus the solution), which is the kind of feature most likely to land on the future premium tier — see <em>How much does it cost?</em> for the broader pricing direction.</p>
+    </details>
+    <details><summary>Are there badges?</summary>
+      <p>Yes. Three PhotoAtrium badges: <strong>First Snap</strong> (your first solve), <strong>Photo Sleuth</strong> (10 solves), and <strong>Photo Master</strong> (50 solves). Each solve also earns +10 points toward your daily / weekly / monthly leaderboard.</p>
+    </details>
+  </section>
+
   <section class="faq-group" data-group="privacy">
     <h2>Privacy and safety</h2>
     <details><summary>Do you sell student data?</summary>
       <p>No. We don't sell student data, ever. We don't run third-party advertising at students. Curriculum personalisation is done in-house; data does not leave Atrium for that purpose.</p>
     </details>
     <details><summary>What data do you collect?</summary>
-      <p>Email, age, country, grade level, school name, school district (US only), and the activity you generate inside Atrium (lessons started, quiz attempts and scores, time on site, points earned). For under-13 students, an additional parental-consent flag.</p>
+      <p>Email, age, country, grade level, school name, school district (US only), and the activity you generate inside Atrium (lessons started, quiz attempts and scores, time on site, points earned). For under-13 students, an additional parental-consent flag. If you use PhotoAtrium, a small thumbnail of each scanned problem (~200px wide JPEG) is saved alongside the solution so you can recognise it in your history; the full-resolution image is sent to Anthropic for the OCR and solve, then discarded from our end.</p>
     </details>
     <details><summary>Where is data stored?</summary>
       <p>Render Postgres in the US. Email is sent through Resend. AI lesson and chat content is generated by Anthropic Claude. Each provider sees only the data needed to do its job.</p>
@@ -1965,6 +2051,7 @@
 <script src="favorites.js"></script>
 <script src="gamification.js"></script>
 <script src="survey.js"></script>
+<script src="photoatrium.js"></script>
 <script src="curriculum.js"></script>
 <script src="app.js"></script>
 <script src="behavior.js"></script>

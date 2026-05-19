@@ -1401,6 +1401,9 @@ const BADGE_CATALOG = [
   { id: 'lesson_5', title: 'Learner', description: 'Start 5 lessons', icon: '📖', points: 50 },
   { id: 'multi_subject', title: 'Renaissance', description: 'Quizzes in both Math and Language Arts', icon: '🎨', points: 75 },
   { id: 'pod_5', title: 'Daily Solver', description: 'Solve 5 Problems of the Day', icon: '⭐', points: 100 },
+  { id: 'photo_1', title: 'First Snap', description: 'Scan and solve your first problem with PhotoAtrium', icon: '📸', points: 50 },
+  { id: 'photo_10', title: 'Photo Sleuth', description: 'Scan 10 problems with PhotoAtrium', icon: '🔍', points: 100 },
+  { id: 'photo_50', title: 'Photo Master', description: 'Scan 50 problems with PhotoAtrium', icon: '🏅', points: 250 },
 ];
 
 async function _evaluateBadges(userId) {
@@ -1415,6 +1418,12 @@ async function _evaluateBadges(userId) {
   const streaks = await getUserStreaks(userId);
   const podSolved = await q(
     `select count(*)::int as n from user_pod_attempts where user_id = $1 and correct = true`,
+    [userId]
+  );
+  // Photo-solve count drives the photo_* badges. Read first one so we
+  // know when to stamp earned_at (we use the created_at of the Nth row).
+  const photoRows = await q(
+    `select created_at from photo_solutions where user_id = $1 order by created_at asc`,
     [userId]
   );
 
@@ -1443,6 +1452,9 @@ async function _evaluateBadges(userId) {
     lesson_5:      lessons.length >= 5 ? lessons[4].created_at : null,
     multi_subject: subjects.size >= 2 ? (attempts[attempts.length - 1] && attempts[attempts.length - 1].completed_at) : null,
     pod_5:         (podSolved[0] && podSolved[0].n >= 5) ? new Date().toISOString() : null,
+    photo_1:       photoRows.length >= 1 ? photoRows[0].created_at : null,
+    photo_10:      photoRows.length >= 10 ? photoRows[9].created_at : null,
+    photo_50:      photoRows.length >= 50 ? photoRows[49].created_at : null,
   };
 }
 
@@ -1489,7 +1501,8 @@ async function _computeBadgeProgress(userId) {
        (select count(*)::int from quiz_attempts where user_id = $1 and passed and score = total) as perfect,
        (select count(*)::int from activity_log where user_id = $1 and kind = 'lesson_started') as lessons,
        (select count(*)::int from activity_log where user_id = $1 and kind = 'hint_used') as hints,
-       (select count(*)::int from user_pod_attempts where user_id = $1 and correct) as pods`,
+       (select count(*)::int from user_pod_attempts where user_id = $1 and correct) as pods,
+       (select count(*)::int from photo_solutions where user_id = $1) as photos`,
     [userId]
   );
   const c = r[0] || {};
@@ -1507,6 +1520,9 @@ async function _computeBadgeProgress(userId) {
     hint_user:     { current: c.hints || 0, target: 5 },
     lesson_5:      { current: c.lessons || 0, target: 5 },
     pod_5:         { current: c.pods || 0, target: 5 },
+    photo_1:       { current: Math.min(c.photos || 0, 1), target: 1 },
+    photo_10:      { current: c.photos || 0, target: 10 },
+    photo_50:      { current: c.photos || 0, target: 50 },
   };
 }
 
@@ -1738,6 +1754,65 @@ async function recordUserDistrict(districtName, user) {
     [stateCode, districtName.trim().slice(0, 200), norm],
   );
   return true;
+}
+
+// ---------- PhotoAtrium ----------
+
+const ALLOWED_PHOTO_SUBJECTS = new Set(['algebra', 'geometry', 'calculus', 'arithmetic', 'trigonometry', 'statistics', 'precalculus', 'linear_algebra', 'differential_equations', 'prealgebra', 'other']);
+
+async function savePhotoSolve(userId, {
+  thumbnailData, detectedProblem, solutionContent, subject, model,
+}) {
+  const subj = ALLOWED_PHOTO_SUBJECTS.has(subject) ? subject : 'other';
+  const thumb = (typeof thumbnailData === 'string' && thumbnailData.length < 200000)
+    ? thumbnailData : null;
+  const problem = String(detectedProblem || '').slice(0, 4000);
+  const solution = String(solutionContent || '').slice(0, 80000);
+  const rows = await q(
+    `insert into photo_solutions (user_id, thumbnail_data, detected_problem, solution_content, subject, model)
+     values ($1, $2, $3, $4, $5, $6)
+     returning id, user_id, thumbnail_data, detected_problem, solution_content, subject, model, created_at`,
+    [userId, thumb, problem, solution, subj, model || null],
+  );
+  return rows[0];
+}
+
+async function listPhotoSolves(userId, limit) {
+  const lim = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
+  return q(
+    `select id, thumbnail_data, detected_problem, subject, model, created_at,
+            substring(solution_content from 1 for 200) as preview
+       from photo_solutions
+      where user_id = $1
+      order by created_at desc
+      limit $2`,
+    [userId, lim],
+  );
+}
+
+async function getPhotoSolve(userId, id) {
+  const rows = await q(
+    `select id, user_id, thumbnail_data, detected_problem, solution_content, subject, model, created_at
+       from photo_solutions where id = $1 and user_id = $2 limit 1`,
+    [id, userId],
+  );
+  return rows[0] || null;
+}
+
+async function deletePhotoSolve(userId, id) {
+  const rows = await q(
+    `delete from photo_solutions where id = $1 and user_id = $2 returning id`,
+    [id, userId],
+  );
+  return rows.length > 0;
+}
+
+async function countPhotoSolves(userId) {
+  const rows = await q(
+    `select count(*)::int as n from photo_solutions where user_id = $1`,
+    [userId],
+  );
+  return rows[0] ? rows[0].n : 0;
 }
 
 // ---------- Self-serve account deletion ----------
@@ -2239,6 +2314,7 @@ module.exports = {
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   searchSchoolDistricts, recordUserDistrict,
+  savePhotoSolve, listPhotoSolves, getPhotoSolve, deletePhotoSolve, countPhotoSolves,
   deleteUserAccount,
   insertBehaviorEvents, analyzeBehaviorSession, getBehaviorSignals, getBehaviorSummary,
   cleanup,
