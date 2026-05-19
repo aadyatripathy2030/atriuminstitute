@@ -469,73 +469,18 @@
     wrap.querySelector('#paHistoryBtn').addEventListener('click', openList);
     wrap.querySelector('#paDeleteBtn').addEventListener('click', deleteCurrentSolve);
 
-    // Progressive Homework Mode reveal. Each step button reveals its
-    // own equation + reasoning, then unlocks the next step's button.
-    // When the last step is revealed, the answer reveal button unlocks.
-    // The answer reveal then shows the final answer card.
-    function unlockAnswerButton() {
-      const ans = wrap.querySelector('.pa-reveal-answer');
-      if (!ans) return;
-      ans.disabled = false;
-      ans.textContent = '🎯 You worked through every step. Tap to reveal the final answer.';
-    }
-    wrap.querySelectorAll('.pa-step-reveal').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (btn.disabled) return;
-        const li = btn.closest('.pa-step');
-        if (!li) return;
-        const content = li.querySelector('.pa-step-content');
-        if (!content) return;
-        // Reveal this step.
-        content.classList.remove('pa-hidden');
-        btn.classList.add('pa-hidden');
-        li.classList.remove('pa-step-locked');
-        if (typeof window.typesetMath === 'function') {
-          try { window.typesetMath(content); } catch (_err) {}
-        }
-        // Unlock the next step's button (or the answer if this was last).
-        const nextLi = li.nextElementSibling;
-        if (nextLi && nextLi.classList.contains('pa-step-locked')) {
-          const nextBtn = nextLi.querySelector('.pa-step-reveal');
-          if (nextBtn) {
-            const nextIdx = parseInt(nextLi.dataset.step, 10);
-            nextBtn.disabled = false;
-            nextBtn.textContent = `🎯 Ready for Step ${nextIdx + 1}? Tap to reveal`;
-          }
-        } else {
-          // No more locked steps below: unlock the answer.
-          unlockAnswerButton();
-        }
-      });
-    });
-    // If there are no per-step reveal buttons (the model returned no
-    // <eq> content in any step, or no methods), there's nothing for
-    // the student to walk through. Unlock the answer immediately so
-    // they aren't stuck.
+    // Reveal click handlers live on document-level delegation (see
+    // wireOnce) so they survive every renderResult() innerHTML swap.
+    // What we do HERE is the one-time post-render bookkeeping:
+    //   - If the model returned no per-step <eq> content at all,
+    //     unlock the answer immediately so the student isn't stuck
+    //     behind a button that no Step click can ever unlock.
     if (wrap.querySelectorAll('.pa-step-reveal').length === 0) {
-      unlockAnswerButton();
-    }
-
-    // The single Answer reveal button.
-    const answerBtn = wrap.querySelector('.pa-reveal-answer');
-    if (answerBtn) {
-      answerBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (answerBtn.disabled) return;
-        const block = answerBtn.closest('.pa-answer-block');
-        if (!block) return;
-        const eq = block.querySelector('.pa-answer-eq');
-        if (eq) {
-          eq.classList.remove('pa-hidden');
-          if (typeof window.typesetMath === 'function') {
-            try { window.typesetMath(eq); } catch (_err) {}
-          }
-        }
-        answerBtn.classList.add('pa-hidden');
-      });
+      const ans = wrap.querySelector('.pa-reveal-answer');
+      if (ans) {
+        ans.disabled = false;
+        ans.textContent = '🎯 Tap to reveal the final answer.';
+      }
     }
 
     if (typeof window.typesetMath === 'function') {
@@ -599,9 +544,72 @@
 
   // ---------- Wiring ----------
 
+  // Document-level reveal handlers. We listen on document because the
+  // result page's innerHTML is replaced every time renderResult runs
+  // (initial render + homework-toggle re-renders), and any per-button
+  // listeners attached inside renderResult would only catch clicks
+  // that landed before the next re-render. Delegating on document
+  // means the click is matched against the CURRENT DOM each time.
+  function _handleRevealClick(e) {
+    const stepBtn = e.target.closest && e.target.closest('.pa-step-reveal');
+    if (stepBtn) {
+      if (stepBtn.disabled) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const li = stepBtn.closest('.pa-step');
+      if (!li) return;
+      const content = li.querySelector('.pa-step-content');
+      if (!content) return;
+      content.classList.remove('pa-hidden');
+      stepBtn.classList.add('pa-hidden');
+      li.classList.remove('pa-step-locked');
+      if (typeof window.typesetMath === 'function') {
+        try { window.typesetMath(content); } catch (_err) {}
+      }
+      // Unlock the next locked step OR (if this was the last in the
+      // method) the answer button.
+      const nextLi = li.nextElementSibling;
+      if (nextLi && nextLi.classList.contains('pa-step-locked')) {
+        const nextBtn = nextLi.querySelector('.pa-step-reveal');
+        if (nextBtn) {
+          const nextIdx = parseInt(nextLi.dataset.step, 10);
+          nextBtn.disabled = false;
+          nextBtn.textContent = `🎯 Ready for Step ${nextIdx + 1}? Tap to reveal`;
+        }
+      } else {
+        const ans = document.querySelector('.pa-reveal-answer');
+        if (ans) {
+          ans.disabled = false;
+          ans.textContent = '🎯 You worked through every step. Tap to reveal the final answer.';
+        }
+      }
+      return;
+    }
+    const ansBtn = e.target.closest && e.target.closest('.pa-reveal-answer');
+    if (ansBtn) {
+      if (ansBtn.disabled) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const block = ansBtn.closest('.pa-answer-block');
+      if (!block) return;
+      const eq = block.querySelector('.pa-answer-eq');
+      if (eq) {
+        eq.classList.remove('pa-hidden');
+        if (typeof window.typesetMath === 'function') {
+          try { window.typesetMath(eq); } catch (_err) {}
+        }
+      }
+      ansBtn.classList.add('pa-hidden');
+    }
+  }
+
   function wireOnce() {
     if (wireOnce._done) return;
     wireOnce._done = true;
+
+    // Document-level reveal click delegation. Wired ONCE so we don't
+    // double-fire on subsequent renderResult calls.
+    document.addEventListener('click', _handleRevealClick);
 
     // FAB
     const fab = el('photoAtriumFab');
