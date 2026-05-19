@@ -781,8 +781,75 @@
     if (nameEl) nameEl.textContent = (user && user.email) ? user.email.split('@')[0] : 'friend';
   }
 
-  function enterAppAfterAuth(user) {
+  // -------- Per-user progress sync --------
+  // Mirror these localStorage keys to/from the server so a user's profile
+  // (name, age, grade) and quiz scores survive across devices and reloads.
+  const PROGRESS_KEYS = [
+    'mathcourse_scores_v2',
+    'mathcourse_profile_v1',
+    'mathcourse_extra_sections_v1',
+    'mathcourse_extra_cum_v1',
+    'atrium_theme_v1',
+  ];
+  window.__atriumSignedIn = false;
+
+  async function pullProgress() {
+    try {
+      const res = await fetch('/api/progress', { credentials: 'same-origin' });
+      if (!res.ok) return false;
+      const data = await res.json();
+      const p = (data && data.progress) || {};
+      for (const key of PROGRESS_KEYS) {
+        if (p[key] !== undefined && p[key] !== null) {
+          // Use the original setItem to avoid re-triggering the sync hook.
+          try {
+            const value = (typeof p[key] === 'string') ? p[key] : JSON.stringify(p[key]);
+            _origSetItem.call(localStorage, key, value);
+          } catch (_) { /* ignore individual key failures */ }
+        }
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function pushProgress(key, value) {
+    if (!window.__atriumSignedIn) return;
+    try {
+      let payload = value;
+      // The server stores any JSON value. If the localStorage value is a
+      // JSON string, parse it so the server has structured data.
+      if (typeof value === 'string') {
+        try { payload = JSON.parse(value); }
+        catch (_) { payload = value; }
+      }
+      fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ key, data: payload }),
+      }).catch(() => {});
+    } catch (_) { /* best effort */ }
+  }
+
+  // Wrap localStorage.setItem so any save the rest of the app does
+  // (saveProfile / saveScores / etc.) automatically mirrors to the server
+  // — no need to touch every callsite.
+  const _origSetItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (key, value) {
+    _origSetItem.call(this, key, value);
+    if (PROGRESS_KEYS.includes(key)) pushProgress(key, value);
+  };
+
+  // Expose so other code (e.g. profile.js) can force a re-pull if needed.
+  window.AtriumProgress = { pullProgress, pushProgress, PROGRESS_KEYS };
+
+  async function enterAppAfterAuth(user) {
     if (user.role === 'parent') {
+      // Pull progress in the background — parents don't need it for their dashboard,
+      // but it doesn't hurt to keep their copy fresh.
+      pullProgress();
       if (typeof window.showParentDashboard === 'function') {
         window.showParentDashboard(user);
       } else {
@@ -794,6 +861,11 @@
       showConsentGate(user);
       return;
     }
+    // Pull server-side progress BEFORE deciding whether to onboard. Otherwise
+    // a returning user on a new device would get re-onboarded because their
+    // profile only lives in the other device's localStorage.
+    window.__atriumSignedIn = true;
+    await pullProgress();
     const profile = (typeof loadProfile === 'function') ? loadProfile() : null;
     if (!profile && typeof startOnboarding === 'function') {
       hide(el('authGate'));
@@ -802,14 +874,25 @@
       return;
     }
     showApp();
+    // Tell the rest of the app to repaint with the freshly-loaded data.
+    if (typeof renderProgressPill === 'function') renderProgressPill();
+    if (typeof renderGreeting === 'function') renderGreeting();
+    if (typeof renderCourses === 'function') renderCourses();
   }
 
   async function handleSignOut() {
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
     } catch (_) { /* ignore */ }
+    window.__atriumSignedIn = false;
     setNavSignedOut();
     pendingEmail = null;
+    // Clear the local cached copy of progress so the next user on this
+    // browser doesn't inherit it. Server-side data is untouched.
+    for (const k of PROGRESS_KEYS) {
+      try { _origSetItem.call(localStorage, k, JSON.stringify(null)); localStorage.removeItem(k); }
+      catch (_) {}
+    }
     showLanding();
   }
 
