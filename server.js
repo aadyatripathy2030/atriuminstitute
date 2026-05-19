@@ -955,6 +955,32 @@ function sanitizeLessonContent(content) {
   // Strip <iframe>, <object>, <embed>.
   out = out.replace(/<(iframe|object|embed)[\s\S]*?<\/\1>/gi, '');
   out = out.replace(/<(iframe|object|embed)[^>]*\/?>/gi, '');
+  out = sanitizeLessonMath(out);
+  return out;
+}
+
+// Scrub common LaTeX patterns that render badly in our in-house fallback.
+// Runs on every lesson before save AND on every cached lesson before serve.
+function sanitizeLessonMath(content) {
+  if (typeof content !== 'string') return '';
+  let out = content;
+  // 1. Strip \\ (hard line break) from INSIDE inline math \(...\). Max
+  //    sometimes puts these to force a label onto a new line, but the
+  //    in-house fallback turns them into <br>, breaking compact formulas.
+  //    Display math \[...\] is allowed to keep \\.
+  out = out.replace(/\\\(([\s\S]*?)\\\)/g, (m, inner) => {
+    const cleaned = inner.replace(/\\\\\s*/g, ' ').replace(/\s+/g, ' ');
+    return `\\(${cleaned}\\)`;
+  });
+  // 2. Convert $...$ → \(...\) (legacy LaTeX delimiter that the renderer
+  //    no longer recognises). Only when the inside looks like math.
+  out = out.replace(/\$([^\$\n]{1,200}?)\$/g, (m, inner) => {
+    if (/\\[a-zA-Z]+|\^[\w{]|_\{/.test(inner)) return `\\(${inner}\\)`;
+    return m;
+  });
+  // 3. Trim trailing whitespace and stray dollar signs that occasionally
+  //    appear after a converted block.
+  out = out.replace(/\\\(([^)]*)\\\)\s*\$/g, '\\($1\\)');
   return out;
 }
 
@@ -1038,7 +1064,11 @@ async function handleGetLesson(req, res) {
   if (!forceRegenerate) {
     const cached = await db.getCachedLesson(body.courseId, body.bookId, body.sectionIdx, sectionKind);
     if (cached) {
-      return json(res, 200, { content: cached.content, model: cached.model, cached: true });
+      // Re-sanitise on serve so older cached lessons that were saved before
+      // the sanitiser knew about \\ inside \(…\) and stray $…$ delimiters
+      // get fixed transparently without needing a full regeneration.
+      const cleaned = sanitizeLessonContent(cached.content || '');
+      return json(res, 200, { content: cleaned, model: cached.model, cached: true });
     }
   }
 
