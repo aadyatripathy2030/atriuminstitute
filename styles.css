@@ -4071,6 +4071,35 @@ body > .site-footer {
   font-size: 0.85em;
 }
 
+/* Matrices: \begin{pmatrix|bmatrix|vmatrix|matrix}…\end{…} rendered as an
+   HTML table flanked by big stretchy brackets. Light styling — looks like
+   a textbook matrix even when MathJax never runs. */
+.m-matrix {
+  display: inline-flex; align-items: center;
+  vertical-align: middle;
+  margin: 0 2px;
+  line-height: 1.2;
+}
+.m-mtable {
+  border-collapse: collapse;
+  margin: 0 4px;
+}
+.m-mtable td {
+  padding: 2px 8px;
+  text-align: center;
+  border: none;
+  font-variant-numeric: tabular-nums;
+}
+.m-mb {
+  font-size: 1.6em;
+  font-weight: 200;
+  line-height: 1;
+  align-self: stretch;
+  display: inline-flex; align-items: center;
+}
+.m-mb-l { padding-right: 1px; }
+.m-mb-r { padding-left: 1px; }
+
 /* =============== Big-popup Learn modal =============== */
 .lesson-modal {
   position: fixed;

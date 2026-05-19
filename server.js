@@ -964,22 +964,25 @@ function sanitizeLessonContent(content) {
 function sanitizeLessonMath(content) {
   if (typeof content !== 'string') return '';
   let out = content;
-  // 1. Strip \\ (hard line break) from INSIDE inline math \(...\). Max
-  //    sometimes puts these to force a label onto a new line, but the
-  //    in-house fallback turns them into <br>, breaking compact formulas.
-  //    Display math \[...\] is allowed to keep \\.
+  // 1. Strip \\ (hard line break) from INSIDE inline math \(...\) — but
+  //    ONLY when the inline math doesn't contain a \begin{...}\end{...}
+  //    block. Matrices use \\ as a legitimate row separator. Display math
+  //    \[...\] always keeps \\ since it's allowed to span multiple lines.
   out = out.replace(/\\\(([\s\S]*?)\\\)/g, (m, inner) => {
+    if (/\\begin\{[a-zA-Z*]+\}/.test(inner)) return m; // contains a matrix / env — leave intact
     const cleaned = inner.replace(/\\\\\s*/g, ' ').replace(/\s+/g, ' ');
     return `\\(${cleaned}\\)`;
   });
-  // 2. Convert $...$ → \(...\) (legacy LaTeX delimiter that the renderer
-  //    no longer recognises). Only when the inside looks like math.
+  // 2. Convert $...$ → \(...\) (legacy LaTeX delimiter the renderer no
+  //    longer recognises). Only when the inside looks like math AND
+  //    doesn't span a JS string boundary (false-positive guard).
   out = out.replace(/\$([^\$\n]{1,200}?)\$/g, (m, inner) => {
+    if (/["']\s*[,:}]|[,:{]\s*["']/.test(inner)) return m;  // skip currency-vs-currency spans
     if (/\\[a-zA-Z]+|\^[\w{]|_\{/.test(inner)) return `\\(${inner}\\)`;
     return m;
   });
-  // 3. Trim trailing whitespace and stray dollar signs that occasionally
-  //    appear after a converted block.
+  // 3. Trim stray dollar signs that occasionally appear right after a
+  //    converted block.
   out = out.replace(/\\\(([^)]*)\\\)\s*\$/g, '\\($1\\)');
   return out;
 }
