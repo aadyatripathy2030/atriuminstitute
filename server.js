@@ -2311,6 +2311,43 @@ async function proxyClaude(req, res) {
   const callIntent = (body && typeof body.intent === 'string') ? body.intent : null;
   const callModel = (body && typeof body.model === 'string') ? body.model : 'unknown';
 
+  // Enrich personalised intents with the student's mastery profile.
+  const PERSONALISED_INTENTS = ['lesson', 'hint', 'mistake', 'chat'];
+  if (body && PERSONALISED_INTENTS.includes(body.intent)) {
+    try {
+      const me2 = await currentUser(req);
+      if (me2) {
+        const ins = await db.getStudentInsights(me2.id);
+        const ov = ins.overview || {};
+        const mastered = ov.sectionsMastered || 0;
+        const attempted = ov.sectionsAttempted || 0;
+        const acc = ov.overallAccuracy || 0;
+        const trend = ins.recentTrend || 'steady';
+        const hints = ov.totalHintsUsed || 0;
+
+        const strengthLines = (ins.strengths || []).slice(0, 5).map(
+          s => `${s.course_id} ${s.section_kind} sec${s.section_idx} (${s.mastery_level}, avg ${Math.round(Number(s.avg_score))}%)`
+        );
+        const weakLines = (ins.weaknesses || []).slice(0, 5).map(
+          w => `${w.course_id} ${w.section_kind} sec${w.section_idx} (${w.mastery_level}, avg ${Math.round(Number(w.avg_score))}%)`
+        );
+
+        let ctx = `Student mastery profile:\n- Overall accuracy: ${acc}%. Trend: ${trend}. Sections mastered: ${mastered}/${attempted || mastered}.`;
+        if (strengthLines.length) ctx += `\n- Strengths: ${strengthLines.join('; ')}.`;
+        if (weakLines.length) ctx += `\n- Struggling with: ${weakLines.join('; ')}.`;
+        if (hints > 0) ctx += `\n- Total hints used: ${hints}.`;
+
+        // Append to system_extra so it ends up in the non-cached dynamic block.
+        body.system_extra = body.system_extra
+          ? body.system_extra + '\n\n' + ctx
+          : ctx;
+      }
+    } catch (e) {
+      // Non-fatal: mastery enrichment failure must not break the AI call.
+      console.warn('proxyClaude: mastery enrichment failed', e.message || e);
+    }
+  }
+
   if (body && body.intent) {
     if (!prompts.KNOWN_INTENTS.includes(body.intent)) {
       return json(res, 400, { error: { message: `Unknown intent: ${body.intent}` } });

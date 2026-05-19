@@ -4429,6 +4429,25 @@ body > .site-footer {
   .insight-stat-value { font-size: 18px; }
 }
 
+/* =============== Adaptive difficulty chip =============== */
+.adaptive-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.adaptive-easier {
+  background: #eafaf1;
+  color: #1b6b3a;
+}
+.adaptive-harder {
+  background: #fdecea;
+  color: #922b21;
+}
+
 /* =============== Activity rollup table (student + parent) =============== */
 .summary-head {
   display: flex; align-items: center; justify-content: space-between;
