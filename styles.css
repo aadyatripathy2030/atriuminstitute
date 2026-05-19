@@ -231,13 +231,24 @@ body::before {
 
 /* Section card progress bar */
 .section-progress-bar {
-  height: 4px; background: var(--bg2, #eee); border-radius: 999px;
-  overflow: hidden; margin: 8px 0 0;
+  height: 4px; background: #e8e8e8; border-radius: 999px;
+  overflow: hidden; margin: 6px 0 2px;
 }
 .section-progress-bar > div {
   height: 100%;
   background: var(--a1, var(--accent));
   width: 0%; transition: width .6s; border-radius: 999px;
+}
+
+/* Book header progress (inside detail view) */
+.book-header-progress {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+}
+.book-header-progress .book-progress-bar {
+  flex: 1; max-width: 280px; height: 6px;
+}
+.book-progress-label {
+  font-size: 13px; color: rgba(255,255,255,.8); font-weight: 500;
 }
 
 /* COURSE PICKER */
