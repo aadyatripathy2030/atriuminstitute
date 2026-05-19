@@ -11,8 +11,11 @@
 <script>
   window.MathJax = {
     tex: {
-      inlineMath: [['\\(','\\)'], ['$','$']],
-      displayMath: [['\\[','\\]'], ['$$','$$']],
+      // ONLY \(...\) for inline and \[...\] for display. We deliberately do NOT
+      // include $...$ because word problems use dollar amounts and would otherwise
+      // turn "$20 to start plus $5" into a single italicised math run.
+      inlineMath: [['\\(','\\)']],
+      displayMath: [['\\[','\\]']],
       processEscapes: true,
       packages: { '[+]': ['ams'] }
     },

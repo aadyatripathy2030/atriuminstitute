@@ -3999,10 +3999,18 @@ body > .site-footer {
 }
 .m-sqrt {
   white-space: nowrap;
+  display: inline-flex; align-items: center;
 }
 .m-sqrt .m-rad {
   border-top: 1.5px solid currentColor;
   padding: 0 2px 0 4px;
+}
+/* The small superscripted index on \sqrt[n]{x} — e.g. the "3" in cube root */
+.m-sqrt .m-rootidx {
+  font-size: 0.7em; line-height: 1;
+  position: relative; top: -0.5em; left: 1px;
+  margin-right: -3px; /* tuck close to the radical sign */
+  vertical-align: super;
 }
 
 /* =============== Big-popup Learn modal =============== */
