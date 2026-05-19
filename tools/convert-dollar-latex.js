@@ -25,6 +25,14 @@ const SKIP = new Set([
 const files = fs.readdirSync(ROOT)
   .filter(f => f.endsWith('.js') && !SKIP.has(f) && f !== 'expand-cache.js')
   .map(f => path.join(ROOT, f));
+// Also process per-course expansion slices in /expansions/ — those are the
+// ones actually shipped to users (expansions.js itself is gitignored).
+const expDir = path.join(ROOT, 'expansions');
+if (fs.existsSync(expDir)) {
+  for (const f of fs.readdirSync(expDir)) {
+    if (f.endsWith('.js')) files.push(path.join(expDir, f));
+  }
+}
 
 // "Looks like math" heuristic — the content between $$ delimiters must
 // contain at least one of: a backslash command, a caret/underscore followed

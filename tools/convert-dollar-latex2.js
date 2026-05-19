@@ -25,6 +25,12 @@ const SKIP = new Set([
 const files = fs.readdirSync(ROOT)
   .filter(f => f.endsWith('.js') && !SKIP.has(f))
   .map(f => path.join(ROOT, f));
+const expDir = path.join(ROOT, 'expansions');
+if (fs.existsSync(expDir)) {
+  for (const f of fs.readdirSync(expDir)) {
+    if (f.endsWith('.js')) files.push(path.join(expDir, f));
+  }
+}
 
 const MATH_MARKERS = /\\[a-zA-Z]+|\^[\w{]|_\{|°|π|∑|∫|∞|≤|≥|≠|≈|→|←|⇒/;
 function looksLikeMath(inner) {
