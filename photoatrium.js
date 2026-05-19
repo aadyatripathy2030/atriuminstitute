@@ -367,7 +367,8 @@
           <summary>${esc(m.name || `Method ${i + 1}`)}</summary>
           <ol class="pa-steps">
             ${steps.map((s, si) => {
-              const isLast = si === lastIdx && hw;
+              const hasEq = String(s.eq || '').trim().length > 0;
+              const isLast = hw && hasEq && si === lastIdx;
               const eqHtml = isLast
                 ? `<button type="button" class="pa-reveal-btn" data-reveal="step">🎯 Try this step yourself, then tap to reveal</button>
                    <div class="pa-step-eq pa-hidden">${renderLatexBlock(s.eq)}</div>`
@@ -406,11 +407,11 @@
         </details>
       </section>
 
-      <section class="pa-answer-block${hw ? ' pa-answer-hidden' : ''}">
+      <section class="pa-answer-block${hw && parsed.answer ? ' pa-answer-hidden' : ''}">
         <div class="pa-block-label">Answer</div>
-        ${hw
+        ${(hw && parsed.answer && String(parsed.answer).trim())
           ? `<button type="button" class="pa-reveal-btn pa-reveal-answer" data-reveal="answer">🎯 Work it out yourself, then tap to reveal the answer</button>
-             <div class="pa-answer-eq pa-hidden">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>`
+             <div class="pa-answer-eq pa-hidden">${renderLatexBlock(parsed.answer)}</div>`
           : `<div class="pa-answer-eq">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>`
         }
       </section>
@@ -444,16 +445,28 @@
 
     // Wire any Homework-Mode reveal buttons: click swaps the placeholder
     // for the actual answer / equation and triggers MathJax on the now-
-    // visible content. One reveal at a time; no auto-cascade so the
-    // student still has to choose to see each hidden value.
+    // visible content. We search forward through the button's siblings
+    // for the next .pa-hidden element rather than relying strictly on
+    // nextElementSibling, because future markup changes (whitespace,
+    // wrapper divs) shouldn't break the lookup.
     wrap.querySelectorAll('.pa-reveal-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const eqNode = btn.nextElementSibling;
-        btn.classList.add('pa-hidden');
-        if (eqNode && eqNode.classList.contains('pa-hidden')) {
-          eqNode.classList.remove('pa-hidden');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        let target = btn.nextElementSibling;
+        while (target && !target.classList.contains('pa-hidden')) {
+          target = target.nextElementSibling;
+        }
+        if (!target) {
+          // Fallback: scope search to the same step / answer container.
+          const parent = btn.closest('.pa-step, .pa-answer-block');
+          if (parent) target = parent.querySelector('.pa-hidden');
+        }
+        if (target) {
+          target.classList.remove('pa-hidden');
+          btn.classList.add('pa-hidden');
           if (typeof window.typesetMath === 'function') {
-            try { window.typesetMath(eqNode); } catch (_e) {}
+            try { window.typesetMath(target); } catch (_err) {}
           }
         }
       });
@@ -481,19 +494,33 @@
   }
 
   // ---------- LaTeX rendering helpers ----------
-  // Wrap LaTeX in \(...\) (inline) or \[...\] (block) so MathJax / our
-  // in-house renderer picks it up. If the text already contains $ or
-  // bracket delimiters, pass through.
+  // The site's MathJax is configured for \(...\) and \[...\] only
+  // (dollar delimiters were converted away sitewide in an earlier
+  // commit). Claude sometimes includes $...$ / $$...$$ inside <eq>
+  // anyway, so we strip ALL delimiters first then re-wrap consistently
+  // in our own. Escape HTML special chars at the end so legitimate
+  // inequalities (x < 5) and align ampersands don't get parsed as
+  // tags.
+  function _stripLatexDelimiters(s) {
+    let t = String(s == null ? '' : s).trim();
+    // Strip a leading + trailing $$ block delimiter.
+    if (/^\$\$[\s\S]*\$\$$/.test(t)) t = t.slice(2, -2).trim();
+    // Or a leading + trailing single $.
+    else if (/^\$[\s\S]*\$$/.test(t)) t = t.slice(1, -1).trim();
+    // Or a backslash-bracket block.
+    else if (/^\\\[[\s\S]*\\\]$/.test(t)) t = t.slice(2, -2).trim();
+    // Or a backslash-paren inline.
+    else if (/^\\\([\s\S]*\\\)$/.test(t)) t = t.slice(2, -2).trim();
+    return t;
+  }
   function renderLatexInline(latex) {
-    const t = String(latex || '').trim();
+    const t = _stripLatexDelimiters(latex);
     if (!t) return '';
-    if (/^\\\(|\\\[|\$/.test(t)) return esc(t);
     return `\\(${esc(t)}\\)`;
   }
   function renderLatexBlock(latex) {
-    const t = String(latex || '').trim();
+    const t = _stripLatexDelimiters(latex);
     if (!t) return '';
-    if (/^\\\(|\\\[|\$/.test(t)) return esc(t);
     return `\\[${esc(t)}\\]`;
   }
 

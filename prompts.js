@@ -466,7 +466,10 @@ RULES:
 - If the image is unreadable, blurry, or contains no math problem, return:
   <problem>unreadable</problem><subject>other</subject><answer>(no answer — image unclear)</answer><methods><method name="Cannot read"><step n="1"><eq>?</eq><why>I couldn't reliably read the math problem in this image. Please retake the photo with better lighting, no glare, and the whole problem in frame.</why></step></method></methods>
 - ALWAYS provide step <why> in plain language a student can follow. Never write just "simplify" — say what was simplified and why that's valid.
-- Math goes inside <eq> tags as LaTeX (no $ delimiters). Prose goes inside <why> tags.
+- Math goes inside <eq>, <problem>, and <answer> tags as raw LaTeX. DO NOT wrap it in $ ... $, $$ ... $$, \\( ... \\), or \\[ ... \\]. The client adds delimiters itself; if you wrap, the dollars or brackets render as literal text.
+- Prose goes inside <why> tags. Do not put LaTeX inside <why>.
+- Use single backslashes for LaTeX commands (\\frac not \\\\frac).
+- The LAST step must end with the final answer's equation (e.g. <eq>x = 3</eq>). Don't leave the last step with just a "therefore" sentence and no <eq>; the client hides that final equation in Homework Mode and needs it present.
 - Steps must be granular: one transformation per step. If you wrote "2x + 4 = 10 → x = 3" in one step, split it into "subtract 4 from both sides" and "divide both sides by 2".
 - Do NOT output anything outside the tagged sections. No greetings, no "Sure, here's the solution!", no closing remarks. The client parses the tags directly.`;
 
