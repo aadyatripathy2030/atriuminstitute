@@ -1073,6 +1073,12 @@ module.exports = {
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
   searchSchoolDistricts, recordUserDistrict,
   deleteUserAccount,
+  // Mastery stubs (Postgres-only features; no-ops for jsonfile).
+  updateSectionMastery: async () => {},
+  getStudentInsights: async () => ({ strengths: [], weaknesses: [], overview: {}, recentTrend: 'steady', topCourses: [], strugglingSections: [], suggestedNext: [] }),
+  getAdaptiveDifficulty: async () => ({ level: 'normal', reason: 'Mastery tracking requires Postgres.' }),
+  incrementHintUsage: async () => {},
+  listSectionMastery: async () => [],
   cleanup,
   _consentRequiredForAge: consentRequiredForAge,
   _newLinkCode: newLinkCode,

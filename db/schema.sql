@@ -699,3 +699,39 @@ begin
     null;
   end;
 end$$;
+
+-- ------------------------------------------------------------------
+-- Section mastery: rolling per-section skill profile. Updated after
+-- every quiz attempt. Drives the student insights dashboard, adaptive
+-- difficulty, and AI personalisation.
+-- ------------------------------------------------------------------
+
+create table if not exists section_mastery (
+  user_id uuid not null references users (id) on delete cascade,
+  course_id text not null,
+  book_id text not null,
+  section_idx integer not null,
+  section_kind text not null default 'section',
+  attempts integer not null default 0,
+  passes integer not null default 0,
+  total_score integer not null default 0,
+  total_possible integer not null default 0,
+  avg_score numeric(5,2) not null default 0,
+  mastery_level text not null default 'not_started'
+    check (mastery_level in ('not_started', 'struggling', 'developing', 'proficient', 'mastered')),
+  streak integer not null default 0,
+  longest_streak integer not null default 0,
+  total_time_seconds integer not null default 0,
+  hints_used integer not null default 0,
+  last_attempt_at timestamptz,
+  first_attempt_at timestamptz,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, course_id, book_id, section_idx, section_kind)
+);
+
+create index if not exists idx_section_mastery_user
+  on section_mastery (user_id);
+create index if not exists idx_section_mastery_user_course
+  on section_mastery (user_id, course_id);
+create index if not exists idx_section_mastery_level
+  on section_mastery (user_id, mastery_level);

@@ -682,7 +682,7 @@ async function handleLogClientActivity(req, res) {
   // with arbitrary nested JSON. Strings + numbers are cap-truncated; the
   // `correct` key is the only allowed boolean.
   const safeMeta = {};
-  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'topic', 'questionNumber', 'questionTotal', 'hintLevel']) {
+  for (const k of ['courseId', 'bookId', 'sectionIdx', 'sectionTitle', 'sectionKind', 'topic', 'questionNumber', 'questionTotal', 'hintLevel']) {
     if (k in meta && (typeof meta[k] === 'string' || typeof meta[k] === 'number')) {
       const v = meta[k];
       safeMeta[k] = typeof v === 'string' ? v.slice(0, 200) : v;
@@ -692,7 +692,12 @@ async function handleLogClientActivity(req, res) {
   await db.logActivity(u.id, body.kind, safeMeta);
   // Gamification points (fire-and-forget).
   if (body.kind === 'lesson_started') _awardPointsAsync(u.id, POINT_VALUES.lesson_started);
-  else if (body.kind === 'hint_used') _awardPointsAsync(u.id, POINT_VALUES.hint_used);
+  else if (body.kind === 'hint_used') {
+    _awardPointsAsync(u.id, POINT_VALUES.hint_used);
+    if (safeMeta.courseId && safeMeta.bookId && safeMeta.sectionIdx != null) {
+      db.incrementHintUsage(u.id, safeMeta.courseId, safeMeta.bookId, safeMeta.sectionIdx, safeMeta.sectionKind || 'section').catch(() => {});
+    }
+  }
   json(res, 200, { ok: true });
 }
 
@@ -758,6 +763,43 @@ async function handleGetReviewQueue(req, res) {
   // Sort newest-failed first so the widget shows what's freshest in their mind.
   due.sort((a, b) => new Date(b.last_attempted_at) - new Date(a.last_attempted_at));
   json(res, 200, { items: due.slice(0, 3) });
+}
+
+// ---------- Student insights + adaptive difficulty ----------
+
+async function handleGetStudentInsights(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const insights = await db.getStudentInsights(u.id);
+  json(res, 200, { insights });
+}
+
+async function handleGetSectionMastery(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const url = new URL(req.url, 'http://localhost');
+  const courseId = url.searchParams.get('course_id') || null;
+  let rows;
+  if (courseId) {
+    rows = await db.listSectionMastery(u.id, courseId);
+  } else {
+    rows = await db.listSectionMastery(u.id);
+  }
+  json(res, 200, rows);
+}
+
+async function handleGetAdaptiveDifficulty(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const url = new URL(req.url, 'http://localhost');
+  const courseId = url.searchParams.get('course_id');
+  const bookId = url.searchParams.get('book_id');
+  const sectionIdx = url.searchParams.get('section_idx');
+  if (!courseId || !bookId || sectionIdx == null) {
+    return json(res, 400, { error: 'course_id, book_id, and section_idx are required.' });
+  }
+  const recommendation = await db.getAdaptiveDifficulty(u.id, courseId, bookId, Number(sectionIdx));
+  json(res, 200, { recommendation });
 }
 
 // ---------- Parent dashboard ----------
@@ -2470,6 +2512,10 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/study-plan' && req.method === 'GET') return await handleGetStudyPlan(req, res);
     if (url === '/api/me/study-plan' && req.method === 'POST') return await handleCreateStudyPlan(req, res);
     if (url === '/api/me/study-plan' && req.method === 'DELETE') return await handleDeleteStudyPlan(req, res);
+    // Student insights + adaptive difficulty.
+    if (url === '/api/student-insights' && req.method === 'GET') return await handleGetStudentInsights(req, res);
+    if (url === '/api/section-mastery' && req.method === 'GET') return await handleGetSectionMastery(req, res);
+    if (url === '/api/adaptive-difficulty' && req.method === 'GET') return await handleGetAdaptiveDifficulty(req, res);
     // Admin (only for users where is_admin = true).
     if (url === '/api/admin/stats' && req.method === 'GET') return await handleAdminStats(req, res);
     if (url === '/api/admin/users' && req.method === 'GET') return await handleAdminUsers(req, res);
@@ -2543,6 +2589,21 @@ process.on('unhandledRejection', (reason) => {
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION:', err && err.stack ? err.stack : err);
 });
+
+// Auto-migrate: apply db/schema.sql on startup (Postgres only, idempotent).
+(async () => {
+  if (db.backend === 'postgres' && db._pool) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
+      await db._pool.query(sql);
+      console.log('🗄  Auto-migration: schema.sql applied');
+    } catch (e) {
+      console.error('⚠️  Auto-migration failed (non-fatal):', e.message);
+    }
+  }
+})();
 
 server.listen(PORT, () => {
   console.log(`📚 Atrium Institute running at http://localhost:${PORT}`);

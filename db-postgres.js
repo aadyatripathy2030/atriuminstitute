@@ -480,6 +480,10 @@ async function logQuizAttempt(userId, attempt) {
     attemptNumber: rows[0].attempt_number,
     durationSeconds: rows[0].duration_seconds,
   });
+  await updateSectionMastery(userId, {
+    courseId, bookId, sectionIdx, sectionKind, score, total, passed,
+    duration: rows[0].duration_seconds,
+  });
   return rows[0];
 }
 
@@ -1773,6 +1777,252 @@ async function cleanup() {
   await q('delete from sessions where expires_at < now()');
 }
 
+// ---------- Student mastery tracking ----------
+
+async function updateSectionMastery(userId, attempt) {
+  const {
+    courseId, bookId, sectionIdx, sectionKind = 'section',
+    score, total, passed, duration = null,
+  } = attempt;
+  const dur = typeof duration === 'number' ? duration : 0;
+  await q(
+    `insert into section_mastery (
+       user_id, course_id, book_id, section_idx, section_kind,
+       attempts, passes, total_score, total_possible,
+       avg_score, mastery_level, streak, longest_streak,
+       total_time_seconds, first_attempt_at, last_attempt_at, updated_at
+     ) values (
+       $1, $2, $3, $4, $5,
+       1, case when $8 then 1 else 0 end, $6, $7,
+       case when $7 > 0 then round($6::numeric / $7 * 100, 2) else 0 end,
+       case
+         when $7 > 0 and round($6::numeric / $7 * 100, 2) >= 90 and $8 then 'proficient'
+         when $7 > 0 and round($6::numeric / $7 * 100, 2) >= 70 then 'proficient'
+         when $7 > 0 and round($6::numeric / $7 * 100, 2) >= 40 then 'developing'
+         else 'developing'
+       end,
+       case when $8 then 1 else 0 end,
+       case when $8 then 1 else 0 end,
+       $9, now(), now(), now()
+     )
+     on conflict (user_id, course_id, book_id, section_idx, section_kind)
+     do update set
+       attempts       = section_mastery.attempts + 1,
+       passes         = section_mastery.passes + case when $8 then 1 else 0 end,
+       total_score    = section_mastery.total_score + $6,
+       total_possible = section_mastery.total_possible + $7,
+       avg_score      = case when (section_mastery.total_possible + $7) > 0
+                          then round((section_mastery.total_score + $6)::numeric
+                                     / (section_mastery.total_possible + $7) * 100, 2)
+                          else 0 end,
+       streak         = case when $8 then section_mastery.streak + 1 else 0 end,
+       longest_streak = greatest(
+                          section_mastery.longest_streak,
+                          case when $8 then section_mastery.streak + 1 else section_mastery.longest_streak end
+                        ),
+       total_time_seconds = section_mastery.total_time_seconds + $9,
+       mastery_level  = case
+         when (section_mastery.total_possible + $7) > 0
+              and round((section_mastery.total_score + $6)::numeric
+                        / (section_mastery.total_possible + $7) * 100, 2) >= 90
+              and (section_mastery.passes + case when $8 then 1 else 0 end) >= 2
+           then 'mastered'
+         when (section_mastery.total_possible + $7) > 0
+              and round((section_mastery.total_score + $6)::numeric
+                        / (section_mastery.total_possible + $7) * 100, 2) >= 70
+           then 'proficient'
+         when (section_mastery.total_possible + $7) > 0
+              and round((section_mastery.total_score + $6)::numeric
+                        / (section_mastery.total_possible + $7) * 100, 2) >= 40
+           then 'developing'
+         when (section_mastery.attempts + 1) >= 2
+              and (section_mastery.total_possible + $7) > 0
+              and round((section_mastery.total_score + $6)::numeric
+                        / (section_mastery.total_possible + $7) * 100, 2) < 40
+           then 'struggling'
+         else 'developing'
+       end,
+       last_attempt_at = now(),
+       updated_at      = now()`,
+    [userId, courseId, bookId, sectionIdx, sectionKind, score, total, passed, dur],
+  );
+}
+
+async function getStudentInsights(userId) {
+  // 1. All section mastery rows for this user
+  const mastery = await q(
+    `select course_id, book_id, section_idx, section_kind,
+            attempts, passes, total_score, total_possible, avg_score,
+            mastery_level, streak, longest_streak, total_time_seconds,
+            hints_used, first_attempt_at, last_attempt_at
+     from section_mastery where user_id = $1`,
+    [userId],
+  );
+
+  // 2. Recent quiz attempts for trend analysis
+  const recent20 = await q(
+    `select score, total, passed, completed_at
+     from quiz_attempts where user_id = $1
+     order by completed_at desc limit 20`,
+    [userId],
+  );
+
+  // 3. Hint usage from activity log
+  const [{ hint_count: totalHintsUsed }] = await q(
+    `select count(*)::int as hint_count
+     from activity_log where user_id = $1 and kind = 'hint_used'`,
+    [userId],
+  );
+
+  // Strengths: proficient or mastered, sorted by avg_score desc
+  const strengths = mastery
+    .filter(r => r.mastery_level === 'proficient' || r.mastery_level === 'mastered')
+    .sort((a, b) => Number(b.avg_score) - Number(a.avg_score));
+
+  // Weaknesses: struggling or developing, sorted by avg_score asc
+  const weaknesses = mastery
+    .filter(r => r.mastery_level === 'struggling' || r.mastery_level === 'developing')
+    .sort((a, b) => Number(a.avg_score) - Number(b.avg_score));
+
+  // Overview
+  const totalAttempts = mastery.reduce((s, r) => s + r.attempts, 0);
+  const totalPasses = mastery.reduce((s, r) => s + r.passes, 0);
+  const totalScore = mastery.reduce((s, r) => s + r.total_score, 0);
+  const totalPossible = mastery.reduce((s, r) => s + r.total_possible, 0);
+  const overallAccuracy = totalPossible > 0 ? Math.round(totalScore / totalPossible * 10000) / 100 : 0;
+  const totalTimeSec = mastery.reduce((s, r) => s + r.total_time_seconds, 0);
+  const totalTimeMinutes = Math.round(totalTimeSec / 60 * 10) / 10;
+  const avgTimePerQuiz = totalAttempts > 0 ? Math.round(totalTimeSec / totalAttempts) : 0;
+  const coursesActive = new Set(mastery.map(r => r.course_id)).size;
+  const sectionsAttempted = mastery.filter(r => r.attempts > 0).length;
+  const sectionsMastered = mastery.filter(r => r.mastery_level === 'mastered').length;
+
+  // Recent trend: compare last 10 vs previous 10
+  const last10 = recent20.slice(0, 10);
+  const prev10 = recent20.slice(10, 20);
+  function accuracy(rows) {
+    const t = rows.reduce((s, r) => s + r.total, 0);
+    const sc = rows.reduce((s, r) => s + r.score, 0);
+    return t > 0 ? sc / t : 0;
+  }
+  let recentTrend = 'steady';
+  if (last10.length >= 3 && prev10.length >= 3) {
+    const diff = accuracy(last10) - accuracy(prev10);
+    if (diff > 0.05) recentTrend = 'improving';
+    else if (diff < -0.05) recentTrend = 'declining';
+  }
+
+  // Top courses: courses with most mastered sections
+  const courseMap = {};
+  for (const r of mastery) {
+    if (!courseMap[r.course_id]) courseMap[r.course_id] = { courseId: r.course_id, mastered: 0, total: 0 };
+    courseMap[r.course_id].total++;
+    if (r.mastery_level === 'mastered') courseMap[r.course_id].mastered++;
+  }
+  const topCourses = Object.values(courseMap)
+    .sort((a, b) => b.mastered - a.mastered)
+    .slice(0, 5);
+
+  // Struggling sections: lowest mastery + most attempts
+  const strugglingSections = mastery
+    .filter(r => r.mastery_level === 'struggling')
+    .sort((a, b) => Number(a.avg_score) - Number(b.avg_score) || b.attempts - a.attempts)
+    .slice(0, 10);
+
+  // Suggested next: developing first, then untouched sections in active courses
+  const developing = mastery
+    .filter(r => r.mastery_level === 'developing')
+    .sort((a, b) => Number(a.avg_score) - Number(b.avg_score));
+  const notStarted = mastery
+    .filter(r => r.mastery_level === 'not_started');
+  const suggestedNext = [...developing, ...notStarted].slice(0, 10);
+
+  return {
+    strengths,
+    weaknesses,
+    overview: {
+      totalAttempts, totalPasses, overallAccuracy,
+      totalTimeMinutes, avgTimePerQuiz,
+      coursesActive, sectionsAttempted, sectionsMastered, totalHintsUsed,
+    },
+    recentTrend,
+    topCourses,
+    strugglingSections,
+    suggestedNext,
+  };
+}
+
+async function getAdaptiveDifficulty(userId, courseId, bookId, sectionIdx) {
+  // Section-specific mastery
+  const sectionRows = await q(
+    `select avg_score, attempts, streak, mastery_level
+     from section_mastery
+     where user_id = $1 and course_id = $2 and book_id = $3 and section_idx = $4`,
+    [userId, courseId, bookId, sectionIdx],
+  );
+  // Overall course mastery
+  const courseRows = await q(
+    `select avg(avg_score)::numeric(5,2) as course_avg,
+            count(*)::int as sections,
+            count(*) filter (where mastery_level = 'mastered')::int as mastered
+     from section_mastery
+     where user_id = $1 and course_id = $2`,
+    [userId, courseId],
+  );
+
+  const section = sectionRows[0] || null;
+  const course = courseRows[0] || { course_avg: 0, sections: 0, mastered: 0 };
+  const courseAvg = Number(course.course_avg) || 0;
+
+  if (!section || section.attempts === 0) {
+    // No data for this section — use course average
+    if (courseAvg >= 80) return { level: 'harder', reason: 'Strong overall course performance' };
+    if (courseAvg < 40 && course.sections > 0) return { level: 'easier', reason: 'Course average is low' };
+    return { level: 'normal', reason: 'No prior attempts for this section' };
+  }
+
+  const avg = Number(section.avg_score);
+  if (avg >= 90 && section.streak >= 2) {
+    return { level: 'harder', reason: 'Consistently high scores with a streak' };
+  }
+  if (avg >= 80) {
+    return { level: 'harder', reason: 'High average score on this section' };
+  }
+  if (avg < 40 && section.attempts >= 2) {
+    return { level: 'easier', reason: 'Struggling after multiple attempts' };
+  }
+  if (section.mastery_level === 'struggling') {
+    return { level: 'easier', reason: 'Section mastery level is struggling' };
+  }
+  return { level: 'normal', reason: 'Moderate performance on this section' };
+}
+
+async function incrementHintUsage(userId, courseId, bookId, sectionIdx, sectionKind = 'section') {
+  await q(
+    `insert into section_mastery (
+       user_id, course_id, book_id, section_idx, section_kind, hints_used
+     ) values ($1, $2, $3, $4, $5, 1)
+     on conflict (user_id, course_id, book_id, section_idx, section_kind)
+     do update set hints_used = section_mastery.hints_used + 1, updated_at = now()`,
+    [userId, courseId, bookId, sectionIdx, sectionKind],
+  );
+}
+
+async function listSectionMastery(userId, courseId) {
+  if (courseId) {
+    return q(
+      `select * from section_mastery where user_id = $1 and course_id = $2
+       order by course_id, book_id, section_idx`,
+      [userId, courseId],
+    );
+  }
+  return q(
+    `select * from section_mastery where user_id = $1
+     order by course_id, book_id, section_idx`,
+    [userId],
+  );
+}
+
 module.exports = {
   backend: 'postgres',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
@@ -1784,6 +2034,7 @@ module.exports = {
   createLinkFromCode, approveLink, rejectLink, listPendingLinksForUser,
   listLinkedStudents, listLinkedParents, isParentOfStudent, deleteLink,
   logQuizAttempt, listQuizAttempts, listWeakSections,
+  updateSectionMastery, getStudentInsights, getAdaptiveDifficulty, incrementHintUsage, listSectionMastery,
   logActivity, listActivity,
   getStudentProfile, getParentProfile, upsertStudentProfile, upsertParentProfile,
   saveStudentSurvey, markSurveySkipped,
