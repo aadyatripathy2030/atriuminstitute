@@ -797,11 +797,14 @@
 
   <section class="admin-tab-panel hidden" data-panel="activity">
     <div class="admin-toolbar">
-      <input type="search" id="adminActivityFilter" placeholder="Filter by kind or email…" class="admin-search">
+      <input type="search" id="adminActivityFilter" placeholder="Filter by kind…" class="admin-search">
+      <select id="adminActivityEmailFilter" class="admin-filter">
+        <option value="">All users</option>
+      </select>
       <span class="admin-toolbar-count" id="adminActivityCount"></span>
     </div>
     <div class="token-table-wrap"><table class="token-table" id="adminActivityTable"><thead><tr>
-      <th>When</th><th>User</th><th>Kind</th><th>Details</th><th class="num">Time Spent</th>
+      <th>When</th><th>User</th><th>Event</th><th>Details</th><th class="num">Time Spent</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 

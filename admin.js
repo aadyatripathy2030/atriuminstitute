@@ -53,6 +53,7 @@
   let userRoleFilter = '';
   let userStatusFilter = '';
   let activityFilter = '';
+  let activityEmailFilter = '';
 
   function captureCurrentView() {
     const ids = ['courses-home', 'home', 'detail', 'profilePage', 'parentHome', 'parentStudentDetail', 'activityPage', 'tokenUsagePage', 'landing'];
@@ -288,13 +289,13 @@
         <details class="admin-user-section">
           <summary>Recent activity (${detail.activity.length})</summary>
           ${detail.activity.length ? `<div class="token-table-wrap"><table class="token-table">
-            <thead><tr><th>When</th><th>Kind</th><th>Details</th><th class="num">Time Spent</th></tr></thead>
-            <tbody>${detail.activity.slice(0, 30).map(a => `<tr>
+            <thead><tr><th>When</th><th>Event</th><th>Details</th><th class="num">Time Spent</th></tr></thead>
+            <tbody>${detail.activity.slice(0, 30).map(a => { const d = _describeEvent(a); return `<tr>
               <td>${esc(fmtDate(a.created_at))}</td>
-              <td><code>${esc(a.kind)}</code></td>
-              <td class="muted">${esc(metaDetail(a.meta))}</td>
+              <td>${d.icon} ${esc(d.title)}</td>
+              <td class="muted">${esc(d.detail)}</td>
               <td class="num">${esc(_fmtDuration(a.meta))}</td>
-            </tr>`).join('')}</tbody>
+            </tr>`; }).join('')}</tbody>
           </table></div>` : '<div class="parent-empty">No activity.</div>'}
         </details>
       </div>
@@ -342,39 +343,9 @@
   }
 
   // ---------- Activity ----------
-  function renderActivity() {
-    const tbody = el('adminActivityTable').querySelector('tbody');
-    const q = activityFilter.toLowerCase();
-    const filtered = q
-      ? allActivity.filter(a => (a.kind || '').toLowerCase().includes(q) || (a.email || '').toLowerCase().includes(q))
-      : allActivity;
-    el('adminActivityCount').textContent = `${filtered.length} of ${allActivity.length}`;
-    if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty">No activity matches.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = filtered.slice(0, 200).map(a => `
-      <tr>
-        <td>${esc(fmtDate(a.created_at))}</td>
-        <td>${esc(a.email || a.user_id || '—')}</td>
-        <td><code>${esc(a.kind)}</code></td>
-        <td class="muted">${esc(metaDetail(a.meta))}</td>
-        <td class="num">${esc(_fmtDuration(a.meta))}</td>
-      </tr>
-    `).join('');
-  }
-  function metaDetail(meta) {
-    if (!meta || typeof meta !== 'object') return '';
-    const parts = [];
-    if (meta.courseId) parts.push(meta.courseId);
-    if (meta.bookId) parts.push(meta.bookId);
-    if (meta.sectionTitle) parts.push(meta.sectionTitle);
-    else if (meta.sectionIdx != null) parts.push(`sec ${meta.sectionIdx + 1}`);
-    if (meta.score != null && meta.total != null) parts.push(`${meta.score}/${meta.total} ${meta.passed ? 'passed' : 'failed'}`);
-    if (meta.attemptNumber > 1) parts.push(`attempt ${meta.attemptNumber}`);
-    if (meta.hintLevel) parts.push(`hint L${meta.hintLevel}`);
-    if (meta.topic) parts.push(meta.topic);
-    return parts.join(' · ');
+  function _describeEvent(a) {
+    if (typeof window.describeActivity === 'function') return window.describeActivity(a);
+    return { icon: '•', title: a.kind, detail: '', when: '' };
   }
   function _fmtDuration(meta) {
     if (!meta || typeof meta !== 'object') return '—';
@@ -385,6 +356,42 @@
     if (m < 60) return m + ' min';
     const h = Math.floor(m / 60), mm = m % 60;
     return mm === 0 ? h + ' hr' : `${h}h ${mm}m`;
+  }
+  function populateEmailFilter() {
+    const sel = el('adminActivityEmailFilter');
+    if (!sel) return;
+    const prev = sel.value;
+    const emails = [...new Set(allActivity.map(a => a.email).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">All users</option>' +
+      emails.map(e => `<option value="${esc(e)}">${esc(e)}</option>`).join('');
+    sel.value = prev;
+  }
+  function renderActivity() {
+    const tbody = el('adminActivityTable').querySelector('tbody');
+    const q = activityFilter.toLowerCase();
+    let filtered = allActivity;
+    if (activityEmailFilter) {
+      filtered = filtered.filter(a => a.email === activityEmailFilter);
+    }
+    if (q) {
+      filtered = filtered.filter(a => (a.kind || '').toLowerCase().includes(q) || (a.email || '').toLowerCase().includes(q));
+    }
+    el('adminActivityCount').textContent = `${filtered.length} of ${allActivity.length}`;
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No activity matches.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.slice(0, 200).map(a => {
+      const d = _describeEvent(a);
+      return `
+        <tr>
+          <td>${esc(fmtDate(a.created_at))}</td>
+          <td>${esc(a.email || a.user_id || '—')}</td>
+          <td>${d.icon} ${esc(d.title)}</td>
+          <td class="muted">${esc(d.detail)}</td>
+          <td class="num">${esc(_fmtDuration(a.meta))}</td>
+        </tr>`;
+    }).join('');
   }
 
   // ---------- Quiz analytics ----------
@@ -758,6 +765,7 @@
       allUsers = usersR.users || [];
       allActivity = activityR.activity || [];
       renderUsers();
+      populateEmailFilter();
       renderActivity();
     } catch (e) {
       el('adminCards').innerHTML = `<div class="parent-empty err">Could not load: ${esc(e.message)}</div>`;
@@ -796,6 +804,8 @@
     if (usf) usf.addEventListener('change', () => { userStatusFilter = usf.value; renderUsers(); });
     const af = el('adminActivityFilter');
     if (af) af.addEventListener('input', () => { activityFilter = af.value.trim(); renderActivity(); });
+    const aef = el('adminActivityEmailFilter');
+    if (aef) aef.addEventListener('change', () => { activityEmailFilter = aef.value; renderActivity(); });
     const pbStart = el('prebuildStartBtn');
     if (pbStart) pbStart.addEventListener('click', startPrebuild);
     const pbCancel = el('prebuildCancelBtn');
