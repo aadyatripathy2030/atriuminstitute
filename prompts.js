@@ -428,6 +428,15 @@ The final numeric / symbolic answer in LaTeX, prominent and short. Examples:
   Area = 49 \\text{ cm}^2
 </answer>
 
+<hint>
+A single-sentence strategy hint that nudges the student toward the right approach without giving away the answer or specific intermediate values. Mention the technique or the structure to look for, never the numbers.
+Examples:
+  "Notice the numerator is a difference of squares — can you factor it?"
+  "This is a linear equation. Try to get x by itself on one side."
+  "Use the Pythagorean theorem: a^2 + b^2 = c^2."
+ALWAYS include this tag. The client shows it as the opening hint in Homework Mode so the student can attempt the problem before tapping to reveal each step.
+</hint>
+
 <methods>
 One or more solution methods, each in a <method> block. If the problem has more than one reasonable approach (factor vs quadratic formula, substitution vs elimination, etc.), provide up to TWO methods. Single-method problems give just one.
 

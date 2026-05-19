@@ -530,6 +530,7 @@ function parsePhotoSolveResponse(text) {
   const problem = grab('problem');
   const subject = (grab('subject') || 'other').toLowerCase().trim();
   const answer = grab('answer');
+  const hint = grab('hint');
   const illustration = grab('illustration');
   const note = grab('note');
 
@@ -564,6 +565,7 @@ function parsePhotoSolveResponse(text) {
     problem,
     subject: PHOTO_ALLOWED_SUBJECTS.has(subject) ? subject : 'other',
     answer,
+    hint,
     methods,
     illustration,
     note,

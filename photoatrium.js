@@ -355,31 +355,49 @@
     const thumbHtml = item && item.thumbnail_data
       ? `<img class="pa-result-thumb" src="${esc(item.thumbnail_data)}" alt="Scanned problem">` : '';
 
-    // Homework Mode hides the equation of the LAST step of each method
-    // (that's where the final answer lands) and replaces it with a
-    // reveal button. The reasoning ("why") stays visible because that's
-    // the actual learning signal.
+    // Homework Mode = progressive disclosure. Every step is hidden
+    // behind a reveal button. Only Step 1's button starts enabled; each
+    // reveal enables the next step's button. After the last step is
+    // revealed, the final answer button is enabled. Non-homework mode
+    // shows everything immediately.
     const methodsHtml = (parsed.methods || []).map((m, i) => {
       const steps = m.steps || [];
-      const lastIdx = steps.length - 1;
+      const total = steps.length;
       return `
         <details class="pa-method" ${i === 0 ? 'open' : ''}>
           <summary>${esc(m.name || `Method ${i + 1}`)}</summary>
           <ol class="pa-steps">
             ${steps.map((s, si) => {
               const hasEq = String(s.eq || '').trim().length > 0;
-              const isLast = hw && hasEq && si === lastIdx;
-              const eqHtml = isLast
-                ? `<button type="button" class="pa-reveal-btn" data-reveal="step">🎯 Try this step yourself, then tap to reveal</button>
-                   <div class="pa-step-eq pa-hidden">${renderLatexBlock(s.eq)}</div>`
-                : `<div class="pa-step-eq">${renderLatexBlock(s.eq)}</div>`;
+              if (!hw || !hasEq) {
+                // Visible step (homework mode off, or step has no eq).
+                return `
+                  <li class="pa-step">
+                    <div class="pa-step-eq">${renderLatexBlock(s.eq)}</div>
+                    <details class="pa-step-why">
+                      <summary>Why this step?</summary>
+                      <div class="pa-step-why-body">${esc(s.why)}</div>
+                    </details>
+                  </li>
+                `;
+              }
+              // Homework mode: hidden behind a per-step reveal button.
+              const isFirst = si === 0;
+              const lockLabel = isFirst
+                ? `🎯 Got an idea for Step 1? Tap to reveal`
+                : `🔒 Step ${si + 1} (reveal Step ${si} first)`;
               return `
-                <li class="pa-step">
-                  ${eqHtml}
-                  <details class="pa-step-why">
-                    <summary>Why this step?</summary>
-                    <div class="pa-step-why-body">${esc(s.why)}</div>
-                  </details>
+                <li class="pa-step pa-step-locked" data-step="${si}" data-total="${total}">
+                  <button type="button" class="pa-reveal-btn pa-step-reveal" data-step-idx="${si}" ${isFirst ? '' : 'disabled'}>
+                    ${lockLabel}
+                  </button>
+                  <div class="pa-step-content pa-hidden">
+                    <div class="pa-step-eq">${renderLatexBlock(s.eq)}</div>
+                    <details class="pa-step-why" open>
+                      <summary>Why this step?</summary>
+                      <div class="pa-step-why-body">${esc(s.why)}</div>
+                    </details>
+                  </div>
                 </li>
               `;
             }).join('')}
@@ -407,10 +425,18 @@
         </details>
       </section>
 
+      ${(hw && parsed.hint) ? `
+        <section class="pa-hint-block">
+          <div class="pa-block-label">💡 Hint</div>
+          <div class="pa-hint-body">${esc(parsed.hint)}</div>
+          <div class="pa-hint-foot">Give the problem a real attempt before tapping any step below. Working it out is what builds the skill.</div>
+        </section>
+      ` : ''}
+
       <section class="pa-answer-block${hw && parsed.answer ? ' pa-answer-hidden' : ''}">
         <div class="pa-block-label">Answer</div>
         ${(hw && parsed.answer && String(parsed.answer).trim())
-          ? `<button type="button" class="pa-reveal-btn pa-reveal-answer" data-reveal="answer">🎯 Work it out yourself, then tap to reveal the answer</button>
+          ? `<button type="button" class="pa-reveal-btn pa-reveal-answer" data-reveal="answer" disabled>🔒 Answer locked — reveal every step first</button>
              <div class="pa-answer-eq pa-hidden">${renderLatexBlock(parsed.answer)}</div>`
           : `<div class="pa-answer-eq">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>`
         }
@@ -443,34 +469,74 @@
     wrap.querySelector('#paHistoryBtn').addEventListener('click', openList);
     wrap.querySelector('#paDeleteBtn').addEventListener('click', deleteCurrentSolve);
 
-    // Wire any Homework-Mode reveal buttons: click swaps the placeholder
-    // for the actual answer / equation and triggers MathJax on the now-
-    // visible content. We search forward through the button's siblings
-    // for the next .pa-hidden element rather than relying strictly on
-    // nextElementSibling, because future markup changes (whitespace,
-    // wrapper divs) shouldn't break the lookup.
-    wrap.querySelectorAll('.pa-reveal-btn').forEach(btn => {
+    // Progressive Homework Mode reveal. Each step button reveals its
+    // own equation + reasoning, then unlocks the next step's button.
+    // When the last step is revealed, the answer reveal button unlocks.
+    // The answer reveal then shows the final answer card.
+    function unlockAnswerButton() {
+      const ans = wrap.querySelector('.pa-reveal-answer');
+      if (!ans) return;
+      ans.disabled = false;
+      ans.textContent = '🎯 You worked through every step. Tap to reveal the final answer.';
+    }
+    wrap.querySelectorAll('.pa-step-reveal').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        let target = btn.nextElementSibling;
-        while (target && !target.classList.contains('pa-hidden')) {
-          target = target.nextElementSibling;
+        if (btn.disabled) return;
+        const li = btn.closest('.pa-step');
+        if (!li) return;
+        const content = li.querySelector('.pa-step-content');
+        if (!content) return;
+        // Reveal this step.
+        content.classList.remove('pa-hidden');
+        btn.classList.add('pa-hidden');
+        li.classList.remove('pa-step-locked');
+        if (typeof window.typesetMath === 'function') {
+          try { window.typesetMath(content); } catch (_err) {}
         }
-        if (!target) {
-          // Fallback: scope search to the same step / answer container.
-          const parent = btn.closest('.pa-step, .pa-answer-block');
-          if (parent) target = parent.querySelector('.pa-hidden');
-        }
-        if (target) {
-          target.classList.remove('pa-hidden');
-          btn.classList.add('pa-hidden');
-          if (typeof window.typesetMath === 'function') {
-            try { window.typesetMath(target); } catch (_err) {}
+        // Unlock the next step's button (or the answer if this was last).
+        const nextLi = li.nextElementSibling;
+        if (nextLi && nextLi.classList.contains('pa-step-locked')) {
+          const nextBtn = nextLi.querySelector('.pa-step-reveal');
+          if (nextBtn) {
+            const nextIdx = parseInt(nextLi.dataset.step, 10);
+            nextBtn.disabled = false;
+            nextBtn.textContent = `🎯 Ready for Step ${nextIdx + 1}? Tap to reveal`;
           }
+        } else {
+          // No more locked steps below: unlock the answer.
+          unlockAnswerButton();
         }
       });
     });
+    // If there are no per-step reveal buttons (the model returned no
+    // <eq> content in any step, or no methods), there's nothing for
+    // the student to walk through. Unlock the answer immediately so
+    // they aren't stuck.
+    if (wrap.querySelectorAll('.pa-step-reveal').length === 0) {
+      unlockAnswerButton();
+    }
+
+    // The single Answer reveal button.
+    const answerBtn = wrap.querySelector('.pa-reveal-answer');
+    if (answerBtn) {
+      answerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (answerBtn.disabled) return;
+        const block = answerBtn.closest('.pa-answer-block');
+        if (!block) return;
+        const eq = block.querySelector('.pa-answer-eq');
+        if (eq) {
+          eq.classList.remove('pa-hidden');
+          if (typeof window.typesetMath === 'function') {
+            try { window.typesetMath(eq); } catch (_err) {}
+          }
+        }
+        answerBtn.classList.add('pa-hidden');
+      });
+    }
 
     if (typeof window.typesetMath === 'function') {
       try { window.typesetMath(wrap); } catch (_e) {}
