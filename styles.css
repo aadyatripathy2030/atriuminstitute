@@ -3135,6 +3135,26 @@ button.logo:focus-visible {
 .lesson-step-body p { margin: 8px 0; }
 .lesson-step-body ul, .lesson-step-body ol { margin: 8px 0 12px; padding-left: 22px; }
 .lesson-step-body li { margin: 4px 0; }
+/* SVG diagrams inside lesson steps. Without these rules Max-generated SVGs
+   render at whatever raw width/height attributes the model picked, which
+   sometimes have non-matching aspect ratios — making a square diagram
+   look like a 5:3 rectangle. Force preserve-aspect-ratio scaling and a
+   reasonable max-width so the shape always reads correctly. */
+.lesson-step-body svg {
+  display: block;
+  margin: 12px auto;
+  max-width: min(360px, 100%);
+  height: auto;
+  color: var(--text, #1e2238);
+}
+.lesson-step-body svg[viewBox] {
+  /* Force scaling to viewBox proportions, ignore mis-sized width/height attrs */
+  width: auto;
+  max-width: min(360px, 100%);
+}
+/* Text labels inside SVG should never be tinier than 11px regardless of
+   viewBox scaling — readability over fidelity. */
+.lesson-step-body svg text { font-size: 12px; }
 .lesson-step-body blockquote {
   margin: 10px 0;
   padding: 8px 14px;
