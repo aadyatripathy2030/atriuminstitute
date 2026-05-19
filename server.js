@@ -1884,62 +1884,213 @@ async function handleGetLeaderboard(req, res) {
   json(res, 200, { range, from, to, top, me });
 }
 
-// ---------- Problem of the Day ----------
-async function _pickPODFromCurriculum(dateISO) {
-  // Deterministic: hash the date to pick a question from the legacy
-  // course bank. We use the existing curriculum loader so we don't have
-  // to maintain a separate POD content set.
+// ---------- Problem of the Day (personalised, per-user, per-day) ----------
+//
+// Each student gets their own POD, picked from a pool filtered by their
+// grade level (±1), their subject preferences (math/english), and biased
+// by difficulty against their confidence/help subjects. The pick is
+// deterministic for (user, local-date) so refresh happens exactly once
+// at the user's local midnight.
+
+// Course → typical grade range. Used to filter the question pool to
+// grade-appropriate material. The buckets are intentionally wide;
+// students above/below get clamped by the ±1 buffer in matching.
+const COURSE_GRADE_RANGE = {
+  arithmetic: [4, 6],   prealgebra: [6, 8],   algebra: [8, 9],
+  geometry:   [9, 10],  algebra2:   [10, 11], trigonometry: [10, 11],
+  precalc:    [11, 12], calculus:   [11, 13], statistics:   [11, 13],
+  finitemath: [12, 14], linearalg:  [12, 14], diffeq:       [13, 14],
+  abstractalg:[14, 16], realanalysis:[14, 16],
+  eng6:[6,6], eng7:[7,7], eng8:[8,8], eng9:[9,9], eng10:[10,10], eng11:[11,11], eng12:[12,12],
+};
+
+// Today's date in YYYY-MM-DD, computed in the student's local timezone.
+// Falls back to UTC if no/invalid tz. en-CA locale yields ISO-formatted
+// dates which is what Postgres ::date expects.
+function _getUserToday(timezone) {
+  const tz = (typeof timezone === 'string' && timezone.length) ? timezone : null;
+  if (!tz) return new Date().toISOString().slice(0, 10);
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+  } catch (_) {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+// Build the (filtered + difficulty-tagged) candidate pool for a student.
+// difficulty score: 0 = easiest, 1 = medium, 2 = hardest. Derived from
+// (a) book index within the course (later book = harder) and
+// (b) question type ('word' problems harder than 'regular').
+function _buildCandidatePool(profile) {
   let courses;
-  try { courses = loadCourses(); } catch (_) { return null; }
-  // Flatten all (section, course, book) question rows into a single list.
-  const flat = [];
+  try { courses = loadCourses(); } catch (_) { return []; }
+  const grade = (profile && Number.isInteger(profile.grade)) ? profile.grade : null;
+  const wantsMath = !profile || !profile.subjects || profile.subjects.length === 0
+    || profile.subjects.some(s => /math/i.test(s));
+  const wantsEng  = !profile || !profile.subjects || profile.subjects.length === 0
+    || profile.subjects.some(s => /english|language|reading|writing/i.test(s));
+  const pool = [];
   for (const [courseId, course] of Object.entries(courses)) {
-    for (const book of (course.books || [])) {
+    const subjectMath = course.subject !== 'english';
+    if (subjectMath && !wantsMath) continue;
+    if (!subjectMath && !wantsEng) continue;
+    // Grade window: ±1 around user's grade. If user has no grade, allow all.
+    if (grade != null) {
+      const range = COURSE_GRADE_RANGE[courseId];
+      if (range) {
+        const [lo, hi] = range;
+        if (grade < lo - 1 || grade > hi + 1) continue;
+      }
+    }
+    const books = course.books || [];
+    const bookCount = Math.max(books.length, 1);
+    books.forEach((book, bookIdx) => {
+      // Book position within course → coarse difficulty (0..2).
+      const bookFrac = bookIdx / bookCount; // 0 (early) → ~1 (late)
+      const bookDiff = bookFrac < 0.33 ? 0 : (bookFrac < 0.66 ? 1 : 2);
       (book.sections || []).forEach((sec, sectionIdx) => {
         (sec.questions || []).forEach(qq => {
-          if (qq && qq.q && qq.answer) {
-            flat.push({
-              question_text: qq.q, question_type: qq.type || 'regular',
-              correct_answer: qq.answer, solution: qq.solution || '',
-              source_course_id: courseId, source_book_id: book.id, source_section_idx: sectionIdx,
-              subject: course.subject === 'english' ? 'language_arts' : 'math',
-            });
-          }
+          if (!qq || !qq.q || !qq.answer) return;
+          const typeDiff = qq.type === 'word' ? 1 : 0;
+          // Clamp combined difficulty to 0..2
+          const difficulty = Math.min(2, Math.max(0, bookDiff + typeDiff - 1));
+          pool.push({
+            question_text: qq.q,
+            question_type: qq.type || 'regular',
+            correct_answer: qq.answer,
+            solution: qq.solution || '',
+            source_course_id: courseId,
+            source_book_id: book.id,
+            source_section_idx: sectionIdx,
+            subject: subjectMath ? 'math' : 'language_arts',
+            _difficulty: difficulty,
+          });
         });
       });
+    });
+  }
+  return pool;
+}
+
+// Score 0..2 mapped to a label for display.
+const _DIFF_LABEL = ['easy', 'medium', 'hard'];
+
+// Pick the personalised POD for a user on a specific local date.
+// Deterministic: same (user, date) always yields the same pick.
+function _pickPersonalisedPOD(profile, dateISO) {
+  let pool = _buildCandidatePool(profile);
+  if (pool.length === 0) {
+    // No grade-matched questions — relax grade filter.
+    pool = _buildCandidatePool({ ...profile, grade: null });
+  }
+  if (pool.length === 0) return null;
+
+  // Difficulty bias from confidence/help subjects.
+  const help = new Set((profile && profile.help_subjects) || []);
+  const confident = new Set((profile && profile.confidence_subjects) || []);
+  const subjectInSet = (subject, set) => {
+    for (const s of set) {
+      if (subject === 'math' && /math/i.test(s)) return true;
+      if (subject === 'language_arts' && /english|language|reading|writing/i.test(s)) return true;
+    }
+    return false;
+  };
+
+  // Weight each candidate: target difficulty is 0 if subject ∈ help,
+  // 2 if ∈ confidence, else 1. Closer to target = higher weight.
+  let totalWeight = 0;
+  const weighted = pool.map(q => {
+    let target = 1;
+    if (subjectInSet(q.subject, help)) target = 0;
+    else if (subjectInSet(q.subject, confident)) target = 2;
+    // Inverse-distance weighting so on-target gets 3x, ±1 gets 1x, ±2 gets 0.4x.
+    const dist = Math.abs(q._difficulty - target);
+    const w = dist === 0 ? 3 : (dist === 1 ? 1 : 0.4);
+    totalWeight += w;
+    return { q, w };
+  });
+
+  // Deterministic hash of (userId, dateISO) → 0..1
+  const key = (profile && profile.userId ? profile.userId : 'anon') + ':' + dateISO;
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = ((h << 5) - h + key.charCodeAt(i)) | 0;
+  const r = (Math.abs(h) % 100000) / 100000 * totalWeight;
+  let acc = 0;
+  for (const { q, w } of weighted) {
+    acc += w;
+    if (acc >= r) {
+      return {
+        question_text: q.question_text,
+        question_type: q.question_type,
+        correct_answer: q.correct_answer,
+        solution: q.solution,
+        source_course_id: q.source_course_id,
+        source_book_id: q.source_book_id,
+        source_section_idx: q.source_section_idx,
+        subject: q.subject,
+        difficulty: _DIFF_LABEL[q._difficulty] || 'medium',
+        pod_date: dateISO,
+      };
     }
   }
-  if (flat.length === 0) return null;
-  // Hash YYYY-MM-DD to a stable index.
-  let h = 0;
-  for (let i = 0; i < dateISO.length; i++) h = ((h << 5) - h + dateISO.charCodeAt(i)) | 0;
-  const idx = Math.abs(h) % flat.length;
-  return { ...flat[idx], pod_date: dateISO };
+  // Fallback (should never hit; guard against floating-point edge).
+  const last = weighted[weighted.length - 1].q;
+  return {
+    question_text: last.question_text, question_type: last.question_type,
+    correct_answer: last.correct_answer, solution: last.solution,
+    source_course_id: last.source_course_id, source_book_id: last.source_book_id,
+    source_section_idx: last.source_section_idx, subject: last.subject,
+    difficulty: _DIFF_LABEL[last._difficulty] || 'medium', pod_date: dateISO,
+  };
+}
+
+// Combine the relevant user info from users + student_profiles into a
+// flat object the picker can read.
+async function _buildPODProfile(userId) {
+  const u = await db.getUser(userId).catch(() => null);
+  const sp = await db.getStudentProfile(userId).catch(() => null);
+  const grade = (sp && Number.isInteger(sp.grade_level)) ? sp.grade_level
+              : (u  && Number.isInteger(u.grade_level))  ? u.grade_level
+              : null;
+  return {
+    userId,
+    grade,
+    age: (u && Number.isInteger(u.age)) ? u.age : null,
+    timezone: (sp && sp.timezone) || null,
+    subjects: (sp && Array.isArray(sp.subjects)) ? sp.subjects : [],
+    confidence_subjects: (sp && Array.isArray(sp.confidence_subjects)) ? sp.confidence_subjects : [],
+    help_subjects: (sp && Array.isArray(sp.help_subjects)) ? sp.help_subjects : [],
+  };
 }
 
 async function handleGetPOD(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to see the daily problem.' });
-  const today = new Date().toISOString().slice(0, 10);
-  let pod = await db.getOrCreatePOD(today);
-  if (!pod) {
-    const picked = await _pickPODFromCurriculum(today);
-    if (!picked) return json(res, 503, { error: 'No problem available today.' });
-    await db.savePOD(picked);
-    pod = await db.getOrCreatePOD(today);
+  const profile = await _buildPODProfile(u.id);
+  const today = _getUserToday(profile.timezone);
+  // Pull the user's cached pick for today, if any.
+  let pick = await db.getUserPODPick(u.id, today);
+  if (!pick) {
+    pick = _pickPersonalisedPOD(profile, today);
+    if (!pick) return json(res, 503, { error: 'No problem available today.' });
+    try { await db.saveUserPODPick(u.id, today, pick); }
+    catch (e) { console.warn('saveUserPODPick failed:', e && e.message); }
   }
   const attempt = await db.getMyPODAttempt(u.id, today);
   const stats = await db.getPODStats(today);
   json(res, 200, {
     pod: {
-      pod_date: pod.pod_date,
-      question_text: pod.question_text,
-      question_type: pod.question_type,
-      subject: pod.subject,
-      difficulty: pod.difficulty,
+      pod_date: today,
+      question_text: pick.question_text,
+      question_type: pick.question_type,
+      subject: pick.subject,
+      difficulty: pick.difficulty,
     },
     my_attempt: attempt,
     stats,
+    personalised: true,
   });
 }
 
@@ -1947,27 +2098,31 @@ async function handlePostPODAttempt(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to answer.' });
   const body = await readJSON(req);
-  const today = new Date().toISOString().slice(0, 10);
-  const pod = await db.getOrCreatePOD(today);
-  if (!pod) return json(res, 404, { error: 'No problem today.' });
+  const profile = await _buildPODProfile(u.id);
+  const today = _getUserToday(profile.timezone);
+  // Grade against the user's pick (created in handleGetPOD). If somehow
+  // the client posts before fetching, pick + cache now.
+  let pick = await db.getUserPODPick(u.id, today);
+  if (!pick) {
+    pick = _pickPersonalisedPOD(profile, today);
+    if (!pick) return json(res, 404, { error: 'No problem today.' });
+    try { await db.saveUserPODPick(u.id, today, pick); }
+    catch (_) { /* race with another tab; fine */ }
+  }
   const userAnswer = String((body && body.answer) || '').trim();
   if (!userAnswer) return json(res, 400, { error: 'Answer required.' });
-  // Trim/normalise for simple match. The legacy quiz grader uses
-  // Claude; for the POD a string-equal-after-normalisation is good
-  // enough and avoids paying an AI call.
   const norm = s => String(s).toLowerCase().replace(/[\s.,;:'"()$%]/g, '');
-  const correct = norm(userAnswer) === norm(pod.correct_answer);
+  const correct = norm(userAnswer) === norm(pick.correct_answer);
   const previous = await db.getMyPODAttempt(u.id, today);
   await db.recordPODAttempt(u.id, today, userAnswer, correct);
-  // Award POD points only on the first correct attempt.
   if (correct && (!previous || !previous.correct)) {
     _awardPointsAsync(u.id, POINT_VALUES.pod_solved);
   }
   const stats = await db.getPODStats(today);
   json(res, 200, {
     correct,
-    correct_answer: correct ? null : pod.correct_answer,
-    solution: pod.solution || null,
+    correct_answer: correct ? null : pick.correct_answer,
+    solution: pick.solution || null,
     stats,
   });
 }

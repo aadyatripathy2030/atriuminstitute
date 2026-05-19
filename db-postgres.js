@@ -1661,6 +1661,58 @@ async function getPODStats(dateISO) {
   return rows[0] || { total: 0, solved: 0 };
 }
 
+// ---------- Personalised POD (per-user pick) ----------
+// Self-heal: if user_pod_picks doesn't exist (older deployment without
+// migration), create it on first access. Idempotent.
+let _picksTableEnsured = false;
+async function _ensureUserPODPicksTable() {
+  if (_picksTableEnsured) return;
+  await q(`
+    create table if not exists user_pod_picks (
+      user_id uuid not null references users (id) on delete cascade,
+      pod_date date not null,
+      question_text text not null,
+      question_type text not null default 'regular',
+      correct_answer text not null,
+      solution text,
+      subject text not null default 'math',
+      difficulty text default 'medium',
+      source_course_id text,
+      source_book_id text,
+      source_section_idx integer,
+      created_at timestamptz not null default now(),
+      primary key (user_id, pod_date)
+    )
+  `);
+  await q(`create index if not exists idx_user_pod_picks_user on user_pod_picks (user_id, pod_date desc)`);
+  _picksTableEnsured = true;
+}
+
+async function getUserPODPick(userId, dateISO) {
+  await _ensureUserPODPicksTable();
+  const rows = await q(
+    `select pod_date, question_text, question_type, correct_answer, solution,
+            subject, difficulty, source_course_id, source_book_id, source_section_idx
+     from user_pod_picks where user_id = $1 and pod_date = $2::date`,
+    [userId, dateISO]
+  );
+  return rows[0] || null;
+}
+
+async function saveUserPODPick(userId, dateISO, pick) {
+  await _ensureUserPODPicksTable();
+  await q(
+    `insert into user_pod_picks
+       (user_id, pod_date, question_text, question_type, correct_answer, solution,
+        subject, difficulty, source_course_id, source_book_id, source_section_idx)
+     values ($1, $2::date, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     on conflict (user_id, pod_date) do nothing`,
+    [userId, dateISO, pick.question_text, pick.question_type || 'regular', pick.correct_answer,
+     pick.solution || null, pick.subject || 'math', pick.difficulty || 'medium',
+     pick.source_course_id || null, pick.source_book_id || null, pick.source_section_idx ?? null]
+  );
+}
+
 // ---------- User favorites (legacy course + book ids) ----------
 async function listFavorites(userId) {
   return q(
@@ -2313,6 +2365,7 @@ module.exports = {
   getUserStreaks, getUserAchievements,
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
+  getUserPODPick, saveUserPODPick,
   searchSchoolDistricts, recordUserDistrict,
   savePhotoSolve, listPhotoSolves, getPhotoSolve, deletePhotoSolve, countPhotoSolves,
   deleteUserAccount,

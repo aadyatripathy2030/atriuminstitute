@@ -615,6 +615,35 @@ create index if not exists idx_pod_attempts_date
   on user_pod_attempts (pod_date);
 
 -- ------------------------------------------------------------------
+-- Personalised Problem of the Day. The shared problem_of_the_day
+-- table above is the legacy fallback; user_pod_picks stores the
+-- per-user, per-day pick selected from a pool filtered by the
+-- student's grade, subject preferences, and difficulty calibration.
+-- pod_date is the user's LOCAL date (computed in their timezone),
+-- which is why two users in different timezones can both have a
+-- '2026-05-18' row pointing at different questions.
+-- ------------------------------------------------------------------
+
+create table if not exists user_pod_picks (
+  user_id uuid not null references users (id) on delete cascade,
+  pod_date date not null,
+  question_text text not null,
+  question_type text not null default 'regular',
+  correct_answer text not null,
+  solution text,
+  subject text not null default 'math',
+  difficulty text default 'medium',
+  source_course_id text,
+  source_book_id text,
+  source_section_idx integer,
+  created_at timestamptz not null default now(),
+  primary key (user_id, pod_date)
+);
+
+create index if not exists idx_user_pod_picks_user
+  on user_pod_picks (user_id, pod_date desc);
+
+-- ------------------------------------------------------------------
 -- Gamification points (drives daily / weekly / monthly leaderboards).
 -- One row per (user, day) with that day's accumulated point total.
 -- Sources of points:

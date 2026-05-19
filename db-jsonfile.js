@@ -984,6 +984,8 @@ async function savePOD() { /* no-op */ }
 async function getMyPODAttempt() { return null; }
 async function recordPODAttempt() { /* no-op */ }
 async function getPODStats() { return { total: 0, solved: 0 }; }
+async function getUserPODPick() { return null; }
+async function saveUserPODPick() { /* no-op */ }
 async function searchSchoolDistricts() { return []; }
 async function recordUserDistrict() { /* no-op */ }
 
@@ -1114,6 +1116,7 @@ module.exports = {
   getUserStreaks, getUserAchievements,
   awardPoints, getMyPoints, getMyPointsSummary, getLeaderboard, getMyLeaderboardRank,
   getOrCreatePOD, savePOD, getMyPODAttempt, recordPODAttempt, getPODStats,
+  getUserPODPick, saveUserPODPick,
   searchSchoolDistricts, recordUserDistrict,
   savePhotoSolve, listPhotoSolves, getPhotoSolve, deletePhotoSolve, countPhotoSolves,
   deleteUserAccount,
