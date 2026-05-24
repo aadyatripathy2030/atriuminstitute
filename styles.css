@@ -447,6 +447,11 @@ body::before {
 
 /* QUIZ */
 .quiz-shell { max-width: 720px; margin: 0 auto; }
+/* Hide the site footer while a quiz question is active so students aren't
+   tempted to scroll into the marketing/legal links mid-answer. .quiz-shell
+   is only rendered by renderQuizQuestion; the results card uses a
+   different wrapper so the footer reappears once the quiz finishes. */
+body:has(.quiz-shell) .site-footer { display: none; }
 .quiz-top { margin-bottom: 22px; }
 .quiz-meta { display: flex; justify-content: space-between; margin-bottom: 10px; }
 .quiz-section-name { font-weight: 600; font-size: 15px; color: var(--text); font-family: var(--serif); }
