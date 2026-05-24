@@ -4547,6 +4547,19 @@ body > .site-footer {
 .streak-chip:hover { border-color: #f0a060; transform: translateY(-1px); }
 .streak-chip.hidden { display: none; }
 
+.points-chip {
+  font: inherit; font-size: 13px; padding: 5px 12px;
+  border: 1px solid var(--border, #e6e2d7);
+  background: linear-gradient(135deg, #fff8d6, #ffe89a);
+  color: #8a6500;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.points-chip:hover { border-color: #e0bc3a; transform: translateY(-1px); }
+.points-chip.hidden { display: none; }
+
 /* =============== Problem of the Day =============== */
 #podBox { max-width: 1200px; margin: 0 auto 18px; padding: 0 32px; }
 .pod-card {
@@ -5790,7 +5803,8 @@ body.nav-open .nav-hamburger-bar:nth-child(3) {
   }
   .nav-right .progress-pill,
   .nav-right .greeting,
-  .nav-right .streak-chip {
+  .nav-right .streak-chip,
+  .nav-right .points-chip {
     text-align: left;
   }
   .nav-right #navUser {

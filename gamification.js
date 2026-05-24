@@ -116,6 +116,32 @@
   }
   window.refreshStreakChip = refreshStreakChip;
 
+  // ----- Points chip (all-time total) -----
+  async function refreshPointsChip() {
+    const chip = el('pointsChip');
+    const count = el('pointsChipCount');
+    if (!chip || !count) return;
+    try {
+      const p = await fetchJSON('/api/me/points');
+      const total = (p && p.all_time) || 0;
+      count.textContent = String(total);
+      // Show even at 0 so new students know the chip exists and can click
+      // through to the achievements page for the full breakdown.
+      show(chip);
+    } catch (_) { hide(chip); }
+  }
+  window.refreshPointsChip = refreshPointsChip;
+
+  // Wrap showPointToast so the chip total auto-updates after any award.
+  const _origToast = window.showPointToast;
+  if (typeof _origToast === 'function') {
+    window.showPointToast = function (amount, reason, opts) {
+      _origToast.call(this, amount, reason, opts);
+      // Server is the source of truth; refetch instead of incrementing locally.
+      setTimeout(refreshPointsChip, 400);
+    };
+  }
+
   // ----- Achievements page -----
   let _achPageWired = false;
   async function openAchievements() {
@@ -329,6 +355,8 @@
     if (lb) lb.addEventListener('click', openLeaderboard);
     const chip = el('streakChip');
     if (chip) chip.addEventListener('click', openAchievements);
+    const pts = el('pointsChip');
+    if (pts) pts.addEventListener('click', openAchievements);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', wireOnce);
@@ -339,6 +367,7 @@
     setTimeout(() => {
       if (typeof window.getCurrentUser === 'function' && window.getCurrentUser()) {
         refreshStreakChip();
+        refreshPointsChip();
         renderPODCard();
       }
     }, 1500);
