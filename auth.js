@@ -405,6 +405,23 @@
       const label = user.role === 'parent' ? `👪 ${user.email}` : user.email;
       navEmail.textContent = label;
     }
+    // Admin menu item: shown only to admins (server also enforces is_admin on
+    // every admin endpoint, so this is a convenience entry point, not the gate).
+    const adminBtn = el('adminNavBtn');
+    if (adminBtn) {
+      if (user.is_admin) {
+        show(adminBtn);
+        if (!adminBtn._wired) {
+          adminBtn._wired = true;
+          adminBtn.addEventListener('click', () => {
+            if (window.location.hash !== '#admin') window.location.hash = '#admin';
+            else if (typeof window.openAdmin === 'function') window.openAdmin();
+          });
+        }
+      } else {
+        hide(adminBtn);
+      }
+    }
     // Parents have activity views per-student inside the dashboard; the
     // student-self "Activity" button only makes sense for student accounts.
     if (activityBtn) {

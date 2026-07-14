@@ -39,10 +39,16 @@ function computeCost(model, usage) {
   return cost;
 }
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
-  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+// Emails that are always granted admin on successful login. The owner account
+// is baked in so admin access survives even if the ADMIN_EMAILS env var is
+// unset in a given environment; ADMIN_EMAILS can add more, comma-separated.
+const BUILTIN_ADMIN_EMAILS = ['atriuminstitutereal@gmail.com'];
+const ADMIN_EMAILS = [
+  ...BUILTIN_ADMIN_EMAILS,
+  ...(process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).filter(Boolean),
+].map(s => s.toLowerCase());
 function _isAdminEmail(emailStr) {
-  return emailStr && ADMIN_EMAILS.includes(String(emailStr).toLowerCase());
+  return !!emailStr && ADMIN_EMAILS.includes(String(emailStr).trim().toLowerCase());
 }
 
 const PORT = process.env.PORT || 8765;
@@ -267,6 +273,13 @@ async function handleVerify(req, res) {
   let user = await db.findUser(body.email);
   if (!user) return json(res, 500, { error: 'User not found.' });
   await db.markVerified(user.id);
+
+  // Grant admin to designated owner email(s) once the login is actually
+  // confirmed (i.e. here, after the code check) — never merely on signup, so
+  // someone can't claim admin just by entering the address.
+  if (_isAdminEmail(user.email) && !user.is_admin) {
+    user = await db.adminUpdateUser(user.id, { is_admin: true }) || user;
+  }
 
   // Apply any first-signup metadata that the user sent on /signup. Done after
   // verification so an attacker who guesses an email can't poison a real
