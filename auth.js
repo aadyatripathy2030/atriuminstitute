@@ -184,21 +184,40 @@
     const linkWrap = document.querySelector('#authEmailForm .auth-linkcode-wrap');
     const schoolRow = document.querySelector('#authEmailForm .auth-school-row');
     const ageInput = el('authAge');
+    const gradeInput = el('authGrade');
     const countryInput = el('authCountry');
     const schoolInput = el('authSchool');
     const ageLabel = ageInput && ageInput.closest('label');
+    const gradeLabel = gradeInput && gradeInput.closest('label');
+    const countryLabel = countryInput && countryInput.closest('label');
+
+    // Grade, age, country, and state are student-only demographic fields. A
+    // parent signs up just to link to a student, so hide the whole demographic
+    // row (and the state field, handled in applyUsOnlyVisibility) when the
+    // selected role isn't "student".
+    const showStudentFields = isSignup && selectedRole === 'student';
 
     if (roleToggle) roleToggle.style.display = isSignup ? '' : 'none';
-    if (fieldRow) fieldRow.style.display = isSignup ? '' : 'none';
+    if (fieldRow) fieldRow.style.display = showStudentFields ? '' : 'none';
     if (linkWrap) linkWrap.style.display = isSignup ? '' : 'none';
     if (schoolRow) schoolRow.style.display = isSignup ? '' : 'none';
 
-    // Age is only meaningful for students, and only when creating an account.
-    const showAge = isSignup && selectedRole === 'student';
-    if (ageLabel) ageLabel.style.display = showAge ? '' : 'none';
-    if (ageInput) ageInput.required = showAge;
-    if (countryInput) countryInput.required = isSignup;
+    if (ageLabel) ageLabel.style.display = showStudentFields ? '' : 'none';
+    if (ageInput) ageInput.required = showStudentFields;
+    if (gradeLabel) gradeLabel.style.display = showStudentFields ? '' : 'none';
+    if (countryLabel) countryLabel.style.display = showStudentFields ? '' : 'none';
+    if (countryInput) countryInput.required = showStudentFields;
     if (schoolInput) schoolInput.required = isSignup;
+
+    // Word the school question for whoever is signing up: a parent is
+    // answering on behalf of their child, a student for themselves.
+    const schoolLabel = el('authSchoolLabel');
+    if (schoolLabel) {
+      schoolLabel.textContent = selectedRole === 'parent'
+        ? 'What school does your child go to?'
+        : 'School name';
+    }
+
     applyUsOnlyVisibility();
   }
 
@@ -214,7 +233,10 @@
     const stateSel = el('authState');
     const districtInput = el('authDistrict');
     const privateBox = el('authPrivate');
-    const isUS = countrySel && countrySel.value === 'United States';
+    // Country/state only apply to students, so a leftover "United States"
+    // value must never re-show the state or district fields for a parent.
+    const isStudent = selectedRole === 'student';
+    const isUS = isStudent && countrySel && countrySel.value === 'United States';
     const isSignup = authMode === 'signup';
     if (stateLabel) stateLabel.classList.toggle('hidden', !(isSignup && isUS));
     if (privateWrap) privateWrap.classList.toggle('hidden', !(isSignup && isUS));
@@ -607,9 +629,10 @@
           const gp = parseInt(gradeEl.value, 10);
           if (Number.isInteger(gp) && gp >= 1 && gp <= 12) gradeNum = gp;
         }
+        // Country is a student-only field; parents don't provide one.
+        countryVal = (el('authCountry').value || '').trim();
+        if (!countryVal) return showError('Pick your country.');
       }
-      countryVal = (el('authCountry').value || '').trim();
-      if (!countryVal) return showError('Pick your country.');
       const linkCodeRaw = (el('authLinkCode').value || '').trim();
       linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
       if (linkCode && linkCode.length !== 8) {
