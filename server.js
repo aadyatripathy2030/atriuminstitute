@@ -2020,6 +2020,9 @@ function _pickPersonalisedPOD(profile, dateISO) {
 
   // Weight each candidate: target difficulty is 0 if subject ∈ help,
   // 2 if ∈ confidence, else 1. Closer to target = higher weight.
+  // Courses the student is currently working on get a weight boost so the POD
+  // reflects their active material, not just anything in their grade band.
+  const recentCourses = new Set((profile && profile.recentCourses) || []);
   let totalWeight = 0;
   const weighted = pool.map(q => {
     let target = 1;
@@ -2027,7 +2030,8 @@ function _pickPersonalisedPOD(profile, dateISO) {
     else if (subjectInSet(q.subject, confident)) target = 2;
     // Inverse-distance weighting so on-target gets 3x, ±1 gets 1x, ±2 gets 0.4x.
     const dist = Math.abs(q._difficulty - target);
-    const w = dist === 0 ? 3 : (dist === 1 ? 1 : 0.4);
+    let w = dist === 0 ? 3 : (dist === 1 ? 1 : 0.4);
+    if (recentCourses.has(q.source_course_id)) w *= 2.5;
     totalWeight += w;
     return { q, w };
   });
@@ -2074,6 +2078,18 @@ async function _buildPODProfile(userId) {
   const grade = (sp && Number.isInteger(sp.grade_level)) ? sp.grade_level
               : (u  && Number.isInteger(u.grade_level))  ? u.grade_level
               : null;
+  // Courses the student is actually working on right now, most-recent first,
+  // derived from their recent quiz attempts. Used to bias the POD toward their
+  // current material (in addition to the grade/subject filtering).
+  let recentCourses = [];
+  try {
+    const attempts = await db.listQuizAttempts(userId, { limit: 25 });
+    const seen = new Set();
+    for (const a of (attempts || [])) {
+      const cid = a && (a.course_id || a.courseId);
+      if (cid && !seen.has(cid)) { seen.add(cid); recentCourses.push(cid); }
+    }
+  } catch (_) { /* best-effort; personalisation still works without it */ }
   return {
     userId,
     grade,
@@ -2082,6 +2098,7 @@ async function _buildPODProfile(userId) {
     subjects: (sp && Array.isArray(sp.subjects)) ? sp.subjects : [],
     confidence_subjects: (sp && Array.isArray(sp.confidence_subjects)) ? sp.confidence_subjects : [],
     help_subjects: (sp && Array.isArray(sp.help_subjects)) ? sp.help_subjects : [],
+    recentCourses,
   };
 }
 
@@ -2114,6 +2131,51 @@ async function handleGetPOD(req, res) {
   });
 }
 
+// Grade a POD answer with the same AI grader the quizzes use. The stored
+// correct answers are LaTeX (e.g. \(\tfrac{1}{3}\)), so the previous
+// exact-string comparison marked virtually every correct answer wrong.
+// Returns { correct }. Throws if the AI call is unavailable so the caller
+// can fall back to a local match.
+async function _aiGradePODAnswer(u, question, userAnswer, correctAnswer) {
+  const stripped = String(userAnswer == null ? '' : userAnswer).trim()
+    .replace(/^["'`“”‘’]+|["'`“”‘’]+$/g, '').trim();
+  if (!stripped || /^[\s\p{P}\p{S}]+$/u.test(stripped)) return { correct: false };
+  const MODEL = 'claude-haiku-4-5-20251001';
+  const result = await callClaudeDirect({
+    model: MODEL,
+    system: prompts.buildSystem('grade'),
+    messages: [{ role: 'user', content:
+      `Problem: ${question}\nStudent's answer: ${stripped}\nCorrect answer: ${correctAnswer}` }],
+    max_tokens: 200,
+    temperature: 0,
+  });
+  if (result.usage) {
+    db.recordAiUsage({
+      userId: u.id, userEmail: u.email, intent: 'grade', model: MODEL,
+      inputTokens: result.usage.input_tokens || 0,
+      outputTokens: result.usage.output_tokens || 0,
+      cacheReadTokens: result.usage.cache_read_input_tokens || 0,
+      cacheCreationTokens: result.usage.cache_creation_input_tokens || 0,
+      costUsd: computeCost(MODEL, result.usage),
+    }).catch(err => console.error('recordAiUsage (pod grade) failed:', err && err.message));
+  }
+  const m = result.text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('grade: no JSON in response');
+  return { correct: !!JSON.parse(m[0]).correct };
+}
+
+// LaTeX-aware fallback, used only when the AI grader can't be reached. Handles
+// the common cases (fractions, wrapper commands) far better than a raw
+// exact-string compare, though the AI grader remains the real check.
+function _localAnswerMatch(a, b) {
+  const norm = s => String(s == null ? '' : s).toLowerCase()
+    .replace(/\\[tdc]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '$1/$2') // \frac{1}{3} → 1/3
+    .replace(/\\[a-z]+/g, '')                                        // other LaTeX commands
+    .replace(/[{}\\$()\s'".,;:%!]/g, '');
+  const na = norm(a);
+  return na.length > 0 && na === norm(b);
+}
+
 async function handlePostPODAttempt(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to answer.' });
@@ -2131,8 +2193,16 @@ async function handlePostPODAttempt(req, res) {
   }
   const userAnswer = String((body && body.answer) || '').trim();
   if (!userAnswer) return json(res, 400, { error: 'Answer required.' });
-  const norm = s => String(s).toLowerCase().replace(/[\s.,;:'"()$%]/g, '');
-  const correct = norm(userAnswer) === norm(pick.correct_answer);
+  // Grade with the AI grader (LaTeX / equivalent-form aware). Only fall back
+  // to a local match if the AI call fails, so a right answer is never wrongly
+  // rejected just because the canonical answer is stored as LaTeX.
+  let correct;
+  try {
+    correct = (await _aiGradePODAnswer(u, pick.question_text, userAnswer, pick.correct_answer)).correct;
+  } catch (e) {
+    console.warn('POD AI grade failed, using local fallback:', e && e.message);
+    correct = _localAnswerMatch(userAnswer, pick.correct_answer);
+  }
   const previous = await db.getMyPODAttempt(u.id, today);
   await db.recordPODAttempt(u.id, today, userAnswer, correct);
   if (correct && (!previous || !previous.correct)) {
