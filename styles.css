@@ -3888,6 +3888,73 @@ body > .site-footer {
 .prebuild-errors ul { padding-left: 20px; margin: 6px 0; }
 .prebuild-errors li { margin-bottom: 4px; line-height: 1.4; }
 
+/* =============== Admin: single-page "console" =============== */
+/* Deliberately does NOT match the rest of the site. It's a plain, dense,
+   full-width data console: everything stacked on one scrollable page. */
+.admin-console {
+  max-width: 1400px;
+  margin: 0 auto 80px;
+  padding: 0 20px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #111;
+  background: #fff;
+}
+.admin-console-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 0 -20px 8px;
+  padding: 8px 20px;
+  background: #111;
+  color: #fff;
+  border-bottom: 2px solid #000;
+}
+.admin-console-bar .back-btn { color: #fff; background: transparent; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+.admin-console-bar .back-btn:hover { background: #333; }
+.admin-console-title { font-weight: 700; letter-spacing: 0.06em; font-size: 12px; text-transform: uppercase; }
+.admin-jump { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-left: auto; }
+.admin-jump a { color: #9cdcfe; text-decoration: none; font-size: 12px; }
+.admin-jump a:hover { color: #fff; text-decoration: underline; }
+.admin-block {
+  scroll-margin-top: 60px;
+  padding: 18px 0 8px;
+  border-top: 1px solid #ddd;
+}
+.admin-block:first-of-type { border-top: 0; }
+.admin-block-title {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #000;
+  margin: 0 0 12px;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-left: 4px solid #111;
+}
+/* Sub-headers inside a block (the pre-existing <h2>s) become plain labels. */
+.admin-console .admin-block > h2:not(.admin-block-title) {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  margin: 18px 0 6px;
+}
+/* Plainer, denser tables than the site default. */
+.admin-console .token-table { font-size: 12px; border: 1px solid #ccc; }
+.admin-console .token-table th { background: #eee; color: #000; border-bottom: 1px solid #bbb; }
+.admin-console .token-table th,
+.admin-console .token-table td { padding: 4px 8px; border-right: 1px solid #eee; }
+.admin-console .token-table tbody tr:nth-child(even) { background: #fafafa; }
+.admin-console .admin-cards { gap: 10px; }
+
 /* =============== Curriculum browser =============== */
 .curr-page {
   max-width: 1100px;

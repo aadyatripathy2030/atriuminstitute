@@ -902,30 +902,30 @@
 
 <!-- Admin page. Not linked from any menu. Reached via /admin or /#admin
      URL. Server enforces users.is_admin on every endpoint. -->
-<div id="adminPage" class="activity-page hidden">
-  <button class="back-btn" id="adminBack">← Back</button>
-  <header class="activity-hero">
-    <h1>Admin</h1>
-    <p class="activity-sub">Cross-account operational view. Visible only to admins.</p>
-  </header>
-
-  <div class="admin-tabs" role="tablist">
-    <button class="admin-tab active" data-tab="overview" role="tab">Overview</button>
-    <button class="admin-tab" data-tab="users" role="tab">Users</button>
-    <button class="admin-tab" data-tab="activity" role="tab">Activity</button>
-    <button class="admin-tab" data-tab="rollup" role="tab">Rollup</button>
-    <button class="admin-tab" data-tab="quiz" role="tab">Quiz analytics</button>
-    <button class="admin-tab" data-tab="cost" role="tab">Cost</button>
-    <button class="admin-tab" data-tab="sessions" role="tab">Sessions</button>
-    <button class="admin-tab" data-tab="links" role="tab">Links</button>
-    <button class="admin-tab" data-tab="lessons" role="tab">Lessons</button>
+<div id="adminPage" class="admin-console hidden">
+  <div class="admin-console-bar">
+    <button class="back-btn" id="adminBack">← Back</button>
+    <strong class="admin-console-title">ADMIN — everything on one page</strong>
+    <nav class="admin-jump">
+      <a href="#admin-block-overview">Overview</a>
+      <a href="#admin-block-users">Users</a>
+      <a href="#admin-block-activity">Activity</a>
+      <a href="#admin-block-rollup">Rollup</a>
+      <a href="#admin-block-quiz">Quiz</a>
+      <a href="#admin-block-cost">Cost</a>
+      <a href="#admin-block-sessions">Sessions</a>
+      <a href="#admin-block-links">Links</a>
+      <a href="#admin-block-lessons">Lessons</a>
+    </nav>
   </div>
 
-  <section class="admin-tab-panel" data-panel="overview">
+  <section class="admin-block" id="admin-block-overview">
+    <h2 class="admin-block-title">Overview</h2>
     <div class="admin-cards" id="adminCards"></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="users">
+  <section class="admin-block" id="admin-block-users">
+    <h2 class="admin-block-title">Users</h2>
     <div class="admin-toolbar">
       <input type="search" id="adminUserSearch" placeholder="Search by email…" class="admin-search">
       <select id="adminUserRoleFilter" class="admin-select">
@@ -949,7 +949,8 @@
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="activity">
+  <section class="admin-block" id="admin-block-activity">
+    <h2 class="admin-block-title">Activity</h2>
     <div class="admin-toolbar">
       <input type="search" id="adminActivityFilter" placeholder="Filter by kind…" class="admin-search">
       <select id="adminActivityEmailFilter" class="admin-filter">
@@ -962,7 +963,8 @@
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="rollup">
+  <section class="admin-block" id="admin-block-rollup">
+    <h2 class="admin-block-title">Rollup</h2>
     <div class="summary-head">
       <h2>Activity rollup — all students</h2>
       <div class="summary-range-tabs" id="adminRollupTabs">
@@ -994,7 +996,8 @@
     </div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="quiz">
+  <section class="admin-block" id="admin-block-quiz">
+    <h2 class="admin-block-title">Quiz analytics</h2>
     <h2>Most-failed sections</h2>
     <div class="token-table-wrap"><table class="token-table" id="adminFailedSectionsTable"><thead><tr>
       <th>Course</th><th>Book</th><th>Section</th><th class="num">Attempts</th><th class="num">Passes</th><th class="num">Fails</th>
@@ -1009,7 +1012,8 @@
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="cost">
+  <section class="admin-block" id="admin-block-cost">
+    <h2 class="admin-block-title">Cost</h2>
     <h2>Daily cost (last 30 days)</h2>
     <div id="adminCostChartContainer" class="admin-cost-chart"></div>
     <h2 style="margin-top:32px">Top spenders</h2>
@@ -1022,21 +1026,24 @@
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="sessions">
+  <section class="admin-block" id="admin-block-sessions">
+    <h2 class="admin-block-title">Sessions</h2>
     <h2>Active sessions</h2>
     <div class="token-table-wrap"><table class="token-table" id="adminSessionsTable"><thead><tr>
       <th>Email</th><th>Created</th><th>Expires</th><th>Action</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="links">
+  <section class="admin-block" id="admin-block-links">
+    <h2 class="admin-block-title">Links</h2>
     <h2>Parent ↔ student links</h2>
     <div class="token-table-wrap"><table class="token-table" id="adminLinksTable"><thead><tr>
       <th>Parent</th><th>Student</th><th>Age</th><th>Consent</th><th>Status</th><th>Linked</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section class="admin-tab-panel hidden" data-panel="lessons">
+  <section class="admin-block" id="admin-block-lessons">
+    <h2 class="admin-block-title">Lessons</h2>
     <h2>Cached lessons by course</h2>
     <div class="token-table-wrap"><table class="token-table" id="adminLessonsTable"><thead><tr>
       <th>Course</th><th class="num">Cached</th><th>Last updated</th>

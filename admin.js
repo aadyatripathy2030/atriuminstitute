@@ -772,6 +772,7 @@
     }
   }
 
+  let _rollupWired = false;
   async function openAdmin() {
     const user = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
     if (!user || !user.is_admin) {
@@ -782,10 +783,20 @@
     captureCurrentView();
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
     show(el('adminPage'));
-    switchTab._loaded = {};
-    switchTab('overview');
     el('adminCards').innerHTML = '<div class="parent-empty">Loading…</div>';
-    await refreshUsers();
+    // Single page: wire the rollup range buttons once, then load every section
+    // concurrently so all of it is on screen at once (no tabs). allSettled so
+    // one failing section can't blank out the rest.
+    if (!_rollupWired) { _rollupWired = true; _wireRollupTabs(); }
+    await Promise.allSettled([
+      refreshUsers(),   // overview stats + users + activity
+      loadRollup(),
+      loadQuiz(),
+      loadCost(),
+      loadSessions(),
+      loadLinks(),
+      loadLessons(),    // also inits the prebuild controls
+    ]);
   }
 
   function wireOnce() {
