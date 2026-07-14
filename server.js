@@ -276,9 +276,16 @@ async function handleVerify(req, res) {
 
   // Grant admin to designated owner email(s) once the login is actually
   // confirmed (i.e. here, after the code check) — never merely on signup, so
-  // someone can't claim admin just by entering the address.
-  if (_isAdminEmail(user.email) && !user.is_admin) {
-    user = await db.adminUpdateUser(user.id, { is_admin: true }) || user;
+  // someone can't claim admin just by entering the address. The owner account
+  // is also never a parent: if it was signed up as one, drop it back to a
+  // normal learner role so it's treated as an admin, not a parent.
+  if (_isAdminEmail(user.email)) {
+    const adminFixes = {};
+    if (!user.is_admin) adminFixes.is_admin = true;
+    if (user.role === 'parent') adminFixes.role = 'student';
+    if (Object.keys(adminFixes).length) {
+      user = await db.adminUpdateUser(user.id, adminFixes) || user;
+    }
   }
 
   // Apply any first-signup metadata that the user sent on /signup. Done after
