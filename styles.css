@@ -1210,6 +1210,18 @@ footer {
 .pricing-trial {
   font-size: 13px; color: var(--muted); margin: 8px 0 22px;
 }
+
+/* Summer promo: struck-through list price next to the free price. Sized down
+   from the 56px/44px full price so the pair fits one line on narrow cards. */
+.price-was {
+  color: var(--muted); font-size: 0.62em;
+  text-decoration-thickness: 2px;
+}
+/* Uniform size inside the strike: a smaller inline box would get its own
+   line-through position and read as an underline on "/month". */
+.price-was span { font-size: 1em; color: inherit; }
+.price-now { font-style: normal; color: var(--accent); }
+.upgrade-amount .price-was { font-size: 0.6em; }
 .pricing-list {
   list-style: none; padding: 0; margin: 0 0 8px;
   text-align: left; display: inline-block;

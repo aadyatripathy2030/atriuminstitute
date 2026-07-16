@@ -3,16 +3,27 @@
 
 (function () {
   const PRICES = {
-    monthly: { label: '$15', sub: '/month',
+    monthly: { label: '$30', sub: '/month',
                trial: 'Billed monthly · cancel anytime · 3-day free trial',
-               fine:  'After trial: $15/month. Cancel anytime.' },
-    yearly:  { label: '$150', sub: '/year',
-               trial: 'Billed annually · save $30 · cancel anytime · 3-day free trial',
-               fine:  'After trial: $150/year (≈$12.50/mo). Cancel anytime.' },
+               fine:  'After trial: $30/month. Cancel anytime.' },
+    yearly:  { label: '$300', sub: '/year',
+               trial: 'Billed annually · save $60 · cancel anytime · 3-day free trial',
+               fine:  'After trial: $300/year (≈$25/mo). Cancel anytime.' },
+  };
+
+  // Summer promo copy, shown in place of the live prices while the paywall
+  // kill switch is off. The list price is struck through rather than hidden so
+  // the promo reads as a discount instead of as "this was always free".
+  const SUMMER = {
+    monthly: { trial: 'Free for the summer · no card required',
+               fine:  'Free all summer. After that: $30/month or $300/year.' },
+    yearly:  { trial: 'Free for the summer · no card required',
+               fine:  'Free all summer. After that: $300/year (≈$25/mo).' },
   };
 
   let selectedPlanCard = 'monthly';
   let selectedPlanModal = 'monthly';
+  let summerMode = false;
 
   function el(id) { return document.getElementById(id); }
 
@@ -20,8 +31,13 @@
   function syncPricingCard() {
     const amount = el('pricingAmount');
     const trial = el('pricingTrial');
-    if (amount) amount.innerHTML = `${PRICES[selectedPlanCard].label}<span>${PRICES[selectedPlanCard].sub}</span>`;
-    if (trial) trial.textContent = PRICES[selectedPlanCard].trial;
+    const p = PRICES[selectedPlanCard];
+    if (amount) amount.innerHTML = summerMode
+      ? `<s class="price-was">${p.label}<span>${p.sub}</span></s> <em class="price-now">Free</em>`
+      : `${p.label}<span>${p.sub}</span>`;
+    if (trial) trial.textContent = (summerMode ? SUMMER : PRICES)[selectedPlanCard].trial;
+    const fine = el('pricingFine');
+    if (fine && summerMode) fine.textContent = SUMMER[selectedPlanCard].fine;
     document.querySelectorAll('.pricing-toggle-btn[data-plan]').forEach(b => {
       const active = b.dataset.plan === selectedPlanCard;
       b.classList.toggle('active', active);
@@ -43,8 +59,11 @@
   function syncUpgradeModal() {
     const amount = el('upgradeAmount');
     const fine = el('upgradeFine');
-    if (amount) amount.innerHTML = `${PRICES[selectedPlanModal].label}<span>${PRICES[selectedPlanModal].sub}</span>`;
-    if (fine) fine.textContent = PRICES[selectedPlanModal].fine;
+    const p = PRICES[selectedPlanModal];
+    if (amount) amount.innerHTML = summerMode
+      ? `<s class="price-was">${p.label}<span>${p.sub}</span></s> <em class="price-now">Free</em>`
+      : `${p.label}<span>${p.sub}</span>`;
+    if (fine) fine.textContent = (summerMode ? SUMMER : PRICES)[selectedPlanModal].fine;
     document.querySelectorAll('.pricing-toggle-btn[data-plan-modal]').forEach(b => {
       const active = b.dataset.planModal === selectedPlanModal;
       b.classList.toggle('active', active);
@@ -123,16 +142,33 @@
     }
   }
 
-  // Hide the pricing card and disable the upgrade modal when the server
-  // says the paywall is off (PAYWALL_DISABLED=1 on the host). Fail-open:
-  // if /api/config doesn't respond, leave the existing UI alone.
+  // When the paywall kill switch is off (PAYWALL_DISABLED=1 on the host) the
+  // pricing section stays visible but switches to the summer promo: list price
+  // struck through, "Free" beside it. Checkout would 503 in this state, so the
+  // Pro CTA points at signup instead. Fail-open: if /api/config doesn't
+  // respond, leave the existing UI alone.
   async function applyPaywallVisibility() {
     try {
       const r = await fetch('/api/config', { credentials: 'same-origin' });
       const cfg = await r.json();
       if (cfg && cfg.paywall_active === false) {
+        summerMode = true;
         const section = document.querySelector('.landing-pricing');
-        if (section) section.style.display = 'none';
+        if (section) section.classList.add('is-summer');
+
+        const badge = document.querySelector('.pricing-badge-pro');
+        if (badge) badge.textContent = 'Pro · free for the summer';
+
+        const sub = document.querySelector('.landing-pricing .landing-section-sub');
+        if (sub) sub.textContent = 'Pro is free for every student this summer — no card, no trial to cancel.';
+
+        const cta = el('pricingSubscribeBtn');
+        if (cta) {
+          cta.textContent = 'Get Pro free →';
+          cta.onclick = function () { if (typeof openAuth === 'function') openAuth('signup'); };
+        }
+
+        syncPricingCard();
         // Override requirePro so any feature-gate caller just passes through.
         window.requirePro = function () { return true; };
         // Make sure the upgrade modal can never pop.
