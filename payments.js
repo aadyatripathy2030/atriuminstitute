@@ -244,8 +244,25 @@
       }
     });
 
+    const pricingNav = el('pricingNavBtn');
+    if (pricingNav) pricingNav.addEventListener('click', () => window.showPricing());
+
     handleReturnFromStripe();
   }
+
+  // Signed-in users are routed straight into the app and never pass the
+  // landing page, so the "Pricing" item in the My Details menu brings the
+  // landing back and jumps to the pricing card.
+  window.showPricing = function () {
+    if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
+    const landing = el('landing');
+    if (landing) landing.classList.remove('hidden');
+    const section = document.querySelector('.landing-pricing');
+    if (!section) return;
+    // Wait a frame: the section has just been unhidden, so its offset isn't
+    // measurable yet on the same tick.
+    requestAnimationFrame(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
