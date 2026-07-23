@@ -210,6 +210,7 @@ async function handleSignupOrLogin(req, res) {
       ? Math.floor(body.gradeLevel) : null,
     country: typeof body.country === 'string' ? body.country : (typeof body.state === 'string' ? body.state : null),
     linkCode: typeof body.linkCode === 'string' ? body.linkCode : null,
+    referralCode: typeof body.referralCode === 'string' ? body.referralCode.slice(0, 32) : null,
     schoolName: typeof body.schoolName === 'string' ? body.schoolName.slice(0, 200) : null,
     schoolDistrict: typeof body.schoolDistrict === 'string' ? body.schoolDistrict.slice(0, 200) : null,
     isPrivateSchool: typeof body.isPrivateSchool === 'boolean' ? body.isPrivateSchool : null,
@@ -316,6 +317,24 @@ async function handleVerify(req, res) {
       if (linked && linked.ok) {
         user = await db.getUser(user.id) || user;
       }
+    }
+    // Referral attribution: first-signup only, idempotent, no self-referral.
+    // Stored in the generic KV store (no schema change). The referral code is
+    // the referrer's public link_code (looked up via findUserByLinkCode).
+    if (meta.referralCode) {
+      try {
+        const already = await db.getProgress(user.id, REFERRAL_KEY);
+        if (!already || !already.referredBy) {
+          const referrer = await db.findUserByLinkCode(meta.referralCode);
+          if (referrer && referrer.id !== user.id) {
+            await db.setProgress(user.id, REFERRAL_KEY, { referredBy: referrer.id, at: Date.now() });
+            const rref = (await db.getProgress(referrer.id, REFERRAL_KEY)) || {};
+            const referees = Array.isArray(rref.referees) ? rref.referees : [];
+            if (referees.indexOf(user.id) === -1) referees.push(user.id);
+            await db.setProgress(referrer.id, REFERRAL_KEY, Object.assign({}, rref, { referees: referees, count: referees.length }));
+          }
+        }
+      } catch (e) { console.warn('referral record failed:', e && e.message); }
     }
   }
 
@@ -1882,6 +1901,17 @@ async function handleGetMyPoints(req, res) {
 // stored in the generic per-user KV store (progress table) under 'shop_v1', so
 // no schema change is needed.
 const SHOP_KEY = 'shop_v1';
+const REFERRAL_KEY = 'referral_v1';
+
+// Referral status for the signed-in user. The shareable code IS their public
+// link_code; the client builds the full link as <origin>/?ref=<code>.
+async function handleGetReferral(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const mine = (await db.getProgress(u.id, REFERRAL_KEY)) || {};
+  const count = Array.isArray(mine.referees) ? mine.referees.length : (Number(mine.count) || 0);
+  json(res, 200, { code: u.link_code || '', count: count, referredBy: mine.referredBy || null });
+}
 async function _pointsTotal(userId) {
   try { const s = await db.getMyPointsSummary(userId); return (s && Number(s.all_time)) || 0; }
   catch (_) { return 0; }
@@ -3139,6 +3169,7 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/shop' && req.method === 'GET') return await handleGetShop(req, res);
     if (url === '/api/me/shop/buy' && req.method === 'POST') return await handleShopBuy(req, res);
     if (url === '/api/me/shop/equip' && req.method === 'POST') return await handleShopEquip(req, res);
+    if (url === '/api/me/referral' && req.method === 'GET') return await handleGetReferral(req, res);
     if (url.startsWith('/api/school-districts/search') && req.method === 'GET') return await handleSearchSchoolDistricts(req, res);
     if (url === '/api/me/survey' && req.method === 'POST') return await handleSaveSurvey(req, res);
     if (url === '/api/me/survey/skip' && req.method === 'POST') return await handleSkipSurvey(req, res);

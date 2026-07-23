@@ -695,6 +695,7 @@
         if (schoolDistrict) body.schoolDistrict = schoolDistrict;
         if (isPrivate !== null) body.isPrivateSchool = isPrivate;
         if (stateVal) body.stateCode = stateVal;
+        if (typeof window.getReferralCode === 'function' && window.getReferralCode()) body.referralCode = window.getReferralCode();
       }
       const result = await postJSON('/api/auth/signup', body);
       pendingEmail = email;
@@ -765,6 +766,7 @@
         if (pendingDistrict) body.schoolDistrict = pendingDistrict;
         if (pendingIsPrivate !== null) body.isPrivateSchool = pendingIsPrivate;
         if (pendingState) body.stateCode = pendingState;
+        if (typeof window.getReferralCode === 'function' && window.getReferralCode()) body.referralCode = window.getReferralCode();
       }
       await postJSON('/api/auth/signup', body);
       setResendStatus(`A new code has been sent to ${pendingEmail}. Check your inbox (and spam).`, 'ok');

@@ -204,6 +204,7 @@
           <button class="nav-menu-item" id="certsNavBtn" type="button" role="menuitem">Certificates 🎓</button>
           <button class="nav-menu-item" id="satNavBtn" type="button" role="menuitem">SAT / ACT Prep 🎯</button>
           <button class="nav-menu-item" id="shopNavBtn" type="button" role="menuitem">Rewards Shop 🪙</button>
+          <button class="nav-menu-item" id="referralNavBtn" type="button" role="menuitem">Invite Friends 🎁</button>
           <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -2220,6 +2221,35 @@
   </div>
 </footer>
 
+<!-- Invite friends (referral) overlay -->
+<div class="fc-overlay hidden" id="refOverlay" role="dialog" aria-modal="true" aria-labelledby="refTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="refClose" type="button" aria-label="Close">✕</button>
+    <h2 class="fc-title" id="refTitle">Invite Friends 🎁</h2>
+    <p class="fc-sub">Share your link. When a friend joins with it, <strong>their first month of Pro is on us</strong> — and you'll see your invites add up here.</p>
+
+    <div class="ref-linkbox">
+      <input type="text" id="refLink" class="fc-input ref-link-input" readonly aria-label="Your referral link" />
+      <button class="cta-primary" id="refCopy" type="button">Copy</button>
+    </div>
+    <div class="ref-share" id="refShare"></div>
+
+    <div class="ref-stats" id="refStats">
+      <div class="ref-stat"><span class="ref-stat-num" id="refCount">—</span><span class="ref-stat-label">Friends invited</span></div>
+    </div>
+
+    <div class="ref-how">
+      <div class="ref-how-h">How it works</div>
+      <ol class="ref-how-list">
+        <li>Send your link to a friend.</li>
+        <li>They sign up with it — free, no card needed.</li>
+        <li>When Pro launches, their <strong>first month is free</strong>. Monthly is $30/mo; yearly is $300/yr — just <strong>$25/month</strong>.</li>
+      </ol>
+    </div>
+    <div class="fc-error hidden" id="refError"></div>
+  </div>
+</div>
+
 <!-- Rewards shop overlay -->
 <div class="fc-overlay hidden" id="shopOverlay" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
   <div class="fc-card-panel">
@@ -2594,6 +2624,7 @@
 <script src="certificates.js"></script>
 <script src="satprep.js"></script>
 <script src="shop.js"></script>
+<script src="referral.js"></script>
 </body>
 </html>
 

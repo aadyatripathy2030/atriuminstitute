@@ -7,8 +7,8 @@
                trial: 'Billed monthly · cancel anytime · 3-day free trial',
                fine:  'After trial: $30/month. Cancel anytime.' },
     yearly:  { label: '$300', sub: '/year',
-               trial: 'Billed annually · save $60 · cancel anytime · 3-day free trial',
-               fine:  'After trial: $300/year (≈$25/mo). Cancel anytime.' },
+               trial: 'Just $25/month, billed annually · save $60 · cancel anytime · 3-day free trial',
+               fine:  'After trial: $300/year — that\'s $25/month. Cancel anytime.' },
   };
 
   // Summer promo copy, shown in place of the live prices while the paywall

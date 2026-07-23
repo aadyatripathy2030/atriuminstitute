@@ -7150,3 +7150,25 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
 :root[data-cosmetic="sunset"] { --accent: #d97742; --accent2: #e59468; --accent-soft: color-mix(in srgb, #d97742 16%, var(--paper)); }
 :root[data-cosmetic="grape"]  { --accent: #7d5bb0; --accent2: #9a7cc7; --accent-soft: color-mix(in srgb, #7d5bb0 16%, var(--paper)); }
 :root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --accent-soft: color-mix(in srgb, #c65b7c 16%, var(--paper)); }
+
+/* ============================================================
+   Invite Friends (referral) overlay. Added 2026-07.
+   ============================================================ */
+.ref-linkbox { display: flex; gap: 8px; margin: 6px 0 12px; }
+.ref-link-input { flex: 1; font-size: 13px; color: var(--text-soft); cursor: text; }
+.ref-share { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.ref-share-btn {
+  flex: 1 1 auto; text-align: center; text-decoration: none;
+  padding: 9px 12px; border-radius: 9px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border-strong); background: var(--card-hi); color: var(--text);
+  transition: background .15s, border-color .15s;
+}
+.ref-share-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.ref-stats { display: flex; gap: 10px; margin-bottom: 18px; }
+.ref-stat { flex: 1; text-align: center; padding: 16px 10px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 13px; }
+.ref-stat-num { display: block; font-family: var(--serif); font-size: 30px; font-weight: 600; color: var(--accent); }
+.ref-stat-label { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.ref-how { background: var(--card-hi); border: 1px solid var(--border); border-radius: 13px; padding: 14px 16px; }
+.ref-how-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+.ref-how-list { margin: 0; padding-left: 18px; }
+.ref-how-list li { font-size: 13px; color: var(--text-soft); line-height: 1.6; margin-bottom: 4px; }
