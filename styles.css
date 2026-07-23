@@ -6923,3 +6923,37 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
   .nb-sidebar { max-height: 42%; }
   .nb-empty { grid-column: 1; }
 }
+
+/* ============================================================
+   Study calendar — activity heatmap. Added 2026-07.
+   Reuses the .fc-overlay / .fc-card-panel modal shell.
+   ============================================================ */
+#calOverlay .fc-card-panel { max-width: 560px; }
+.cal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0 20px; }
+.cal-stat { text-align: center; padding: 12px 8px; background: var(--card-hi); border: 1px solid var(--border); border-radius: 12px; }
+.cal-stat-num { display: block; font-family: var(--serif); font-size: 26px; font-weight: 600; color: var(--text); }
+.cal-stat-label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-month { font-weight: 700; font-size: 16px; color: var(--text); }
+.cal-nav {
+  width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--card-hi); color: var(--text);
+  font-size: 16px; font-family: var(--font); transition: background .15s, border-color .15s;
+}
+.cal-nav:hover { background: var(--accent-soft); border-color: var(--accent); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-wd { text-align: center; font-size: 11px; color: var(--muted); font-weight: 600; padding-bottom: 4px; }
+.cal-cell { aspect-ratio: 1 / 1; border-radius: 8px; position: relative; }
+.cal-empty { background: transparent; }
+.cal-day { border: 1px solid var(--border); display: grid; place-items: center; }
+.cal-daynum { font-size: 12px; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+/* Heatmap tiers */
+.cal-l0 { background: var(--card-hi); }
+.cal-l1 { background: color-mix(in srgb, var(--accent) 22%, var(--card-hi)); }
+.cal-l2 { background: color-mix(in srgb, var(--accent) 45%, var(--card-hi)); }
+.cal-l3 { background: color-mix(in srgb, var(--accent) 70%, var(--card-hi)); }
+.cal-l4 { background: var(--accent); }
+.cal-l3 .cal-daynum, .cal-l4 .cal-daynum { color: #fff; }
+.cal-today { outline: 2px solid var(--text); outline-offset: 1px; }
+.cal-legend { display: flex; align-items: center; gap: 6px; justify-content: flex-end; margin-top: 14px; font-size: 11px; color: var(--muted); }
+.cal-legend .cal-cell { width: 15px; height: 15px; aspect-ratio: auto; border: 1px solid var(--border); }

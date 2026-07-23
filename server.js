@@ -993,7 +993,10 @@ async function handleGetMyQuizAttempts(req, res) {
 async function handleGetMyActivity(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
-  const activity = await db.listActivity(u.id);
+  let limit;
+  try { limit = parseInt(new URL(req.url, 'http://localhost').searchParams.get('limit'), 10); } catch (_) {}
+  // listActivity clamps to 500; default stays 50 when no valid limit is given.
+  const activity = await db.listActivity(u.id, limit ? { limit } : {});
   json(res, 200, { activity });
 }
 

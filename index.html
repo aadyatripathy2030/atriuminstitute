@@ -197,6 +197,7 @@
           <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem">Flashcards 🃏</button>
           <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem">Essay Grader ✍️</button>
           <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem">Notebook 📓</button>
+          <button class="nav-menu-item" id="calendarNavBtn" type="button" role="menuitem">Study Calendar 📅</button>
           <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -2213,6 +2214,39 @@
   </div>
 </footer>
 
+<!-- Study calendar overlay -->
+<div class="fc-overlay hidden" id="calOverlay" role="dialog" aria-modal="true" aria-labelledby="calTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="calClose" type="button" aria-label="Close">✕</button>
+    <h2 class="fc-title" id="calTitle">Study Calendar 📅</h2>
+    <p class="fc-sub">Every day you study lights up. Keep the streak alive.</p>
+
+    <div class="cal-stats" id="calStats">
+      <div class="cal-stat"><span class="cal-stat-num" id="calStreak">—</span><span class="cal-stat-label">Day streak</span></div>
+      <div class="cal-stat"><span class="cal-stat-num" id="calDaysMonth">—</span><span class="cal-stat-label">Days this month</span></div>
+      <div class="cal-stat"><span class="cal-stat-num" id="calActsMonth">—</span><span class="cal-stat-label">Activities this month</span></div>
+    </div>
+
+    <div class="cal-head">
+      <button class="cal-nav" id="calPrev" type="button" aria-label="Previous month">←</button>
+      <span class="cal-month" id="calMonth"></span>
+      <button class="cal-nav" id="calNext" type="button" aria-label="Next month">→</button>
+    </div>
+    <div class="cal-grid" id="calWeekdays"></div>
+    <div class="cal-grid" id="calDays"></div>
+    <div class="cal-legend">
+      <span>Less</span>
+      <span class="cal-cell cal-l0"></span>
+      <span class="cal-cell cal-l1"></span>
+      <span class="cal-cell cal-l2"></span>
+      <span class="cal-cell cal-l3"></span>
+      <span class="cal-cell cal-l4"></span>
+      <span>More</span>
+    </div>
+    <div class="fc-error hidden" id="calError"></div>
+  </div>
+</div>
+
 <!-- Notebook overlay -->
 <div class="fc-overlay hidden" id="nbOverlay" role="dialog" aria-modal="true" aria-labelledby="nbTitle">
   <div class="nb-panel">
@@ -2372,6 +2406,7 @@
 <script src="flashcards.js"></script>
 <script src="essaygrader.js"></script>
 <script src="notebook.js"></script>
+<script src="calendar.js"></script>
 </body>
 </html>
 
