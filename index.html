@@ -200,6 +200,7 @@
           <button class="nav-menu-item" id="calendarNavBtn" type="button" role="menuitem">Study Calendar 📅</button>
           <button class="nav-menu-item" id="calculatorNavBtn" type="button" role="menuitem">Calculator 🧮</button>
           <button class="nav-menu-item" id="formulasNavBtn" type="button" role="menuitem">Formula Sheet 📐</button>
+          <button class="nav-menu-item" id="certsNavBtn" type="button" role="menuitem">Certificates 🎓</button>
           <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -2216,6 +2217,43 @@
   </div>
 </footer>
 
+<!-- Certificates overlay -->
+<div class="fc-overlay hidden" id="certOverlay" role="dialog" aria-modal="true" aria-labelledby="certTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="certClose" type="button" aria-label="Close">✕</button>
+
+    <!-- List view -->
+    <div id="certListView">
+      <h2 class="fc-title" id="certTitle">Certificates 🎓</h2>
+      <p class="fc-sub">Complete every quiz and test in a course to earn its certificate.</p>
+      <div class="cert-list" id="certList"></div>
+    </div>
+
+    <!-- Certificate view -->
+    <div class="cert-view hidden" id="certView">
+      <div class="cert" id="certPrintArea">
+        <div class="cert-border">
+          <div class="cert-mark">Σ</div>
+          <div class="cert-kicker">Atrium Institute</div>
+          <div class="cert-h">Certificate of Completion</div>
+          <div class="cert-line">This certifies that</div>
+          <div class="cert-name" id="certName">—</div>
+          <div class="cert-line">has successfully completed all coursework in</div>
+          <div class="cert-course" id="certCourse">—</div>
+          <div class="cert-foot">
+            <div class="cert-foot-item"><span id="certDate"></span><small>Date</small></div>
+            <div class="cert-foot-item"><span class="cert-sig">Max</span><small>AI Tutor · Atrium Institute</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="cert-actions">
+        <button class="cta-secondary" id="certBack" type="button">← All courses</button>
+        <button class="cta-primary" id="certPrint" type="button">Print / Save as PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Calculator overlay -->
 <div class="fc-overlay hidden" id="calcOverlay" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
   <div class="fc-card-panel calc-panel">
@@ -2477,6 +2515,7 @@
 <script src="calendar.js"></script>
 <script src="calculator.js"></script>
 <script src="formulas.js"></script>
+<script src="certificates.js"></script>
 </body>
 </html>
 

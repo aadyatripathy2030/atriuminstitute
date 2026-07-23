@@ -7005,3 +7005,57 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
   .fm-row { flex-direction: column; align-items: flex-start; gap: 4px; }
   .fm-math { text-align: left; }
 }
+
+/* ============================================================
+   Certificates — earned-course list + printable certificate.
+   Added 2026-07. Reuses the .fc-overlay / .fc-card-panel shell.
+   ============================================================ */
+.cert-list { margin-top: 8px; }
+.cert-group-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 16px 0 8px; }
+.cert-group-h:first-child { margin-top: 0; }
+.cert-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+.cert-done { background: linear-gradient(135deg, var(--accent-soft), var(--paper)); border-color: var(--accent); }
+.cert-item-info { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.cert-item-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.cert-item-sub { font-size: 12px; color: var(--muted); }
+.cert-bar { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 4px; }
+.cert-bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.cert-get { padding: 8px 14px; font-size: 13px; flex: 0 0 auto; }
+.cert-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 24px 12px; line-height: 1.6; }
+
+/* Certificate view */
+.cert-view.hidden { display: none; }
+.cert {
+  background: #fbfaf6; border-radius: 8px; padding: 10px;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+:root[data-theme="dark"] .cert { background: #f4f2ea; }
+.cert-border {
+  border: 2px solid #b9a66b; border-radius: 6px; padding: 30px 28px; text-align: center;
+  box-shadow: inset 0 0 0 4px #fbfaf6, inset 0 0 0 5px #e4dcc0;
+  color: #2b2a24;
+}
+.cert-mark {
+  width: 46px; height: 46px; margin: 0 auto 10px; border-radius: 11px;
+  background: linear-gradient(150deg, #26344a, #141c28); color: #eef3fa;
+  display: grid; place-items: center; font-family: var(--serif); font-weight: 600; font-size: 26px;
+}
+.cert-kicker { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8a7a45; font-weight: 600; }
+.cert-h { font-family: var(--serif); font-size: 26px; font-weight: 600; margin: 6px 0 18px; color: #2b2a24; }
+.cert-line { font-size: 13px; color: #6b6552; margin: 4px 0; }
+.cert-name { font-family: var(--serif); font-style: italic; font-size: 30px; color: #1a2230; margin: 8px 0; }
+.cert-course { font-family: var(--serif); font-size: 21px; font-weight: 600; color: #4a6fa5; margin: 6px 0 20px; }
+.cert-foot { display: flex; justify-content: space-around; gap: 24px; margin-top: 22px; }
+.cert-foot-item { display: flex; flex-direction: column; align-items: center; }
+.cert-foot-item span { font-size: 15px; color: #2b2a24; border-bottom: 1px solid #b9a66b; padding: 0 20px 4px; min-width: 120px; }
+.cert-foot-item .cert-sig { font-family: var(--serif); font-style: italic; font-size: 18px; border: none; }
+.cert-foot-item small { font-size: 10px; color: #8a7a45; text-transform: uppercase; letter-spacing: .6px; margin-top: 5px; }
+.cert-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+/* Print: isolate the certificate, landscape. */
+@media print {
+  body * { visibility: hidden !important; }
+  #certPrintArea, #certPrintArea * { visibility: visible !important; }
+  #certPrintArea { position: fixed; inset: 0; margin: auto; width: 90%; height: auto; box-shadow: none; }
+  @page { size: landscape; margin: 12mm; }
+}
