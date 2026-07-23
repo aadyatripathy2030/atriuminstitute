@@ -201,6 +201,7 @@
           <button class="nav-menu-item" id="calculatorNavBtn" type="button" role="menuitem">Calculator 🧮</button>
           <button class="nav-menu-item" id="formulasNavBtn" type="button" role="menuitem">Formula Sheet 📐</button>
           <button class="nav-menu-item" id="certsNavBtn" type="button" role="menuitem">Certificates 🎓</button>
+          <button class="nav-menu-item" id="satNavBtn" type="button" role="menuitem">SAT / ACT Prep 🎯</button>
           <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -2217,6 +2218,62 @@
   </div>
 </footer>
 
+<!-- SAT / ACT prep overlay -->
+<div class="fc-overlay hidden" id="satOverlay" role="dialog" aria-modal="true" aria-labelledby="satTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="satClose" type="button" aria-label="Close">✕</button>
+
+    <!-- Setup -->
+    <div id="satSetup">
+      <h2 class="fc-title" id="satTitle">SAT / ACT Prep 🎯</h2>
+      <p class="fc-sub">Timed, authentic-style practice with instant scoring and explanations.</p>
+      <div class="sat-field"><label>Test</label>
+        <div class="sat-seg" id="satTest">
+          <button class="sat-seg-btn active" data-test="SAT" type="button">SAT</button>
+          <button class="sat-seg-btn" data-test="ACT" type="button">ACT</button>
+        </div>
+      </div>
+      <div class="sat-field"><label>Section</label>
+        <select id="satSubject" class="fc-select" style="width:100%"></select>
+      </div>
+      <div class="sat-field"><label>Questions</label>
+        <div class="sat-seg" id="satCount">
+          <button class="sat-seg-btn active" data-count="5" type="button">5</button>
+          <button class="sat-seg-btn" data-count="8" type="button">8</button>
+          <button class="sat-seg-btn" data-count="10" type="button">10</button>
+        </div>
+      </div>
+      <button class="cta-primary cta-full" id="satStart" type="button">Start practice</button>
+      <div class="fc-error hidden" id="satError"></div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="sat-quiz hidden" id="satQuiz">
+      <div class="sat-bar">
+        <span class="sat-prog" id="satProg">Q 1 / 5</span>
+        <span class="sat-timer" id="satTimer">0:00</span>
+      </div>
+      <div class="sat-topic" id="satTopic"></div>
+      <div class="sat-q" id="satQText"></div>
+      <div class="sat-choices" id="satChoices"></div>
+      <div class="sat-quiz-actions">
+        <button class="cta-secondary" id="satPrev" type="button">← Prev</button>
+        <button class="cta-primary" id="satNext" type="button">Next →</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="sat-results hidden" id="satResults">
+      <div class="sat-score-wrap">
+        <div class="sat-score-ring" id="satScoreRing"><span id="satScore">0</span><small id="satScoreOf">/0</small></div>
+        <div class="sat-score-text"><div class="sat-score-pct" id="satScorePct"></div><div class="sat-score-time" id="satScoreTime"></div></div>
+      </div>
+      <div class="sat-review" id="satReview"></div>
+      <button class="cta-primary cta-full" id="satAgain" type="button">New practice set</button>
+    </div>
+  </div>
+</div>
+
 <!-- Certificates overlay -->
 <div class="fc-overlay hidden" id="certOverlay" role="dialog" aria-modal="true" aria-labelledby="certTitle">
   <div class="fc-card-panel">
@@ -2516,6 +2573,7 @@
 <script src="calculator.js"></script>
 <script src="formulas.js"></script>
 <script src="certificates.js"></script>
+<script src="satprep.js"></script>
 </body>
 </html>
 

@@ -571,10 +571,25 @@ Rules:
 - If the ESSAY is empty, off-topic gibberish, or not an essay, return overall.score 0, band "Emerging", and explain in summary.
 JSON only.`;
 
+const SAT_PRACTICE_STATIC = `You are an expert SAT and ACT tutor. You receive a TEST (SAT or ACT), a SUBJECT, and a COUNT. Produce COUNT original, authentic-style multiple-choice practice questions for that test and subject, with a realistic difficulty mix (some easy, some medium, a few hard).
+
+Output ONLY a JSON object of this exact shape, with no preamble or markdown:
+{"questions":[{"question":"...","choices":["...","...","...","..."],"answer":0,"explanation":"...","topic":"..."}]}
+
+Rules:
+- Exactly 4 choices per question. "answer" is the 0-based index of the correct choice.
+- Questions must be self-contained and solvable from the text alone. For reading questions, include any needed short passage inside the "question" field.
+- Write math in plain readable notation (e.g., x^2, sqrt(2), 3/4, <=, pi). No LaTeX.
+- "explanation" briefly says why the correct choice is right (1-3 sentences).
+- "topic" is a short label (e.g., "Linear equations", "Command of Evidence").
+- Write ORIGINAL questions — never reproduce real published test items.
+JSON only.`;
+
 const PROMPTS = {
   chat: CHAT_STATIC,
   flashcards: FLASHCARDS_STATIC,
   'essay-grade': ESSAY_GRADE_STATIC,
+  'sat-practice': SAT_PRACTICE_STATIC,
   mistake: MISTAKE_STATIC,
   grade: GRADE_STATIC,
   recommendation: REC_STATIC,

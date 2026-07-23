@@ -78,6 +78,29 @@ const AI = {
       .map(c => ({ front: c.front.trim(), back: c.back.trim() }));
   },
 
+  async generateSatPractice(test, subject, count = 8) {
+    const out = await this._call({
+      intent: 'sat-practice',
+      model: MODEL_SMART,
+      messages: [{ role: 'user', content: `TEST: ${test}\nSUBJECT: ${subject}\nCOUNT: ${count}` }],
+      max_tokens: 3000,
+      temperature: 0.5
+    });
+    const match = out.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse the questions.');
+    let parsed;
+    try { parsed = JSON.parse(match[0]); }
+    catch (_) { throw new Error('Could not parse the questions.'); }
+    const qs = Array.isArray(parsed.questions) ? parsed.questions : [];
+    return qs.filter(function (q) {
+      return q && typeof q.question === 'string' && Array.isArray(q.choices) && q.choices.length === 4
+        && typeof q.answer === 'number' && q.answer >= 0 && q.answer < 4;
+    }).map(function (q) {
+      return { question: q.question, choices: q.choices.map(String), answer: q.answer,
+               explanation: String(q.explanation || ''), topic: String(q.topic || '') };
+    });
+  },
+
   async gradeEssay(essay, assignment) {
     const text = String(essay || '').trim();
     if (!text) throw new Error('Paste an essay first.');
