@@ -6957,3 +6957,51 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
 .cal-today { outline: 2px solid var(--text); outline-offset: 1px; }
 .cal-legend { display: flex; align-items: center; gap: 6px; justify-content: flex-end; margin-top: 14px; font-size: 11px; color: var(--muted); }
 .cal-legend .cal-cell { width: 15px; height: 15px; aspect-ratio: auto; border: 1px solid var(--border); }
+
+/* ============================================================
+   Calculator + Formula sheet. Added 2026-07.
+   Reuse the .fc-overlay / .fc-card-panel modal shell.
+   ============================================================ */
+.calc-panel { max-width: 380px; }
+.calc-display {
+  background: var(--card-hi); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; text-align: right;
+  min-height: 78px; display: flex; flex-direction: column; justify-content: center;
+}
+.calc-expr { font-size: 15px; color: var(--muted); min-height: 20px; word-break: break-all; font-variant-numeric: tabular-nums; }
+.calc-res { font-family: var(--serif); font-size: 30px; font-weight: 600; color: var(--text); word-break: break-all; }
+.calc-pad { display: flex; flex-direction: column; gap: 8px; }
+.calc-fns { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.calc-keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.calc-btn {
+  padding: 13px 0; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--paper); color: var(--text);
+  font-family: var(--font); font-size: 16px; font-weight: 500;
+  transition: background .12s, border-color .12s, transform .06s;
+}
+.calc-btn:hover { background: var(--card-hi); border-color: var(--border-strong); }
+.calc-btn:active { transform: translateY(1px); }
+.calc-fn { font-size: 13px; background: var(--card-hi); color: var(--text-soft); }
+.calc-op { color: var(--accent); font-weight: 600; }
+.calc-clear { color: var(--bad); font-weight: 600; }
+.calc-eq { grid-column: span 5; background: var(--text); color: var(--paper); border-color: var(--text); font-weight: 600; }
+.calc-eq:hover { background: #2a2e46; }
+.calc-fn[aria-pressed] { position: relative; }
+
+/* Formula sheet */
+.fm-list { max-height: 60vh; overflow-y: auto; }
+.fm-cat {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--accent); margin: 16px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.fm-cat:first-child { margin-top: 0; }
+.fm-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 9px 2px; border-top: 1px solid var(--border); }
+.fm-row:first-of-type { border-top: none; }
+.fm-name { font-size: 13.5px; color: var(--text-soft); flex: 0 0 auto; max-width: 45%; }
+.fm-math { font-size: 15px; color: var(--text); overflow-x: auto; text-align: right; }
+.fm-empty { text-align: center; color: var(--muted); padding: 30px; font-size: 14px; }
+.fm-empty.hidden { display: none; }
+@media (max-width: 480px) {
+  .fm-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .fm-math { text-align: left; }
+}

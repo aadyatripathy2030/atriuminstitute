@@ -198,6 +198,8 @@
           <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem">Essay Grader ✍️</button>
           <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem">Notebook 📓</button>
           <button class="nav-menu-item" id="calendarNavBtn" type="button" role="menuitem">Study Calendar 📅</button>
+          <button class="nav-menu-item" id="calculatorNavBtn" type="button" role="menuitem">Calculator 🧮</button>
+          <button class="nav-menu-item" id="formulasNavBtn" type="button" role="menuitem">Formula Sheet 📐</button>
           <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -2214,6 +2216,72 @@
   </div>
 </footer>
 
+<!-- Calculator overlay -->
+<div class="fc-overlay hidden" id="calcOverlay" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
+  <div class="fc-card-panel calc-panel">
+    <button class="fc-close" id="calcClose" type="button" aria-label="Close">✕</button>
+    <h2 class="fc-title" id="calcTitle">Calculator 🧮</h2>
+    <div class="calc-display">
+      <div class="calc-expr" id="calcExpr">0</div>
+      <div class="calc-res" id="calcResult">0</div>
+    </div>
+    <div class="calc-pad" id="calcPad">
+      <div class="calc-fns">
+        <button class="calc-btn calc-fn" data-act="deg" id="calcDeg" aria-pressed="true">DEG</button>
+        <button class="calc-btn calc-fn" data-ins="sin(">sin</button>
+        <button class="calc-btn calc-fn" data-ins="cos(">cos</button>
+        <button class="calc-btn calc-fn" data-ins="tan(">tan</button>
+        <button class="calc-btn calc-fn" data-ins="ln(">ln</button>
+        <button class="calc-btn calc-fn" data-ins="log(">log</button>
+        <button class="calc-btn calc-fn" data-ins="sqrt(">√</button>
+        <button class="calc-btn calc-fn" data-ins="^ 2">x²</button>
+        <button class="calc-btn calc-fn" data-ins="^">xʸ</button>
+        <button class="calc-btn calc-fn" data-ins="pi">π</button>
+        <button class="calc-btn calc-fn" data-ins="e">e</button>
+        <button class="calc-btn calc-fn" data-ins="!">n!</button>
+      </div>
+      <div class="calc-keys">
+        <button class="calc-btn calc-op" data-ins="(">(</button>
+        <button class="calc-btn calc-op" data-ins=")">)</button>
+        <button class="calc-btn calc-clear" data-act="clear">C</button>
+        <button class="calc-btn calc-op" data-act="back">⌫</button>
+        <button class="calc-btn calc-op" data-ins="/">÷</button>
+
+        <button class="calc-btn" data-ins="7">7</button>
+        <button class="calc-btn" data-ins="8">8</button>
+        <button class="calc-btn" data-ins="9">9</button>
+        <button class="calc-btn calc-op" data-ins="*">×</button>
+        <button class="calc-btn calc-op" data-ins="^">^</button>
+
+        <button class="calc-btn" data-ins="4">4</button>
+        <button class="calc-btn" data-ins="5">5</button>
+        <button class="calc-btn" data-ins="6">6</button>
+        <button class="calc-btn calc-op" data-ins="-">−</button>
+        <button class="calc-btn calc-op" data-ins="+">+</button>
+
+        <button class="calc-btn" data-ins="1">1</button>
+        <button class="calc-btn" data-ins="2">2</button>
+        <button class="calc-btn" data-ins="3">3</button>
+        <button class="calc-btn" data-ins="0">0</button>
+        <button class="calc-btn" data-ins=".">.</button>
+
+        <button class="calc-btn calc-eq" data-act="equals">=</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Formula sheet overlay -->
+<div class="fc-overlay hidden" id="fmOverlay" role="dialog" aria-modal="true" aria-labelledby="fmTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="fmClose" type="button" aria-label="Close">✕</button>
+    <h2 class="fc-title" id="fmTitle">Formula Sheet 📐</h2>
+    <input type="text" id="fmSearch" class="fc-input" placeholder="Search formulas — e.g. quadratic, area, derivative" style="width:100%;margin-bottom:16px" />
+    <div class="fm-list" id="fmList"></div>
+    <div class="fm-empty hidden" id="fmEmpty">No formulas match that search.</div>
+  </div>
+</div>
+
 <!-- Study calendar overlay -->
 <div class="fc-overlay hidden" id="calOverlay" role="dialog" aria-modal="true" aria-labelledby="calTitle">
   <div class="fc-card-panel">
@@ -2407,6 +2475,8 @@
 <script src="essaygrader.js"></script>
 <script src="notebook.js"></script>
 <script src="calendar.js"></script>
+<script src="calculator.js"></script>
+<script src="formulas.js"></script>
 </body>
 </html>
 
