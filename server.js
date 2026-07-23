@@ -20,6 +20,7 @@ const prompts = require('./prompts');
 const { loadCourses } = require('./curriculum-loader');
 const stripeLib = require('./stripe-lib');
 const shopLib = require('./shop-lib');
+const refLib = require('./referral-lib');
 
 // Anthropic pricing per million tokens (USD), as of mid-2026. If a model
 // is not listed we charge using Sonnet rates (conservative). Update when
@@ -1908,9 +1909,13 @@ const REFERRAL_KEY = 'referral_v1';
 async function handleGetReferral(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Not signed in.' });
-  const mine = (await db.getProgress(u.id, REFERRAL_KEY)) || {};
-  const count = Array.isArray(mine.referees) ? mine.referees.length : (Number(mine.count) || 0);
-  json(res, 200, { code: u.link_code || '', count: count, referredBy: mine.referredBy || null });
+  const mine = refLib.normalize(await db.getProgress(u.id, REFERRAL_KEY));
+  json(res, 200, {
+    code: u.link_code || '',
+    count: mine.count,
+    rewardMonths: mine.rewardMonths,
+    referredBy: mine.referredBy || null,
+  });
 }
 async function _pointsTotal(userId) {
   try { const s = await db.getMyPointsSummary(userId); return (s && Number(s.all_time)) || 0; }
@@ -2824,7 +2829,15 @@ async function handleStripeCheckout(req, res) {
   const body = await readJSON(req);
   const plan = (body && body.plan === 'yearly') ? 'yearly' : 'monthly';
   try {
-    const url = await stripeLib.createCheckoutSession(u, db, plan);
+    // Apply referral perks (referee's free first month + any earned reward
+    // months) as extra trial days. Redemption is marked on the webhook once the
+    // subscription actually exists, so an abandoned checkout keeps the perk.
+    const refState = (await db.getProgress(u.id, REFERRAL_KEY)) || {};
+    const perk = refLib.checkoutPerk(refState);
+    const url = await stripeLib.createCheckoutSession(u, db, plan, {
+      trialDays: perk.trialDays,
+      referralMeta: perk.meta,
+    });
     json(res, 200, { url });
   } catch (e) {
     console.error('Stripe checkout error:', e.message);
@@ -2895,6 +2908,31 @@ async function processStripeEvent(event) {
         return;
       }
       await db.updateSubscription(user.id, stripeLib.subscriptionRow(obj));
+      // Referral settlement — once per subscription (guarded by subscriptionCounted):
+      //  • mark the subscriber's applied perks (free first month / reward months) as spent
+      //  • credit the referrer one free month for bringing this person in
+      if (event.type === 'customer.subscription.created') {
+        try {
+          const refState = refLib.normalize(await db.getProgress(user.id, REFERRAL_KEY));
+          if (!refState.subscriptionCounted) {
+            const meta = obj.metadata || {};
+            const applied = {
+              signupApplied: meta.atrium_ref_signup === '1',
+              rewardMonthsApplied: parseInt(meta.atrium_ref_reward_months, 10) || 0,
+            };
+            let newState = refLib.redeem(refState, applied);
+            newState.subscriptionCounted = true;
+            if (newState.referredBy) {
+              const referrer = await db.getUser(newState.referredBy);
+              if (referrer) {
+                const rState = await db.getProgress(referrer.id, REFERRAL_KEY);
+                await db.setProgress(referrer.id, REFERRAL_KEY, refLib.accrueReward(rState));
+              }
+            }
+            await db.setProgress(user.id, REFERRAL_KEY, newState);
+          }
+        } catch (e) { console.warn('referral settlement failed:', e && e.message); }
+      }
       return;
     }
     case 'customer.subscription.deleted': {
@@ -3336,4 +3374,5 @@ server.listen(PORT, () => {
 // in tests — they exit after asserting). Not used by the production entrypoint.
 module.exports = {
   _measuredLevels, _targetDifficulty, _pickPersonalisedPOD, _buildCandidatePool, _buildPODProfile,
+  processStripeEvent,
 };

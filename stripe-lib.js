@@ -62,18 +62,27 @@ async function ensureCustomer(user, db) {
   return customer.id;
 }
 
-async function createCheckoutSession(user, db, plan) {
+async function createCheckoutSession(user, db, plan, opts) {
   if (!isConfigured()) throw new Error('Stripe is not configured.');
+  opts = opts || {};
   const priceId = priceFor(plan);
   if (!priceId) throw new Error('Unknown plan: ' + plan);
   const customer = await ensureCustomer(user, db);
+  // Referral perks extend the trial (one free month = 30 days). The referral
+  // metadata rides on the subscription so the webhook can mark perks redeemed.
+  const trialDays = (Number.isFinite(opts.trialDays) && opts.trialDays > 0) ? Math.floor(opts.trialDays) : TRIAL_DAYS;
+  const subMeta = { atrium_user_id: user.id, plan };
+  if (opts.referralMeta) {
+    if (opts.referralMeta.signupApplied) subMeta.atrium_ref_signup = '1';
+    if (opts.referralMeta.rewardMonthsApplied > 0) subMeta.atrium_ref_reward_months = String(opts.referralMeta.rewardMonthsApplied);
+  }
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer,
     line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
-      trial_period_days: TRIAL_DAYS,
-      metadata: { atrium_user_id: user.id, plan },
+      trial_period_days: trialDays,
+      metadata: subMeta,
     },
     // Avoid charging users without confirming the address/card — keep it
     // friction-free for the trial.

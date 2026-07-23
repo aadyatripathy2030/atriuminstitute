@@ -47,6 +47,7 @@
       myLink = location.origin + '/?ref=' + encodeURIComponent(d.code || '');
       if (el('refLink')) el('refLink').value = myLink;
       if (el('refCount')) el('refCount').textContent = String(d.count || 0);
+      if (el('refReward')) el('refReward').textContent = String(d.rewardMonths || 0);
       renderShare(myLink);
     } catch (e) {
       if (errEl) { errEl.textContent = (e && e.message) || 'Could not load your invite link.'; show(errEl); }
