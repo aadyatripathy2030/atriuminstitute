@@ -112,18 +112,25 @@
     <button class="nav-cta hidden" id="navSignUpBtn" type="button">Sign up</button>
     <span class="nav-user hidden" id="navUser">
       <div class="nav-menu">
-        <button class="nav-link" id="myDetailsBtn" type="button" aria-haspopup="menu" aria-expanded="false">My Details ▾</button>
-        <div class="nav-menu-items hidden" id="myDetailsMenu" role="menu">
-          <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
-          <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
-          <button class="nav-menu-item" id="favoritesNavBtn" type="button" role="menuitem">My Favorites</button>
-          <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
-          <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem">Achievements</button>
-          <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem">Leaderboard</button>
-          <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
+        <button class="nav-link" id="studyToolsBtn" type="button" aria-haspopup="menu" aria-expanded="false">Study Tools ▾</button>
+        <div class="nav-menu-items hidden" id="studyToolsMenu" role="menu">
           <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem">Flashcards 🃏</button>
           <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem">Essay Grader ✍️</button>
           <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem">Notebook 📓</button>
+          <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
+          <div class="nav-menu-divider" aria-hidden="true"></div>
+          <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
+          <button class="nav-menu-item" id="favoritesNavBtn" type="button" role="menuitem">My Favorites</button>
+          <div class="nav-menu-divider" aria-hidden="true"></div>
+          <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem">Activity</button>
+          <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem">Achievements</button>
+          <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem">Leaderboard</button>
+        </div>
+      </div>
+      <div class="nav-menu">
+        <button class="nav-link" id="myDetailsBtn" type="button" aria-haspopup="menu" aria-expanded="false">My Details ▾</button>
+        <div class="nav-menu-items hidden" id="myDetailsMenu" role="menu">
+          <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem">Profile</button>
           <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <button class="nav-menu-item" id="pricingNavBtn" type="button" role="menuitem">Pricing</button>
           <button class="nav-menu-item hidden" id="adminNavBtn" type="button" role="menuitem">🛡️ Admin</button>

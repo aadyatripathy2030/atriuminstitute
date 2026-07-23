@@ -1139,7 +1139,7 @@
           if (!t || t.tagName !== 'BUTTON') return;
           // The nested "About Atrium" / "My Details" toggle buttons
           // need to keep the drawer open so the submenu can expand.
-          if (t.id === 'aboutAtriumBtn' || t.id === 'myDetailsBtn') return;
+          if (t.id === 'aboutAtriumBtn' || t.id === 'myDetailsBtn' || t.id === 'studyToolsBtn') return;
           closeNavDrawer();
         });
       }
@@ -1188,6 +1188,35 @@
         }
       });
     }
+
+    // "Study Tools" dropdown: flashcards, essay grader, notebook, snap & solve,
+    // curriculum, favorites, activity, achievements, leaderboard. Signed-in only
+    // (lives inside #navUser). Same open/close pattern as About Atrium.
+    const studyToolsBtn = el('studyToolsBtn');
+    const studyToolsMenu = el('studyToolsMenu');
+    if (studyToolsBtn && studyToolsMenu) {
+      studyToolsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willShow = studyToolsMenu.classList.contains('hidden');
+        studyToolsMenu.classList.toggle('hidden', !willShow);
+        studyToolsBtn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+      });
+      studyToolsMenu.querySelectorAll('.nav-menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          studyToolsMenu.classList.add('hidden');
+          studyToolsBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+      document.addEventListener('click', (e) => {
+        if (!studyToolsMenu.classList.contains('hidden')
+            && !studyToolsMenu.contains(e.target)
+            && e.target !== studyToolsBtn) {
+          studyToolsMenu.classList.add('hidden');
+          studyToolsBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
     const myDetailsMenu = el('myDetailsMenu');
     if (myDetailsMenu) {
       myDetailsMenu.addEventListener('click', (e) => {
