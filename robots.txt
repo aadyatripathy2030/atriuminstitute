@@ -1,0 +1,7 @@
+# Atrium Institute — https://atriuminstitute.ai
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+Sitemap: https://atriuminstitute.ai/sitemap.xml

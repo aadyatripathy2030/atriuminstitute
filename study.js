@@ -337,7 +337,7 @@ Which section should we focus on? Once I pick, please walk me through it using t
     }
     document.title = pomoState.running
       ? `${fmt(pomoState.secondsLeft)} · ${phase.label} — Atrium Institute`
-      : 'Atrium Institute';
+      : 'Atrium Institute — Learn math & English like you mean it';
   }
 
   function pomoAdvance() {
