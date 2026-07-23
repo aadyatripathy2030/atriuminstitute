@@ -2044,6 +2044,50 @@ function _buildCandidatePool(profile) {
 // Score 0..2 mapped to a label for display.
 const _DIFF_LABEL = ['easy', 'medium', 'hard'];
 
+// Does a self-reported subject label match a POD subject bucket?
+function _subjectInSet(subject, set) {
+  for (const s of set) {
+    if (subject === 'math' && /math/i.test(s)) return true;
+    if (subject === 'language_arts' && /english|language|reading|writing/i.test(s)) return true;
+  }
+  return false;
+}
+
+// Measured math/English level from recent quiz performance. Returns a target
+// difficulty (0 easy, 1 medium, 2 hard) per subject, or null when there isn't
+// enough signal yet. This is the "based on your level" input: a student acing
+// quizzes gets harder problems; one who's struggling gets easier ones.
+function _measuredLevels(attempts) {
+  const agg = { math: { p: 0, n: 0 }, language_arts: { p: 0, n: 0 } };
+  for (const a of (attempts || [])) {
+    const cid = a && (a.course_id || a.courseId);
+    if (!cid) continue;
+    const subj = /^eng/i.test(cid) ? 'language_arts' : 'math';
+    agg[subj].n++;
+    if (a.passed) agg[subj].p++;
+  }
+  const level = (s) => {
+    if (s.n < 3) return null;          // too little history to judge
+    const rate = s.p / s.n;
+    if (rate >= 0.8) return 2;         // acing it → challenge harder
+    if (rate <= 0.4) return 0;         // struggling → ease off
+    return 1;                          // steady → medium
+  };
+  return { math: level(agg.math), language_arts: level(agg.language_arts) };
+}
+
+// Target difficulty for a subject: prefer the measured level; fall back to the
+// student's self-reported confidence/help subjects; default to medium.
+function _targetDifficulty(profile, subject) {
+  const measured = profile && profile.levels && profile.levels[subject];
+  if (measured === 0 || measured === 1 || measured === 2) return measured;
+  const help = new Set((profile && profile.help_subjects) || []);
+  const confident = new Set((profile && profile.confidence_subjects) || []);
+  if (_subjectInSet(subject, help)) return 0;
+  if (_subjectInSet(subject, confident)) return 2;
+  return 1;
+}
+
 // Pick the personalised POD for a user on a specific local date.
 // Deterministic: same (user, date) always yields the same pick.
 function _pickPersonalisedPOD(profile, dateISO) {
@@ -2054,27 +2098,15 @@ function _pickPersonalisedPOD(profile, dateISO) {
   }
   if (pool.length === 0) return null;
 
-  // Difficulty bias from confidence/help subjects.
-  const help = new Set((profile && profile.help_subjects) || []);
-  const confident = new Set((profile && profile.confidence_subjects) || []);
-  const subjectInSet = (subject, set) => {
-    for (const s of set) {
-      if (subject === 'math' && /math/i.test(s)) return true;
-      if (subject === 'language_arts' && /english|language|reading|writing/i.test(s)) return true;
-    }
-    return false;
-  };
-
-  // Weight each candidate: target difficulty is 0 if subject ∈ help,
-  // 2 if ∈ confidence, else 1. Closer to target = higher weight.
-  // Courses the student is currently working on get a weight boost so the POD
-  // reflects their active material, not just anything in their grade band.
+  // Weight each candidate toward the student's target difficulty for that
+  // subject — from measured quiz performance when available, else self-reported
+  // confidence/help subjects (see _targetDifficulty). Closer to target = higher
+  // weight. Courses the student is currently working on get a weight boost so
+  // the POD reflects their active material, not just anything in their grade band.
   const recentCourses = new Set((profile && profile.recentCourses) || []);
   let totalWeight = 0;
   const weighted = pool.map(q => {
-    let target = 1;
-    if (subjectInSet(q.subject, help)) target = 0;
-    else if (subjectInSet(q.subject, confident)) target = 2;
+    const target = _targetDifficulty(profile, q.subject);
     // Inverse-distance weighting so on-target gets 3x, ±1 gets 1x, ±2 gets 0.4x.
     const dist = Math.abs(q._difficulty - target);
     let w = dist === 0 ? 3 : (dist === 1 ? 1 : 0.4);
@@ -2129,13 +2161,16 @@ async function _buildPODProfile(userId) {
   // derived from their recent quiz attempts. Used to bias the POD toward their
   // current material (in addition to the grade/subject filtering).
   let recentCourses = [];
+  let levels = { math: null, language_arts: null };
   try {
-    const attempts = await db.listQuizAttempts(userId, { limit: 25 });
+    const attempts = await db.listQuizAttempts(userId, { limit: 40 });
     const seen = new Set();
     for (const a of (attempts || [])) {
       const cid = a && (a.course_id || a.courseId);
       if (cid && !seen.has(cid)) { seen.add(cid); recentCourses.push(cid); }
     }
+    // Measured difficulty target per subject from how they're actually doing.
+    levels = _measuredLevels(attempts);
   } catch (_) { /* best-effort; personalisation still works without it */ }
   return {
     userId,
@@ -2146,6 +2181,7 @@ async function _buildPODProfile(userId) {
     confidence_subjects: (sp && Array.isArray(sp.confidence_subjects)) ? sp.confidence_subjects : [],
     help_subjects: (sp && Array.isArray(sp.help_subjects)) ? sp.help_subjects : [],
     recentCourses,
+    levels,
   };
 }
 
@@ -3264,3 +3300,9 @@ server.listen(PORT, () => {
   console.log(process.env.RESEND_API_KEY ? '📧 Email: Resend' : '📧 Email: console (set RESEND_API_KEY for real email)');
   console.log(`⏱  Rate limit: ${RATE_LIMIT_PER_HOUR} req/hr/IP   💰 Daily cap: ${DAILY_REQUEST_CAP} req/day`);
 });
+
+// Exposed for tests only. Requiring this file also starts the server (harmless
+// in tests — they exit after asserting). Not used by the production entrypoint.
+module.exports = {
+  _measuredLevels, _targetDifficulty, _pickPersonalisedPOD, _buildCandidatePool, _buildPODProfile,
+};
