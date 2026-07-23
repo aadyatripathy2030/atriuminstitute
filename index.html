@@ -123,6 +123,7 @@
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
           <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem">Flashcards 🃏</button>
           <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem">Essay Grader ✍️</button>
+          <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem">Notebook 📓</button>
           <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <button class="nav-menu-item" id="pricingNavBtn" type="button" role="menuitem">Pricing</button>
           <button class="nav-menu-item hidden" id="adminNavBtn" type="button" role="menuitem">🛡️ Admin</button>
@@ -2125,6 +2126,33 @@
   </div>
 </footer>
 
+<!-- Notebook overlay -->
+<div class="fc-overlay hidden" id="nbOverlay" role="dialog" aria-modal="true" aria-labelledby="nbTitle">
+  <div class="nb-panel">
+    <button class="fc-close" id="nbClose" type="button" aria-label="Close">✕</button>
+    <div class="nb-sidebar">
+      <div class="nb-side-head">
+        <h2 class="fc-title" id="nbTitle">Notebook 📓</h2>
+        <button class="nb-new" id="nbNew" type="button">＋ New</button>
+      </div>
+      <div class="nb-list" id="nbList"></div>
+    </div>
+    <div class="nb-editor hidden" id="nbEditor">
+      <input type="text" id="nbNoteTitle" class="nb-title-input" placeholder="Untitled note" maxlength="120" />
+      <textarea id="nbNoteBody" class="nb-body" placeholder="Start writing…"></textarea>
+      <div class="nb-editor-foot">
+        <span class="nb-saved" id="nbSaved"></span>
+        <button class="nb-del" id="nbDelete" type="button">🗑 Delete</button>
+      </div>
+    </div>
+    <div class="nb-empty" id="nbEmpty">
+      <div class="nb-empty-emoji">📝</div>
+      <p>No notes yet. Create one to start writing.</p>
+      <button class="cta-primary" id="nbEmptyNew" type="button">＋ New note</button>
+    </div>
+  </div>
+</div>
+
 <!-- Essay grader overlay -->
 <div class="fc-overlay hidden" id="egOverlay" role="dialog" aria-modal="true" aria-labelledby="egTitle">
   <div class="fc-card-panel">
@@ -2255,6 +2283,7 @@
 <script src="accessibility.js"></script>
 <script src="flashcards.js"></script>
 <script src="essaygrader.js"></script>
+<script src="notebook.js"></script>
 </body>
 </html>
 
