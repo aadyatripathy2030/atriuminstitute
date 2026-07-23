@@ -9,7 +9,7 @@
 // Prices live here on the server so a client can't tamper with them.
 const CATALOG = [
   // Themes recolour the whole UI accent. 'classic' is the free default.
-  { id: 'classic', name: 'Classic', type: 'theme', price: 0, swatch: '#4a6fa5' },
+  { id: 'classic', name: 'Classic', type: 'theme', price: 0, swatch: '#2563eb' },
   { id: 'ocean',   name: 'Ocean',   type: 'theme', price: 200, swatch: '#1f8f8f' },
   { id: 'forest',  name: 'Forest',  type: 'theme', price: 300, swatch: '#3d8a55' },
   { id: 'sunset',  name: 'Sunset',  type: 'theme', price: 350, swatch: '#d97742' },
