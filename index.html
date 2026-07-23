@@ -61,7 +61,12 @@
       "name": "Atrium Institute",
       "url": "https://atriuminstitute.ai/",
       "inLanguage": "en-US",
-      "publisher": { "@id": "https://atriuminstitute.ai/#org" }
+      "publisher": { "@id": "https://atriuminstitute.ai/#org" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://atriuminstitute.ai/?q={search_term_string}" },
+        "query-input": "required name=search_term_string"
+      }
     },
     {
       "@type": "FAQPage",
@@ -2362,6 +2367,7 @@
 <script src="study.js"></script>
 <script src="payments.js"></script>
 <script src="reveal.js"></script>
+<script src="searchlink.js"></script>
 <script src="accessibility.js"></script>
 <script src="flashcards.js"></script>
 <script src="essaygrader.js"></script>
