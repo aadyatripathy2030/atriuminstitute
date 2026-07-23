@@ -7118,3 +7118,35 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
 .sat-rev-exp { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.5; padding-left: 8px; border-left: 2px solid var(--border-strong); }
 .sat-rev.ok .sat-rev-q::before { content: '✓ '; color: var(--good); }
 .sat-rev.no .sat-rev-q::before { content: '✗ '; color: var(--bad); }
+
+/* ============================================================
+   Rewards shop + cosmetic themes/badges. Added 2026-07.
+   ============================================================ */
+.shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.shop-coins { font-weight: 700; font-size: 18px; color: var(--text); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 6px 16px; white-space: nowrap; }
+.shop-coin-ico { font-size: 15px; }
+.shop-section-h { font-size: 13px; font-weight: 700; color: var(--text); margin: 18px 0 10px; }
+.shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.shop-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 10px; border: 1px solid var(--border); border-radius: 13px; background: var(--card-hi); text-align: center; }
+.shop-item.is-equipped { border-color: var(--accent); background: var(--accent-soft); }
+.shop-swatch { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); box-shadow: var(--shadow-sm); }
+.shop-emoji { font-size: 34px; line-height: 1; }
+.shop-item-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.shop-btn { width: 100%; padding: 7px 6px; border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 12px; font-weight: 600; border: 1px solid var(--border-strong); background: var(--paper); color: var(--text); transition: background .12s, border-color .12s; }
+.shop-buy { border-color: var(--accent); color: var(--accent); }
+.shop-buy:hover { background: var(--accent-soft); }
+.shop-equip:hover { background: var(--card-hi); border-color: var(--accent); }
+.shop-equipped { background: var(--accent); color: #fff; border-color: var(--accent); cursor: default; }
+@media (max-width: 480px) { .shop-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Equipped badge shown in the nav next to the points chip. */
+.cosmetic-badge { font-size: 17px; line-height: 1; margin-left: 2px; }
+.cosmetic-badge.hidden { display: none; }
+
+/* Cosmetic accent themes. Override the accent tokens; --accent-soft is derived
+   from --paper so it adapts to light/dark automatically. */
+:root[data-cosmetic="ocean"]  { --accent: #1f8f8f; --accent2: #3fa9a9; --accent-soft: color-mix(in srgb, #1f8f8f 16%, var(--paper)); }
+:root[data-cosmetic="forest"] { --accent: #3d8a55; --accent2: #5aa876; --accent-soft: color-mix(in srgb, #3d8a55 16%, var(--paper)); }
+:root[data-cosmetic="sunset"] { --accent: #d97742; --accent2: #e59468; --accent-soft: color-mix(in srgb, #d97742 16%, var(--paper)); }
+:root[data-cosmetic="grape"]  { --accent: #7d5bb0; --accent2: #9a7cc7; --accent-soft: color-mix(in srgb, #7d5bb0 16%, var(--paper)); }
+:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --accent-soft: color-mix(in srgb, #c65b7c 16%, var(--paper)); }

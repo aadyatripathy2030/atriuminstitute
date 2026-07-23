@@ -187,6 +187,7 @@
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <button type="button" class="streak-chip hidden" id="streakChip" title="Your activity streak">🔥 <span id="streakChipCount">0</span></button>
     <button type="button" class="points-chip hidden" id="pointsChip" title="Your total points — click to see breakdown">⭐ <span id="pointsChipCount">0</span></button>
+    <span class="cosmetic-badge hidden" id="cosmeticBadge" title="Your equipped badge" aria-hidden="true"></span>
     <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
     <button class="nav-link hidden" id="navSignInBtn" type="button">Sign in</button>
     <button class="nav-cta hidden" id="navSignUpBtn" type="button">Sign up</button>
@@ -202,6 +203,7 @@
           <button class="nav-menu-item" id="formulasNavBtn" type="button" role="menuitem">Formula Sheet 📐</button>
           <button class="nav-menu-item" id="certsNavBtn" type="button" role="menuitem">Certificates 🎓</button>
           <button class="nav-menu-item" id="satNavBtn" type="button" role="menuitem">SAT / ACT Prep 🎯</button>
+          <button class="nav-menu-item" id="shopNavBtn" type="button" role="menuitem">Rewards Shop 🪙</button>
           <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()">Snap &amp; Solve 📸</button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
@@ -2218,6 +2220,23 @@
   </div>
 </footer>
 
+<!-- Rewards shop overlay -->
+<div class="fc-overlay hidden" id="shopOverlay" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="shopClose" type="button" aria-label="Close">✕</button>
+    <div class="shop-head">
+      <h2 class="fc-title" id="shopTitle">Rewards Shop 🪙</h2>
+      <div class="shop-coins" title="Coins to spend"><span id="shopCoins">—</span> <span class="shop-coin-ico">🪙</span></div>
+    </div>
+    <p class="fc-sub">Coins are the points you've earned minus what you've spent here. Unlock themes and badges — your points and streak stay untouched.</p>
+    <div class="fc-error hidden" id="shopError"></div>
+    <div class="shop-section-h">🎨 Themes</div>
+    <div class="shop-grid" id="shopThemes"></div>
+    <div class="shop-section-h">🏅 Badges</div>
+    <div class="shop-grid" id="shopBadges"></div>
+  </div>
+</div>
+
 <!-- SAT / ACT prep overlay -->
 <div class="fc-overlay hidden" id="satOverlay" role="dialog" aria-modal="true" aria-labelledby="satTitle">
   <div class="fc-card-panel">
@@ -2574,6 +2593,7 @@
 <script src="formulas.js"></script>
 <script src="certificates.js"></script>
 <script src="satprep.js"></script>
+<script src="shop.js"></script>
 </body>
 </html>
 

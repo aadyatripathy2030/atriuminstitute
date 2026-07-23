@@ -19,6 +19,7 @@ const email = require('./email');
 const prompts = require('./prompts');
 const { loadCourses } = require('./curriculum-loader');
 const stripeLib = require('./stripe-lib');
+const shopLib = require('./shop-lib');
 
 // Anthropic pricing per million tokens (USD), as of mid-2026. If a model
 // is not listed we charge using Sonnet rates (conservative). Update when
@@ -1875,6 +1876,46 @@ async function handleGetMyPoints(req, res) {
   json(res, 200, summary);
 }
 
+// ---------- Rewards shop ----------
+// Coins are spendable = all-time points earned minus points spent here. Prices
+// live in shop-lib on the server; the client can never set them. Shop state is
+// stored in the generic per-user KV store (progress table) under 'shop_v1', so
+// no schema change is needed.
+const SHOP_KEY = 'shop_v1';
+async function _pointsTotal(userId) {
+  try { const s = await db.getMyPointsSummary(userId); return (s && Number(s.all_time)) || 0; }
+  catch (_) { return 0; }
+}
+async function handleGetShop(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const saved = await db.getProgress(u.id, SHOP_KEY);
+  const total = await _pointsTotal(u.id);
+  json(res, 200, shopLib.state(total, saved));
+}
+async function handleShopBuy(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  const saved = await db.getProgress(u.id, SHOP_KEY);
+  const total = await _pointsTotal(u.id);
+  const r = shopLib.buy(total, saved, body && body.itemId);
+  if (!r.ok) return json(res, 400, { error: r.error });
+  await db.setProgress(u.id, SHOP_KEY, r.saved);
+  json(res, 200, shopLib.state(total, r.saved));
+}
+async function handleShopEquip(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  const saved = await db.getProgress(u.id, SHOP_KEY);
+  const total = await _pointsTotal(u.id);
+  const r = shopLib.equip(saved, body && body.slot, body && body.itemId);
+  if (!r.ok) return json(res, 400, { error: r.error });
+  await db.setProgress(u.id, SHOP_KEY, r.saved);
+  json(res, 200, shopLib.state(total, r.saved));
+}
+
 // US school-district autocomplete. Anonymous-readable because the signup
 // form needs it before the user has a session. The dataset is just
 // publicly available district names + the names other signups have
@@ -3058,6 +3099,10 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/streaks' && req.method === 'GET') return await handleGetMyStreaks(req, res);
     if (url === '/api/me/achievements' && req.method === 'GET') return await handleGetMyAchievements(req, res);
     if (url === '/api/me/points' && req.method === 'GET') return await handleGetMyPoints(req, res);
+    // Rewards shop.
+    if (url === '/api/me/shop' && req.method === 'GET') return await handleGetShop(req, res);
+    if (url === '/api/me/shop/buy' && req.method === 'POST') return await handleShopBuy(req, res);
+    if (url === '/api/me/shop/equip' && req.method === 'POST') return await handleShopEquip(req, res);
     if (url.startsWith('/api/school-districts/search') && req.method === 'GET') return await handleSearchSchoolDistricts(req, res);
     if (url === '/api/me/survey' && req.method === 'POST') return await handleSaveSurvey(req, res);
     if (url === '/api/me/survey/skip' && req.method === 'POST') return await handleSkipSurvey(req, res);
