@@ -122,6 +122,7 @@
           <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem">Leaderboard</button>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
           <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem">Flashcards 🃏</button>
+          <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem">Essay Grader ✍️</button>
           <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <button class="nav-menu-item" id="pricingNavBtn" type="button" role="menuitem">Pricing</button>
           <button class="nav-menu-item hidden" id="adminNavBtn" type="button" role="menuitem">🛡️ Admin</button>
@@ -2124,6 +2125,47 @@
   </div>
 </footer>
 
+<!-- Essay grader overlay -->
+<div class="fc-overlay hidden" id="egOverlay" role="dialog" aria-modal="true" aria-labelledby="egTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="egClose" type="button" aria-label="Close">✕</button>
+    <h2 class="fc-title" id="egTitle">Essay Grader ✍️</h2>
+
+    <!-- Input -->
+    <div class="eg-input" id="egInput">
+      <p class="fc-sub">Paste your essay and get rubric scores plus specific feedback from Max.</p>
+      <input type="text" id="egPrompt" class="fc-input eg-prompt" placeholder="Optional: the assignment or prompt you were answering" maxlength="300" />
+      <textarea id="egEssay" class="eg-textarea" placeholder="Paste your essay here…" rows="10"></textarea>
+      <div class="eg-input-row">
+        <span class="eg-wordcount" id="egWordcount">0 words</span>
+        <button class="cta-primary" id="egGradeBtn" type="button">Grade my essay</button>
+      </div>
+      <div class="fc-error hidden" id="egError"></div>
+    </div>
+
+    <!-- Results -->
+    <div class="eg-results hidden" id="egResults">
+      <div class="eg-overall">
+        <div class="eg-score-ring" id="egOverallRing"><span id="egOverallScore">0</span></div>
+        <div class="eg-overall-text">
+          <div class="eg-band" id="egBand"></div>
+          <p class="eg-summary" id="egSummary"></p>
+        </div>
+      </div>
+      <div class="eg-rubric" id="egRubric"></div>
+      <div class="eg-cols">
+        <div class="eg-col"><h3 class="eg-col-h">✓ Strengths</h3><ul id="egStrengths" class="eg-list"></ul></div>
+        <div class="eg-col"><h3 class="eg-col-h">→ Next steps</h3><ul id="egImprovements" class="eg-list"></ul></div>
+      </div>
+      <div class="eg-mech" id="egMechWrap">
+        <h3 class="eg-col-h">Grammar &amp; mechanics</h3>
+        <div id="egMechanics"></div>
+      </div>
+      <div class="fc-actions"><button class="fc-link" id="egAgain" type="button">＋ Grade another</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- Flashcards overlay -->
 <div class="fc-overlay hidden" id="fcOverlay" role="dialog" aria-modal="true" aria-labelledby="fcTitle">
   <div class="fc-card-panel">
@@ -2212,6 +2254,7 @@
 <script src="reveal.js"></script>
 <script src="accessibility.js"></script>
 <script src="flashcards.js"></script>
+<script src="essaygrader.js"></script>
 </body>
 </html>
 

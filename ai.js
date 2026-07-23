@@ -78,6 +78,34 @@ const AI = {
       .map(c => ({ front: c.front.trim(), back: c.back.trim() }));
   },
 
+  async gradeEssay(essay, assignment) {
+    const text = String(essay || '').trim();
+    if (!text) throw new Error('Paste an essay first.');
+    const user = (assignment && assignment.trim())
+      ? `ASSIGNMENT: ${assignment.trim()}\n\nESSAY:\n${text}`
+      : `ESSAY:\n${text}`;
+    const out = await this._call({
+      intent: 'essay-grade',
+      model: MODEL_SMART,
+      messages: [{ role: 'user', content: user }],
+      max_tokens: 1600,
+      temperature: 0.2
+    });
+    const match = out.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse the feedback.');
+    let parsed;
+    try { parsed = JSON.parse(match[0]); }
+    catch (_) { throw new Error('Could not parse the feedback.'); }
+    // Normalise so the UI can rely on the shape.
+    return {
+      overall: parsed.overall || { score: 0, band: '—', summary: '' },
+      rubric: Array.isArray(parsed.rubric) ? parsed.rubric : [],
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+      improvements: Array.isArray(parsed.improvements) ? parsed.improvements : [],
+      mechanics: Array.isArray(parsed.mechanics) ? parsed.mechanics : []
+    };
+  },
+
   async gradeAnswer(question, userAnswer, correctAnswer) {
     // Don't waste a Claude call on a non-answer. Strip wrapping quotes /
     // backticks and whitespace; if what's left is empty or only punctuation,

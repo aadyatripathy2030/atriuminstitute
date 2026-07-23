@@ -6798,3 +6798,64 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
   .fc-flip { height: 220px; }
   .fc-face-text { font-size: 17px; }
 }
+
+/* ============================================================
+   Essay grader — rubric, scores, mechanics. Added 2026-07.
+   Reuses the .fc-overlay / .fc-card-panel modal shell.
+   ============================================================ */
+#egOverlay .fc-card-panel { max-width: 680px; }
+.eg-input.hidden, .eg-results.hidden { display: none; }
+.eg-prompt { width: 100%; margin-bottom: 10px; }
+.eg-textarea {
+  width: 100%; padding: 14px; border-radius: 12px;
+  border: 1px solid var(--border-strong); background: var(--card-hi);
+  color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6;
+  resize: vertical; min-height: 180px;
+}
+.eg-textarea:focus { outline: none; border-color: var(--accent); }
+.eg-input-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.eg-wordcount { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Overall score ring */
+.eg-overall { display: flex; gap: 18px; align-items: center; margin-bottom: 22px; }
+.eg-score-ring {
+  flex: 0 0 auto; width: 84px; height: 84px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--serif); font-size: 28px; font-weight: 600; color: var(--text);
+  background:
+    radial-gradient(closest-side, var(--paper) 78%, transparent 79% 100%),
+    conic-gradient(var(--ring, var(--accent)) var(--pct, 0%), var(--border) 0);
+}
+.eg-score-ring.good { --ring: var(--good); }
+.eg-score-ring.mid  { --ring: var(--warn); }
+.eg-score-ring.low  { --ring: var(--bad); }
+.eg-band { font-weight: 700; font-size: 16px; color: var(--text); margin-bottom: 4px; }
+.eg-summary { color: var(--text-soft); font-size: 14px; line-height: 1.55; margin: 0; }
+
+/* Rubric bars */
+.eg-rubric { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
+.eg-rubric-top { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.eg-rubric-score { font-variant-numeric: tabular-nums; color: var(--muted); }
+.eg-bar { height: 7px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.eg-bar-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+.eg-bar-fill.good { background: var(--good); }
+.eg-bar-fill.mid  { background: var(--warn); }
+.eg-bar-fill.low  { background: var(--bad); }
+.eg-rubric-comment { font-size: 12.5px; color: var(--muted); margin-top: 5px; line-height: 1.45; }
+
+/* Strengths / next steps columns */
+.eg-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
+.eg-col-h { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.eg-list { list-style: none; padding: 0; margin: 0; }
+.eg-list li { font-size: 13px; color: var(--text-soft); line-height: 1.5; padding: 5px 0 5px 2px; border-top: 1px solid var(--border); }
+.eg-list li:first-child { border-top: none; }
+.eg-empty { color: var(--muted); }
+
+/* Mechanics */
+.eg-mech { margin-bottom: 8px; }
+.eg-mech-row { display: flex; flex-direction: column; gap: 2px; padding: 9px 0; border-top: 1px solid var(--border); }
+.eg-mech-quote { font-size: 13px; color: var(--text); font-style: italic; }
+.eg-mech-issue { font-size: 12px; color: var(--bad); }
+.eg-mech-fix { font-size: 12.5px; color: var(--good); }
+.eg-clean { font-size: 13px; color: var(--good); }
+@media (max-width: 560px) { .eg-cols { grid-template-columns: 1fr; } }
