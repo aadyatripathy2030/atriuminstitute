@@ -57,6 +57,27 @@ const AI = {
     }
   },
 
+  async generateFlashcards(topic, count = 10) {
+    const clean = String(topic || '').trim();
+    if (!clean) return [];
+    const text = await this._call({
+      intent: 'flashcards',
+      model: MODEL_FAST,
+      messages: [{ role: 'user', content: `TOPIC: ${clean}\nCOUNT: ${count}` }],
+      max_tokens: 1800,
+      temperature: 0.3
+    });
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse flashcards');
+    let parsed;
+    try { parsed = JSON.parse(match[0]); }
+    catch (_) { throw new Error('Could not parse flashcards'); }
+    const cards = Array.isArray(parsed.cards) ? parsed.cards : [];
+    return cards
+      .filter(c => c && typeof c.front === 'string' && typeof c.back === 'string' && c.front.trim() && c.back.trim())
+      .map(c => ({ front: c.front.trim(), back: c.back.trim() }));
+  },
+
   async gradeAnswer(question, userAnswer, correctAnswer) {
     // Don't waste a Claude call on a non-answer. Strip wrapping quotes /
     // backticks and whitespace; if what's left is empty or only punctuation,

@@ -121,6 +121,7 @@
           <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem">Achievements</button>
           <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem">Leaderboard</button>
           <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem">Curriculum</button>
+          <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem">Flashcards 🃏</button>
           <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem">Token Cost</button>
           <button class="nav-menu-item" id="pricingNavBtn" type="button" role="menuitem">Pricing</button>
           <button class="nav-menu-item hidden" id="adminNavBtn" type="button" role="menuitem">🛡️ Admin</button>
@@ -2123,6 +2124,54 @@
   </div>
 </footer>
 
+<!-- Flashcards overlay -->
+<div class="fc-overlay hidden" id="fcOverlay" role="dialog" aria-modal="true" aria-labelledby="fcTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="fcClose" type="button" aria-label="Close">✕</button>
+    <h2 class="fc-title" id="fcTitle">Flashcards 🃏</h2>
+
+    <!-- Generator -->
+    <div class="fc-gen" id="fcGen">
+      <p class="fc-sub">Type any topic and Max will build a deck you can flip through.</p>
+      <div class="fc-gen-row">
+        <input type="text" id="fcTopic" class="fc-input" placeholder="e.g. Quadratic equations, Photosynthesis, Shakespeare's sonnets" maxlength="120" />
+        <select id="fcCount" class="fc-select" aria-label="Number of cards">
+          <option value="8">8 cards</option>
+          <option value="12" selected>12 cards</option>
+          <option value="16">16 cards</option>
+          <option value="20">20 cards</option>
+        </select>
+        <button class="cta-primary" id="fcGenBtn" type="button">Generate</button>
+      </div>
+      <div class="fc-error hidden" id="fcError"></div>
+      <div class="fc-saved" id="fcSaved"></div>
+    </div>
+
+    <!-- Study view -->
+    <div class="fc-study hidden" id="fcStudy">
+      <div class="fc-meta">
+        <span id="fcDeckName" class="fc-deck-name"></span>
+        <span id="fcProgress" class="fc-progress"></span>
+      </div>
+      <div class="fc-flip" id="fcFlip" tabindex="0" role="button" aria-label="Flashcard — click to flip">
+        <div class="fc-flip-inner" id="fcFlipInner">
+          <div class="fc-face fc-front"><div class="fc-face-label">Front</div><div class="fc-face-text" id="fcFront"></div></div>
+          <div class="fc-face fc-back"><div class="fc-face-label">Back</div><div class="fc-face-text" id="fcBack"></div></div>
+        </div>
+      </div>
+      <div class="fc-controls">
+        <button class="cta-secondary" id="fcPrev" type="button">← Prev</button>
+        <button class="cta-secondary" id="fcShuffle" type="button">Shuffle</button>
+        <button class="cta-secondary" id="fcNext" type="button">Next →</button>
+      </div>
+      <div class="fc-actions">
+        <button class="fc-link" id="fcSaveDeck" type="button">★ Save deck</button>
+        <button class="fc-link" id="fcNewDeck" type="button">＋ New deck</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="arithmetic-data.js"></script>
 <script src="prealgebra-data.js"></script>
 <script src="algebra-data.js"></script>
@@ -2162,6 +2211,7 @@
 <script src="payments.js"></script>
 <script src="reveal.js"></script>
 <script src="accessibility.js"></script>
+<script src="flashcards.js"></script>
 </body>
 </html>
 

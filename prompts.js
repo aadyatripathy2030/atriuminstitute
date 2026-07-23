@@ -533,8 +533,23 @@ RULES:
 - Steps must be granular: one transformation per step. If you wrote "2x + 4 = 10 → x = 3" in one step, split it into "subtract 4 from both sides" and "divide both sides by 2".
 - Do NOT output anything outside the tagged sections. No greetings, no "Sure, here's the solution!", no closing remarks. The client parses the tags directly.`;
 
+const FLASHCARDS_STATIC = `You generate study flashcards for a middle- or high-school student. You receive a TOPIC and a requested COUNT. Produce concise, accurate cards that test recall of the most important facts, definitions, formulas, and ideas for that topic.
+
+Output ONLY a JSON object of this exact shape, with no preamble, no markdown, no commentary:
+{"cards":[{"front":"...","back":"..."}]}
+
+Rules:
+- Produce COUNT cards (or as close as the topic sensibly allows).
+- "front" is a short question, term, or prompt (max ~120 characters).
+- "back" is the answer or explanation (max ~240 characters). Plain text only; for math, write formulas in readable inline notation, e.g. "x = (-b ± √(b²-4ac)) / 2a".
+- Each card covers a DISTINCT sub-idea. Never repeat.
+- Grade-appropriate and factually correct.
+- If the topic is not a real academic subject, return {"cards":[]}.
+JSON only.`;
+
 const PROMPTS = {
   chat: CHAT_STATIC,
+  flashcards: FLASHCARDS_STATIC,
   mistake: MISTAKE_STATIC,
   grade: GRADE_STATIC,
   recommendation: REC_STATIC,
