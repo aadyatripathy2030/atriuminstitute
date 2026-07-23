@@ -82,6 +82,28 @@
       </div>
     </div>
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+    <span class="a11y-wrap">
+      <button class="theme-toggle" id="a11yToggle" type="button" title="Accessibility options" aria-label="Accessibility options" aria-haspopup="true" aria-expanded="false">♿</button>
+      <div class="a11y-menu hidden" id="a11yMenu" role="menu" aria-label="Accessibility options">
+        <div class="a11y-row">
+          <span>Read aloud</span>
+          <button class="a11y-btn" id="a11ySpeak" type="button">▶ Read aloud</button>
+        </div>
+        <div class="a11y-row">
+          <span>Text size</span>
+          <span class="a11y-size">
+            <button id="a11yFontDown" type="button" aria-label="Decrease text size">A−</button>
+            <span id="a11yFontVal">100%</span>
+            <button id="a11yFontUp" type="button" aria-label="Increase text size">A+</button>
+          </span>
+        </div>
+        <div class="a11y-row">
+          <span>Dyslexia-friendly font</span>
+          <button class="a11y-btn" id="a11yDyslexia" type="button" role="switch" aria-checked="false">Off</button>
+        </div>
+        <button class="a11y-reset" id="a11yReset" type="button">Reset accessibility</button>
+      </div>
+    </span>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
     <button type="button" class="streak-chip hidden" id="streakChip" title="Your activity streak">🔥 <span id="streakChipCount">0</span></button>
     <button type="button" class="points-chip hidden" id="pointsChip" title="Your total points — click to see breakdown">⭐ <span id="pointsChipCount">0</span></button>
@@ -2139,6 +2161,7 @@
 <script src="study.js"></script>
 <script src="payments.js"></script>
 <script src="reveal.js"></script>
+<script src="accessibility.js"></script>
 </body>
 </html>
 

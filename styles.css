@@ -6643,3 +6643,49 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
   html.js-reveal #landing .landing-hero > * { opacity: 1 !important; animation: none !important; }
   .landing-hero::before { animation: none !important; }
 }
+
+/* ============================================================
+   Accessibility controls — read-aloud, text size, dyslexia font.
+   Added 2026-07.
+   ============================================================ */
+.a11y-wrap { position: relative; display: inline-flex; }
+.a11y-menu {
+  position: absolute; top: calc(100% + 10px); right: 0;
+  width: 240px; z-index: 60;
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow-lg);
+  padding: 10px; display: flex; flex-direction: column; gap: 4px;
+}
+.a11y-menu.hidden { display: none; }
+.a11y-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 8px 8px; border-radius: 9px;
+  font-size: 13px; color: var(--text);
+}
+.a11y-row + .a11y-row { border-top: 1px solid var(--border); }
+.a11y-btn, .a11y-size button, .a11y-reset {
+  font-family: var(--font); cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--card-hi);
+  color: var(--text); border-radius: 8px; padding: 6px 12px;
+  font-size: 13px; font-weight: 600;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.a11y-btn:hover, .a11y-size button:hover, .a11y-reset:hover { background: var(--accent-soft); border-color: var(--accent); }
+.a11y-btn:active, .a11y-size button:active { transform: translateY(1px); }
+.a11y-btn:disabled { opacity: .5; cursor: default; }
+.a11y-size { display: inline-flex; align-items: center; gap: 8px; }
+.a11y-size button { padding: 4px 10px; min-width: 34px; }
+.a11y-size #a11yFontVal { font-variant-numeric: tabular-nums; min-width: 40px; text-align: center; color: var(--muted); }
+.a11y-reset { width: 100%; margin-top: 4px; background: transparent; border-color: var(--border); color: var(--muted); font-weight: 500; }
+.a11y-btn[role="switch"][aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Dyslexia-friendly mode: swap the whole UI to a legible sans and open up
+   letter/word spacing by overriding the two font tokens nearly everything
+   references, plus spacing on body text. Evidence-based, self-contained. */
+:root[data-a11y-font="dyslexic"] {
+  --font: Verdana, Tahoma, Geneva, 'Segoe UI', sans-serif;
+  --serif: Verdana, Tahoma, Geneva, 'Segoe UI', sans-serif;
+}
+:root[data-a11y-font="dyslexic"] body {
+  letter-spacing: .02em; word-spacing: .08em; line-height: 1.7;
+}
