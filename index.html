@@ -195,6 +195,7 @@
       <div class="nav-menu">
         <button class="nav-link" id="studyToolsBtn" type="button" aria-haspopup="menu" aria-expanded="false">Study Tools ▾</button>
         <div class="nav-menu-items hidden" id="studyToolsMenu" role="menu">
+          <button class="nav-menu-item" id="pathNavBtn" type="button" role="menuitem">Learning Path 🧭</button>
           <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem">Flashcards 🃏</button>
           <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem">Essay Grader ✍️</button>
           <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem">Notebook 📓</button>
@@ -2221,6 +2222,64 @@
   </div>
 </footer>
 
+<!-- Learning path (placement test → custom course) overlay -->
+<div class="fc-overlay hidden" id="plOverlay" role="dialog" aria-modal="true" aria-labelledby="plTitle">
+  <div class="fc-card-panel">
+    <button class="fc-close" id="plClose" type="button" aria-label="Close">✕</button>
+
+    <div id="plIntro">
+      <h2 class="fc-title" id="plTitle">Learning Path 🧭</h2>
+      <p class="fc-sub">Take a short placement test and we'll build a course tailored to exactly your level. Master a topic (score 97.5%+) to unlock the next one and its quiz.</p>
+      <div class="sat-field"><label>Subject</label>
+        <div class="sat-seg" id="plSubject">
+          <button class="sat-seg-btn active" data-subject="Math" type="button">Math</button>
+          <button class="sat-seg-btn" data-subject="English" type="button">English</button>
+        </div>
+      </div>
+      <button class="cta-primary cta-full" id="plStart" type="button">Start placement test</button>
+      <div class="fc-error hidden" id="plError"></div>
+    </div>
+
+    <div class="pl-loading hidden" id="plLoading">
+      <div class="pl-spinner" aria-hidden="true"></div>
+      <p id="plLoadingMsg">Building your placement test…</p>
+    </div>
+
+    <div class="sat-quiz hidden" id="plQuiz">
+      <div class="sat-bar"><span class="sat-prog" id="plProg"></span><span class="sat-timer" id="plQuizLabel"></span></div>
+      <div class="sat-topic" id="plQTopic"></div>
+      <div class="sat-q" id="plQText"></div>
+      <div class="sat-choices" id="plChoices"></div>
+      <div class="sat-quiz-actions"><button class="cta-secondary" id="plPrev" type="button">← Prev</button><button class="cta-primary" id="plNext" type="button">Next →</button></div>
+    </div>
+
+    <div class="pl-result hidden" id="plResult">
+      <div class="sat-score-wrap">
+        <div class="sat-score-ring" id="plScoreRing"><span id="plScore">0</span><small>%</small></div>
+        <div class="sat-score-text"><div class="sat-score-pct" id="plLevel"></div><div class="sat-score-time" id="plResultSub"></div></div>
+      </div>
+      <button class="cta-primary cta-full" id="plBuildCourse" type="button">Build my custom course →</button>
+      <div class="fc-error hidden" id="plResultError"></div>
+    </div>
+
+    <div class="pl-course hidden" id="plCourse">
+      <div class="pl-course-head"><h2 class="fc-title" id="plCourseTitle">Your course</h2><span class="pl-course-level" id="plCourseLevel"></span></div>
+      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plCourseProgress"></div></div>
+      <div class="pl-progress-label" id="plCourseProgressLabel"></div>
+      <div class="pl-topics" id="plTopics"></div>
+      <button class="fc-link" id="plRestart" type="button">↺ Retake placement test</button>
+    </div>
+
+    <div class="pl-topic-result hidden" id="plTopicResult">
+      <div class="pl-tr-emoji" id="plTrEmoji"></div>
+      <div class="pl-tr-title" id="plTrTitle"></div>
+      <div class="pl-tr-score" id="plTrScore"></div>
+      <p class="pl-tr-msg" id="plTrMsg"></p>
+      <div class="pl-tr-actions" id="plTrActions"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Invite friends (referral) overlay -->
 <div class="fc-overlay hidden" id="refOverlay" role="dialog" aria-modal="true" aria-labelledby="refTitle">
   <div class="fc-card-panel">
@@ -2626,6 +2685,7 @@
 <script src="satprep.js"></script>
 <script src="shop.js"></script>
 <script src="referral.js"></script>
+<script src="placement.js"></script>
 </body>
 </html>
 

@@ -78,6 +78,54 @@ const AI = {
       .map(c => ({ front: c.front.trim(), back: c.back.trim() }));
   },
 
+  _parseJSON(text) {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse the response.');
+    try { return JSON.parse(match[0]); } catch (_) { throw new Error('Could not parse the response.'); }
+  },
+  _validMCQs(arr) {
+    return (Array.isArray(arr) ? arr : []).filter(function (q) {
+      return q && typeof q.question === 'string' && Array.isArray(q.choices) && q.choices.length === 4
+        && typeof q.answer === 'number' && q.answer >= 0 && q.answer < 4;
+    }).map(function (q) {
+      return {
+        question: q.question, choices: q.choices.map(String), answer: q.answer,
+        explanation: String(q.explanation || ''), topic: String(q.topic || ''),
+        level: (typeof q.level === 'number' ? q.level : null)
+      };
+    });
+  },
+
+  async generatePlacementTest(subject, count = 28) {
+    const out = await this._call({
+      intent: 'placement-test', model: MODEL_SMART,
+      messages: [{ role: 'user', content: `SUBJECT: ${subject}\nCOUNT: ${count}` }],
+      max_tokens: 4000, temperature: 0.5
+    });
+    return this._validMCQs(this._parseJSON(out).questions);
+  },
+
+  async generateLearningPath(subject, level, weakTopics) {
+    const out = await this._call({
+      intent: 'learning-path', model: MODEL_SMART,
+      messages: [{ role: 'user', content: `SUBJECT: ${subject}\nPLACEMENT_LEVEL: ${level}\nWEAK_TOPICS: ${(weakTopics || []).join(', ') || '(none noted)'}` }],
+      max_tokens: 1200, temperature: 0.4
+    });
+    const topics = this._parseJSON(out).topics;
+    return (Array.isArray(topics) ? topics : [])
+      .filter(function (t) { return t && typeof t.name === 'string' && t.name.trim(); })
+      .map(function (t) { return { name: t.name.trim(), desc: String(t.desc || '').trim() }; });
+  },
+
+  async generateTopicQuiz(subject, topic, count = 10) {
+    const out = await this._call({
+      intent: 'topic-quiz', model: MODEL_SMART,
+      messages: [{ role: 'user', content: `SUBJECT: ${subject}\nTOPIC: ${topic}\nCOUNT: ${count}` }],
+      max_tokens: 3000, temperature: 0.5
+    });
+    return this._validMCQs(this._parseJSON(out).questions);
+  },
+
   async generateSatPractice(test, subject, count = 8) {
     const out = await this._call({
       intent: 'sat-practice',

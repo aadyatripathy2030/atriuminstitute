@@ -7172,3 +7172,42 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
 .ref-how-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
 .ref-how-list { margin: 0; padding-left: 18px; }
 .ref-how-list li { font-size: 13px; color: var(--text-soft); line-height: 1.6; margin-bottom: 4px; }
+
+/* ============================================================
+   Learning Path (placement test → custom course). Added 2026-07.
+   Reuses .sat-* quiz styles + .fc-overlay shell.
+   ============================================================ */
+.pl-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 48px 20px; text-align: center; color: var(--text-soft); }
+.pl-loading.hidden { display: none; }
+.pl-spinner { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+.pl-result.hidden, .pl-course.hidden, .pl-topic-result.hidden { display: none; }
+
+/* Course view */
+.pl-course-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.pl-course-level { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 999px; }
+.pl-progress-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.pl-progress-fill { height: 100%; background: var(--good); border-radius: 999px; transition: width .5s ease; }
+.pl-progress-label { font-size: 12px; color: var(--muted); margin: 6px 0 16px; }
+.pl-topics { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 52vh; overflow-y: auto; }
+.pl-topic { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-hi); }
+.pl-topic.pl-current { border-color: var(--accent); background: var(--accent-soft); }
+.pl-topic.pl-locked { opacity: .6; }
+.pl-topic-icon { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; background: var(--paper); border: 1px solid var(--border-strong); }
+.pl-topic.pl-mastered .pl-topic-icon { background: var(--good); color: #fff; border-color: var(--good); }
+.pl-topic.pl-current .pl-topic-icon { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pl-topic-body { flex: 1; min-width: 0; }
+.pl-topic-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.pl-topic-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.pl-topic-action { flex: 0 0 auto; }
+.pl-topic-btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+.pl-topic-done { font-size: 12px; font-weight: 600; color: var(--good); white-space: nowrap; }
+
+/* Topic result screen */
+.pl-topic-result { text-align: center; padding: 20px 12px; }
+.pl-tr-emoji { font-size: 48px; margin-bottom: 8px; }
+.pl-tr-title { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--text); }
+.pl-tr-score { font-size: 32px; font-weight: 700; margin: 10px 0; }
+.pl-tr-score.good { color: var(--good); }
+.pl-tr-score.mid { color: var(--warn); }
+.pl-tr-msg { font-size: 14px; color: var(--text-soft); line-height: 1.6; max-width: 420px; margin: 0 auto 20px; }
+.pl-tr-actions { display: flex; gap: 10px; justify-content: center; }

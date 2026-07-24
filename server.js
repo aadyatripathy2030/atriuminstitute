@@ -1903,6 +1903,44 @@ async function handleGetMyPoints(req, res) {
 // no schema change is needed.
 const SHOP_KEY = 'shop_v1';
 const REFERRAL_KEY = 'referral_v1';
+const LPATH_KEY = 'learning_path_v1';
+
+// ---------- Adaptive learning path (placement test → custom course) ----------
+function _sanitizeLearningPath(b) {
+  b = b || {};
+  const topics = (Array.isArray(b.topics) ? b.topics : []).slice(0, 24).map(function (t) {
+    t = t || {};
+    return {
+      name: String(t.name || '').slice(0, 120),
+      desc: String(t.desc || '').slice(0, 240),
+      status: (t.status === 'mastered' || t.status === 'current' || t.status === 'locked') ? t.status : 'locked',
+      bestScore: (Number.isFinite(t.bestScore) ? Math.max(0, Math.min(100, Math.round(t.bestScore))) : null),
+    };
+  });
+  return {
+    subject: (b.subject === 'English') ? 'English' : 'Math',
+    level: String(b.level || '').slice(0, 40),
+    placementScore: Number.isFinite(b.placementScore) ? Math.max(0, Math.min(100, Math.round(b.placementScore))) : null,
+    topics: topics,
+    currentIndex: Number.isFinite(b.currentIndex) ? Math.max(0, Math.min(topics.length, Math.floor(b.currentIndex))) : 0,
+    updatedAt: Date.now(),
+  };
+}
+async function handleGetLearningPath(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const state = await db.getProgress(u.id, LPATH_KEY);
+  json(res, 200, { path: state || null });
+}
+async function handleSaveLearningPath(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  const body = await readJSON(req);
+  if (!body || typeof body !== 'object') return json(res, 400, { error: 'Bad request.' });
+  const clean = _sanitizeLearningPath(body);
+  await db.setProgress(u.id, LPATH_KEY, clean);
+  json(res, 200, { path: clean });
+}
 
 // Referral status for the signed-in user. The shareable code IS their public
 // link_code; the client builds the full link as <origin>/?ref=<code>.
@@ -3208,6 +3246,8 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/me/shop/buy' && req.method === 'POST') return await handleShopBuy(req, res);
     if (url === '/api/me/shop/equip' && req.method === 'POST') return await handleShopEquip(req, res);
     if (url === '/api/me/referral' && req.method === 'GET') return await handleGetReferral(req, res);
+    if (url === '/api/me/learning-path' && req.method === 'GET') return await handleGetLearningPath(req, res);
+    if (url === '/api/me/learning-path' && req.method === 'POST') return await handleSaveLearningPath(req, res);
     if (url.startsWith('/api/school-districts/search') && req.method === 'GET') return await handleSearchSchoolDistricts(req, res);
     if (url === '/api/me/survey' && req.method === 'POST') return await handleSaveSurvey(req, res);
     if (url === '/api/me/survey/skip' && req.method === 'POST') return await handleSkipSurvey(req, res);
