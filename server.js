@@ -21,6 +21,7 @@ const { loadCourses } = require('./curriculum-loader');
 const stripeLib = require('./stripe-lib');
 const shopLib = require('./shop-lib');
 const refLib = require('./referral-lib');
+const billingLib = require('./billing-lib');
 
 // Anthropic pricing per million tokens (USD), as of mid-2026. If a model
 // is not listed we charge using Sonnet rates (conservative). Update when
@@ -39,6 +40,27 @@ function computeCost(model, usage) {
               + (usage.cache_read_input_tokens || 0) * p.cacheRead
               + (usage.output_tokens || 0) * p.output) / 1_000_000;
   return cost;
+}
+
+// Per-user AI billing ledger key (generic KV store; no schema change).
+const AI_BILLING_KEY = 'ai_billing_v1';
+
+// Records an AI call's usage (existing behaviour) AND — only when Stripe billing
+// is live — accrues its dollar cost to the user's usage-billing ledger, so it
+// can be charged on top of the subscription. While the paywall is off
+// (isConfigured() === false) this accrual is dormant: nothing is billed for the
+// free period, and metering begins the moment billing is switched on.
+function recordAiUsage(entry) {
+  const p = db.recordAiUsage(entry);
+  if (entry && entry.userId && Number.isFinite(entry.costUsd) && entry.costUsd > 0 && stripeLib.isConfigured()) {
+    (async () => {
+      try {
+        const ledger = await db.getProgress(entry.userId, AI_BILLING_KEY);
+        await db.setProgress(entry.userId, AI_BILLING_KEY, billingLib.accrue(ledger, entry.costUsd));
+      } catch (e) { console.warn('AI billing accrue failed:', e && e.message); }
+    })();
+  }
+  return p;
 }
 
 // Emails that are always granted admin on successful login. The owner account
@@ -670,7 +692,7 @@ async function handlePhotoSolve(req, res) {
 
   if (result.usage) {
     const cost = computeCost(model, result.usage);
-    db.recordAiUsage({
+    recordAiUsage({
       userId: u.id,
       userEmail: u.email,
       intent: 'photo-solve',
@@ -752,7 +774,7 @@ async function handlePhotoReSolve(req, res) {
   }
   if (result.usage) {
     const cost = computeCost(model, result.usage);
-    db.recordAiUsage({
+    recordAiUsage({
       userId: u.id, userEmail: u.email,
       intent: 'photo-resolve', model,
       inputTokens: result.usage.input_tokens || 0,
@@ -1256,7 +1278,7 @@ Output the JSON plan now, following the schema in the system prompt exactly.`;
     planJson = JSON.parse(m[0]);
     if (result.usage) {
       const cost = computeCost('claude-sonnet-4-5-20250929', result.usage);
-      db.recordAiUsage({
+      recordAiUsage({
         userId: u.id, userEmail: u.email,
         intent: 'study_plan', model: 'claude-sonnet-4-5-20250929',
         inputTokens: result.usage.input_tokens || 0,
@@ -1508,7 +1530,7 @@ Write the lesson now, following the headings and rules in the system prompt exac
   if (result.usage) {
     const usage = result.usage;
     const cost = computeCost(model, usage);
-    db.recordAiUsage({
+    recordAiUsage({
       userId: null,
       userEmail: '(lesson-prebuild)',
       intent: 'lesson',
@@ -1715,7 +1737,7 @@ Generate exactly 5 quiz questions covering this lesson. Output ONLY a JSON array
   // Record usage.
   if (result.usage) {
     const usage = result.usage;
-    db.recordAiUsage({
+    recordAiUsage({
       userId: null, userEmail: '(curriculum-quiz-gen)', intent: 'gen-questions', model,
       inputTokens: usage.input_tokens || 0,
       outputTokens: usage.output_tokens || 0,
@@ -2306,7 +2328,7 @@ async function _aiGradePODAnswer(u, question, userAnswer, correctAnswer) {
     temperature: 0,
   });
   if (result.usage) {
-    db.recordAiUsage({
+    recordAiUsage({
       userId: u.id, userEmail: u.email, intent: 'grade', model: MODEL,
       inputTokens: result.usage.input_tokens || 0,
       outputTokens: result.usage.output_tokens || 0,
@@ -2990,6 +3012,24 @@ async function processStripeEvent(event) {
       if (user) await db.updateSubscription(user.id, { subscription_status: 'past_due' });
       return;
     }
+    case 'invoice.created': {
+      // A draft invoice was created (before finalization). Add the user's
+      // accumulated AI-usage cost as a line item on top of their subscription,
+      // then advance the ledger. The ledger is only advanced AFTER Stripe
+      // accepts the charge, so a failure never drops billable usage.
+      try {
+        if (!stripeLib.isConfigured() || !obj || !obj.customer) return;
+        const user = await db.findUserByStripeCustomerId(obj.customer);
+        if (!user) return;
+        const ledger = await db.getProgress(user.id, AI_BILLING_KEY);
+        const { cents, ledger: advanced } = billingLib.flush(ledger);
+        if (cents > 0) {
+          await stripeLib.addUsageInvoiceItem(obj.customer, obj.id, cents, 'AI usage this period');
+          await db.setProgress(user.id, AI_BILLING_KEY, advanced);
+        }
+      } catch (e) { console.warn('AI usage billing failed:', e && e.message); }
+      return;
+    }
     default:
       // Ignore everything we didn't ask for.
       return;
@@ -3165,7 +3205,7 @@ async function proxyClaude(req, res) {
       const totalIn = (usage.input_tokens || 0) + (usage.cache_read_input_tokens || 0) + (usage.cache_creation_input_tokens || 0);
       if (totalIn > 0 || usage.output_tokens > 0) {
         const cost = computeCost(callModel, usage);
-        db.recordAiUsage({
+        recordAiUsage({
           userId: callerUserId,
           userEmail: callerEmail,
           intent: callIntent,
@@ -3414,5 +3454,5 @@ server.listen(PORT, () => {
 // in tests — they exit after asserting). Not used by the production entrypoint.
 module.exports = {
   _measuredLevels, _targetDifficulty, _pickPersonalisedPOD, _buildCandidatePool, _buildPODProfile,
-  processStripeEvent,
+  processStripeEvent, recordAiUsage, computeCost,
 };

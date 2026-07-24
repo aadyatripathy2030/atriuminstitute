@@ -124,6 +124,23 @@ async function createPortalSession(user, db) {
   return portal.url;
 }
 
+// Add a one-off usage charge (in whole cents) onto a specific draft invoice —
+// used to bill accumulated AI cost on top of the subscription line item. Called
+// from the invoice.created webhook while the invoice is still a draft. No-op
+// when Stripe isn't configured.
+async function addUsageInvoiceItem(customerId, invoiceId, amountCents, description) {
+  if (!isConfigured() || !stripe) return false;
+  if (!customerId || !(amountCents > 0)) return false;
+  await stripe.invoiceItems.create({
+    customer: customerId,
+    invoice: invoiceId,
+    amount: Math.round(amountCents),
+    currency: 'usd',
+    description: description || 'AI usage this period',
+  });
+  return true;
+}
+
 function constructWebhookEvent(rawBody, signatureHeader) {
   if (!stripe) throw new Error('Stripe SDK not loaded');
   if (!WEBHOOK_SECRET) throw new Error('STRIPE_WEBHOOK_SECRET not set');
@@ -155,6 +172,7 @@ module.exports = {
   createCheckoutSession,
   createPortalSession,
   cancelSubscriptionForUser,
+  addUsageInvoiceItem,
   constructWebhookEvent,
   subscriptionRow,
   priceFor,
