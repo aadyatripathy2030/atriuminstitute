@@ -27,13 +27,35 @@ test('chat and mistake prompts are big enough that Anthropic prompt caching can 
   );
 });
 
-test('chat prompt contains the active-quiz protection rules', () => {
-  // If this regresses, students will be able to ask Max to solve the active
-  // quiz question and he will comply. That breaks the whole grading loop.
+test('chat prompt wires up the active-quiz marker in either mode', () => {
   const text = prompts.PROMPTS.chat;
   assert.match(text, /Current question:/, 'chat prompt must reference the "Current question:" dynamic marker');
   assert.match(text, /active-quiz/i, 'chat prompt must define an active-quiz mode');
-  assert.match(text, /MUST NOT/, 'chat prompt must spell out what Max cannot do in active-quiz mode');
+});
+
+test('the quiz answer lock is off by default', () => {
+  // Deliberate product choice: Max answers the question a student has open in
+  // a quiz. Quiz scores therefore do not represent unaided work.
+  const text = prompts.PROMPTS.chat;
+  assert.doesNotMatch(text, /MUST NOT/, 'lock is off, so Max should not be told to withhold the answer');
+  assert.match(text, /You may state the answer/i, 'lock is off, so Max should be told he can answer');
+});
+
+test('QUIZ_ANSWER_LOCK=1 restores the strict active-quiz rules', () => {
+  // The flag is read at module load, so check it in a fresh process.
+  const { execFileSync } = require('node:child_process');
+  const path = require('node:path');
+  const text = execFileSync(
+    process.execPath,
+    ['-e', 'process.stdout.write(require("./prompts").PROMPTS.chat)'],
+    {
+      cwd: path.join(__dirname, '..'),
+      env: { ...process.env, QUIZ_ANSWER_LOCK: '1' },
+      encoding: 'utf8',
+    },
+  );
+  assert.match(text, /Active-quiz mode \(strict\)/i, 'lock on should select the strict block');
+  assert.match(text, /MUST NOT/, 'lock on must spell out what Max cannot do during a quiz');
 });
 
 test('buildSystem returns null for unknown intents', () => {

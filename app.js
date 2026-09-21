@@ -3064,7 +3064,7 @@ function openChat() {
     const p = loadProfile();
     const name = p?.name ? p.name : 'there';
     const ctxLine = CHAT_CONTEXT
-      ? `Hi ${escapeHtml(name)}! You're working on **${CHAT_CONTEXT.topic}**. I can explain the concept or talk through the technique — but I can't just hand you the answer while you're taking the quiz. Ask away!`
+      ? `Hi ${escapeHtml(name)}! You're working on **${CHAT_CONTEXT.topic}**. I can explain the concept, talk through the technique, or walk you through this question step by step. Ask away!`
       : `Hey ${escapeHtml(name)}! I'm Max, your tutor at Atrium Institute. Ask me anything about math or English — algebra, geometry, calculus, grammar, writing, literature, whatever's on your mind.`;
     appendChat('assistant', ctxLine);
   }
