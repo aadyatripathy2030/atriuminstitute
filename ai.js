@@ -476,7 +476,7 @@ Recommend 1 or 2 courses to start with and why, in 2-3 short sentences. Use thei
   },
 
   // Chat. `contextBlurb` carries dynamic per-call data (student profile,
-  // current quiz state, anti-cheating rules). It's sent as the non-cached
+  // current quiz state). It's sent as the non-cached
   // second system block so the cached prefix stays stable across requests.
   streamChat(history, contextBlurb) {
     return this._stream({

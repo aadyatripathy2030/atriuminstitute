@@ -2661,7 +2661,12 @@
 <script src="photoatrium.js"></script>
 <script src="curriculum.js"></script>
 <script src="app.js"></script>
-<script src="behavior.js"></script>
+<!-- Behaviour tracking is off. behavior.js logged tab switches, idle time and
+     per-step timing to /api/behavior/events, which produced the rushing /
+     disengaged / indecisive signals. Every caller in app.js is guarded by a
+     typeof check, so not loading it is all that's needed; re-enable by
+     restoring this script tag. -->
+<!-- <script src="behavior.js"></script> -->
 <script src="study.js"></script>
 <script src="payments.js"></script>
 <script src="reveal.js"></script>
