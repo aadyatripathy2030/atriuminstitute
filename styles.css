@@ -5901,35 +5901,17 @@ body.nav-open .nav-hamburger-bar:nth-child(3) {
 
 /* ---------- PhotoAtrium ---------- */
 
-/* Warning banner + Homework Mode toggle. Shown at the top of the
-   scanner result page and the history list. Same look on both. */
-.pa-warning-row {
+/* Homework Mode toggle row. Shown at the top of the scanner result page
+   and the history list. Same look on both. */
+.pa-hw-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   flex-wrap: wrap;
-  background: rgba(184, 132, 43, 0.08);
-  border: 1px solid rgba(220, 160, 30, 0.30);
-  border-radius: 12px;
-  padding: 12px 16px;
   margin: 0 auto 18px;
   max-width: 960px;
 }
-.pa-warning-text {
-  flex: 1;
-  min-width: 220px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text, #1e2238);
-}
-.pa-warning-text strong {
-  display: block;
-  margin-bottom: 2px;
-  color: #8a6300;
-  font-size: 14px;
-}
-.pa-warning-text span { color: var(--text-muted, #4a4d63); }
 
 .pa-hw-toggle {
   display: inline-flex;
