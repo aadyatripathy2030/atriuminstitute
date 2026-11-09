@@ -3443,7 +3443,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ----- Dark mode toggle (persists to localStorage) -----
   const THEME_KEY = 'atrium_theme_v1';
   const themeBtn = document.getElementById('themeToggle');
-  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
   if (savedTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
     if (themeBtn) themeBtn.textContent = '☀️';

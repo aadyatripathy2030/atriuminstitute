@@ -7201,8 +7201,8 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
    tight, hairline borders at low alpha, gray secondary text, a white pill
    for the main button, a translucent blurred header, no gradients or
    colored shadows, 160ms ease-out hovers. No brand hue: the accent is the
-   text color (white on dark, near-black on light). Dark is the default;
-   the theme toggle still switches to light.
+   text color (white on dark, near-black on light). Light is the default;
+   the theme toggle switches to dark.
    Contrast on #08090a: text 18.6:1, muted 6.3:1.
    =================================================================== */
 :root {
