@@ -7193,3 +7193,142 @@ html.js-reveal #landing .landing-hero > *:nth-child(5) { animation-delay: .41s; 
 .pl-tr-score.mid { color: var(--warn); }
 .pl-tr-msg { font-size: 14px; color: var(--text-soft); line-height: 1.6; max-width: 420px; margin: 0 auto 20px; }
 .pl-tr-actions { display: flex; gap: 10px; justify-content: center; }
+
+/* ===================================================================
+   ChartGauge look (Nov 8 2026, at the user's request: "very similar to
+   the style of chartgauge.com"). The same language as ChartGauge's
+   current finish: near-black ground, one sans (Inter) set medium and
+   tight, hairline borders at low alpha, gray secondary text, a white pill
+   for the main button, a translucent blurred header, no gradients or
+   colored shadows, 160ms ease-out hovers. No brand hue: the accent is the
+   text color (white on dark, near-black on light). Dark is the default;
+   the theme toggle still switches to light.
+   Contrast on #08090a: text 18.6:1, muted 6.3:1.
+   =================================================================== */
+:root {
+  --bg: #fbfbfc; --bg2: #f4f4f6; --paper: #ffffff; --card: #ffffff; --card-hi: #f6f6f8;
+  --text: #0e0f11; --text-soft: #2b2d31; --muted: #5d6169;
+  --border: rgba(0,0,0,.08); --border-strong: rgba(0,0,0,.14);
+  --accent: #0e0f11; --accent-soft: rgba(0,0,0,.045); --accent2: #2b2d31; --on-accent: #ffffff;
+  --good: #1a7f37; --good-soft: #e7f4ea; --bad: #cf222e; --bad-soft: #fdecec; --warn: #9a6a00;
+  --radius: 12px;
+  --shadow-sm: none; --shadow: none; --shadow-lg: 0 24px 64px -24px rgba(16,18,24,.18);
+  --nav-bg: rgba(251,251,252,.78);
+  --serif: var(--font);
+  --ease-out-quad: cubic-bezier(.25,.46,.45,.94);
+  --ease-out-expo: cubic-bezier(.19,1,.22,1);
+  --wash: rgba(0,0,0,.035); --wash-2: rgba(0,0,0,.06);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #08090a; --bg2: #0f1011; --paper: #101113; --card: #101113; --card-hi: #16171a;
+  --text: #f7f8f8; --text-soft: #d0d6e0; --muted: #8a8f98;
+  --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.14);
+  --accent: #e6e6e7; --accent-soft: rgba(255,255,255,.06); --accent2: #d0d6e0; --on-accent: #08090a;
+  --good: #4cb262; --good-soft: rgba(76,178,98,.12); --bad: #ef7268; --bad-soft: rgba(239,114,104,.12); --warn: #e0a84a;
+  --shadow-sm: none; --shadow: none; --shadow-lg: 0 32px 100px -20px rgba(0,0,0,.9);
+  --nav-bg: rgba(8,9,10,.72);
+  --wash: rgba(255,255,255,.04); --wash-2: rgba(255,255,255,.08);
+}
+/* Shop cosmetics still recolor the accent when one is equipped. */
+:root[data-cosmetic="ocean"]  { --accent: #1f8f8f; --accent2: #3fa9a9; --accent-soft: color-mix(in srgb, #1f8f8f 16%, var(--paper)); --on-accent: #fff; }
+:root[data-cosmetic="forest"] { --accent: #3d8a55; --accent2: #5aa876; --accent-soft: color-mix(in srgb, #3d8a55 16%, var(--paper)); --on-accent: #fff; }
+:root[data-cosmetic="sunset"] { --accent: #d97742; --accent2: #e59468; --accent-soft: color-mix(in srgb, #d97742 16%, var(--paper)); --on-accent: #fff; }
+:root[data-cosmetic="grape"]  { --accent: #7d5bb0; --accent2: #9a7cc7; --accent-soft: color-mix(in srgb, #7d5bb0 16%, var(--paper)); --on-accent: #fff; }
+:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --accent-soft: color-mix(in srgb, #c65b7c 16%, var(--paper)); --on-accent: #fff; }
+
+html, body { background: var(--bg); color: var(--text); letter-spacing: -.011em; }
+body::before { content: none; }
+::selection { background: var(--text); color: var(--bg); }
+
+/* ---- Type: one face, medium weight, tight ---- */
+h1, h2, h3, .landing-h1, .landing-h2, .hero h1, .section-heading h2, .logo {
+  font-family: var(--font); letter-spacing: -.022em; }
+.landing-h1, .hero h1 { font-weight: 510; font-size: clamp(40px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -.024em; }
+.landing-h1 em, .hero h1 em { font-style: normal; font-weight: 510; color: var(--muted); }
+.landing-h2, .section-heading h2 { font-weight: 510; font-size: clamp(26px, 3vw, 40px); line-height: 1.1; }
+h3 { font-weight: 590; letter-spacing: -.012em; }
+.landing-lede, .hero p { color: var(--muted); font-size: 17px; line-height: 1.55; }
+.landing-eyebrow { background: none; border: 0; color: var(--muted); font-size: 13px; font-weight: 510; letter-spacing: 0; padding: 0; box-shadow: none; }
+
+/* ---- Header: translucent, blurred, one hairline ---- */
+.nav, :root[data-theme="dark"] .nav { background: var(--nav-bg); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); padding-top: 12px; padding-bottom: 12px; box-shadow: none; }
+:root[data-theme="dark"] .nav, :root[data-theme="dark"] .nav .logo, :root[data-theme="dark"] .nav .nav-search,
+:root[data-theme="dark"] .nav .progress-pill, :root[data-theme="dark"] .nav #navUserEmail { color: var(--text); }
+.nav .nav-link, :root[data-theme="dark"] .nav .nav-link { color: var(--muted); font-size: 14px; font-weight: 450; border-radius: 6px;
+  transition: color .16s var(--ease-out-quad), background-color .16s var(--ease-out-quad); }
+.nav .nav-link:hover, :root[data-theme="dark"] .nav .nav-link:hover { color: var(--text); background: var(--wash); }
+.logo { font-weight: 590; font-size: 17px; letter-spacing: -.02em; }
+.logo-dot { background: var(--text); color: var(--bg); border-radius: 7px; }
+.theme-toggle, :root[data-theme="dark"] .theme-toggle { background: transparent; border-color: transparent; color: var(--muted); border-radius: 9999px;
+  transition: color .16s var(--ease-out-quad), background-color .16s var(--ease-out-quad); }
+.theme-toggle:hover { color: var(--text); background: var(--wash-2); }
+.nav-search, :root[data-theme="dark"] .nav-search { background: var(--wash); border: 1px solid var(--border-strong); border-radius: 9999px; }
+.nav-search:focus { border-color: var(--text); box-shadow: 0 0 0 3px var(--wash-2); outline: none; }
+.progress-pill, .badge { background: var(--wash); border-color: var(--border); }
+
+/* ---- Buttons: white pill, ghost pill ---- */
+.cta, .cta-primary, .nav-cta, .ask-fab {
+  background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent); border-radius: 9999px;
+  font-weight: 510; letter-spacing: -.01em; box-shadow: none;
+  transition: background-color .16s var(--ease-out-quad), border-color .16s var(--ease-out-quad), color .16s var(--ease-out-quad), transform .16s var(--ease-out-quad); }
+.cta-primary { font-size: 14px; padding: 11px 20px; }
+.cta:hover, .cta-primary:hover, .nav-cta:hover, .ask-fab:hover {
+  background: color-mix(in srgb, var(--accent) 88%, var(--bg)); box-shadow: none; transform: none; }
+.cta:active, .cta-primary:active, .cta-secondary:active, .nav-cta:active { transform: scale(.98); }
+.cta-secondary { background: var(--wash); color: var(--text); border: 1px solid var(--border-strong); border-radius: 9999px;
+  font-size: 14px; font-weight: 510; padding: 11px 20px; transition: background-color .16s var(--ease-out-quad), border-color .16s var(--ease-out-quad); }
+.cta-secondary:hover { background: var(--wash-2); border-color: var(--text); }
+.cta-link { color: var(--muted); font-weight: 510; transition: color .16s var(--ease-out-quad); }
+.cta-link:hover { color: var(--text); }
+/* Text on accent fills follows the accent, so a white pill gets dark text. */
+.a11y-btn[role="switch"][aria-checked="true"], .calc-eq, .sat-seg-btn.active, .sat-choice.selected .sat-letter,
+.shop-equipped, .pl-topic.pl-current .pl-topic-icon { color: var(--on-accent); }
+
+/* ---- Cards: near-invisible fill, a hairline that lightens on hover ---- */
+.course-card, .feature, .why-card, .grade-card, .pricing-card, .faq-item, .section-card, .book-card, .auth-card,
+.testimonial, .method-card, .study-q-card, .info-page, .about-page, .topic-picker, .landing-stats, .stat {
+  box-shadow: none; border-color: var(--border); }
+.course-card, .feature, .why-card, .grade-card, .pricing-card, .method-card, .book-card, .section-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  transition: border-color .16s var(--ease-out-quad), background-color .16s var(--ease-out-quad); }
+.course-card:hover, .feature:hover, .why-card:hover, .grade-card:hover, .pricing-card:hover, .method-card:hover, .book-card:hover, .section-card:hover {
+  border-color: var(--border-strong); background: var(--card-hi); transform: none; box-shadow: none; }
+.course-card::before { display: none; }
+.grade-card-ap, .pricing-card-pro, .fc-front, .fc-back, .cert-done { background: var(--card); }
+.pricing-card-pro { border-color: var(--border-strong); }
+.landing-stats { background: none; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); border-radius: 0;
+  -webkit-backdrop-filter: none; backdrop-filter: none; }
+.stat-num { font-weight: 510; letter-spacing: -.024em; }
+.stat-label, .landing-section-sub, .feature p, .section-heading .sub { color: var(--muted); }
+
+/* ---- Fields ---- */
+input[type="text"], input[type="email"], input[type="search"], input[type="number"], input[type="password"], textarea, select {
+  border-radius: 8px; transition: border-color .16s var(--ease-out-quad), box-shadow .16s var(--ease-out-quad); }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* ---- Overlays: hairline and one deep shadow ---- */
+.chat-panel, .study-panel, .fc-card-panel, .auth-card, .modal { border: 1px solid var(--border-strong); box-shadow: var(--shadow-lg); }
+
+/* ---- Footer ---- */
+.site-footer { background: transparent; border-top: 1px solid var(--border); }
+.site-footer a { color: var(--muted); transition: color .16s var(--ease-out-quad); }
+.site-footer a:hover { color: var(--text); }
+
+/* ---- Motion: the hero rises out of a blur, no ambient glow ---- */
+.landing-hero::before, :root[data-theme="dark"] .landing-hero::before { content: none; animation: none; }
+@keyframes heroRise { from { opacity: 0; transform: translateY(12px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+html.js-reveal #landing .landing-hero > * { animation-duration: .9s; animation-timing-function: var(--ease-out-expo); }
+@media (prefers-reduced-motion: reduce) { html.js-reveal #landing .landing-hero > * { animation: none; } }
+
+/* No colored edges: cards and headers carry a hairline only, as on
+   ChartGauge. Pass/fail results keep their green/red stripe (it means
+   something). */
+.book-card::before, .course-card::before, .detail-header::before, .cumulative-card::before, .quiz-card::before,
+.testimonial::before, .modal::before { display: none; }
+.book-card.final-card { background: var(--card); border: 1px solid var(--border-strong); }
+.book-card.final-card:hover { border-color: var(--text); }
+.course-header-inner, .study-hero { border-left: 1px solid var(--border); }
+.book-card .book-subtitle, .course-header-inner p { font-style: normal; color: var(--muted); }
+.landing-stats { border-left: 0; border-right: 0; }
