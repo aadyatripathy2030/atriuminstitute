@@ -185,6 +185,11 @@ async function createCode(email) {
   return code;
 }
 
+// Throw away any outstanding code for this email (too many wrong guesses).
+async function clearCodes(email) {
+  await q('delete from verification_codes where email = $1', [normalizeEmail(email)]);
+}
+
 async function verifyCode(email, code) {
   email = normalizeEmail(email);
   code = String(code).trim();
@@ -2339,7 +2344,7 @@ module.exports = {
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
   updateUserProfile, grantConsent,
   setStripeCustomerId, findUserByStripeCustomerId, updateSubscription,
-  createCode, verifyCode,
+  createCode, verifyCode, clearCodes,
   createSession, getSession, deleteSession,
   getProgress, getAllProgress, setProgress,
   createLinkFromCode, approveLink, rejectLink, listPendingLinksForUser,

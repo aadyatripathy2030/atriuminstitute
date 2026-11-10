@@ -232,6 +232,13 @@ async function createCode(email) {
   return code;
 }
 
+async function clearCodes(email) {
+  load();
+  email = normalizeEmail(email);
+  state.codes = state.codes.filter(c => c.email !== email);
+  save();
+}
+
 async function verifyCode(email, code) {
   load();
   email = normalizeEmail(email);
@@ -1091,7 +1098,7 @@ module.exports = {
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
   updateUserProfile, grantConsent,
   setStripeCustomerId, findUserByStripeCustomerId, updateSubscription,
-  createCode, verifyCode,
+  createCode, verifyCode, clearCodes,
   createSession, getSession, deleteSession,
   getProgress, getAllProgress, setProgress,
   createLinkFromCode, approveLink, rejectLink, listPendingLinksForUser,

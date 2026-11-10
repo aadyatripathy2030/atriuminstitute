@@ -7,7 +7,8 @@
 //   EMAIL_FROM            Optional. Default: "Atrium Institute <onboarding@resend.dev>"
 //   RATE_LIMIT_PER_HOUR   Claude requests per IP per hour (default 30)
 //   GRADE_LIMIT_PER_HOUR  quiz-grading requests per signed-in student per hour (default 300)
-//   DAILY_REQUEST_CAP     Total Claude requests per day (default 1000)
+//   DAILY_REQUEST_CAP     Total Claude requests per day, excluding grading (default 1000)
+//   DAILY_GRADE_CAP       Total quiz-grading requests per day (default 5000)
 //   DB_PATH               Where to store data.json (default ./data.json)
 
 const http = require('http');
@@ -82,6 +83,13 @@ const ROOT = __dirname;
 const RATE_LIMIT_PER_HOUR = parseInt(process.env.RATE_LIMIT_PER_HOUR, 10) || 30;
 const GRADE_LIMIT_PER_HOUR = parseInt(process.env.GRADE_LIMIT_PER_HOUR, 10) || 300;
 const DAILY_REQUEST_CAP = parseInt(process.env.DAILY_REQUEST_CAP, 10) || 1000;
+const DAILY_GRADE_CAP = parseInt(process.env.DAILY_GRADE_CAP, 10) || 5000;
+// Sign-in codes: wrong guesses allowed per code, and how often codes can be sent.
+const MAX_CODE_GUESSES = 5;
+const CODE_SENDS_PER_HOUR = 5;
+const CODE_SENDS_PER_HOUR_PER_IP = 20;
+const CODE_VERIFIES_PER_HOUR_PER_IP = 60;
+const codeGuesses = new Map(); // email -> wrong guesses on the current code
 
 // Anthropic key
 let API_KEY = process.env.ANTHROPIC_API_KEY || '';
@@ -156,13 +164,25 @@ async function currentUser(req) {
 
 // ---------- Rate limiting + budget ----------
 const ipBuckets = new Map();
+// The visitor's IP. Render sits behind Cloudflare, which sets CF-Connecting-IP
+// itself (a client can't forge it through Cloudflare). X-Forwarded-For is
+// NOT used: its first entry is whatever the client sent, so anyone could
+// claim a fresh IP per request and dodge the rate limit.
+function ipSource(req) {
+  if (req.headers['cf-connecting-ip']) return 'cf-connecting-ip';
+  if (req.headers['true-client-ip']) return 'true-client-ip';
+  return 'socket';
+}
 function ipOf(req) {
-  const xff = req.headers['x-forwarded-for'];
-  if (xff) return xff.split(',')[0].trim();
-  return req.socket.remoteAddress || 'unknown';
+  const src = ipSource(req);
+  const v = src === 'socket' ? req.socket.remoteAddress : String(req.headers[src]);
+  return (v || 'unknown').trim();
 }
 function rateLimitCheck(key, limit = RATE_LIMIT_PER_HOUR) {
   const now = Date.now();
+  if (ipBuckets.size > 50000) {
+    for (const [k, v] of ipBuckets) if (v.resetAt <= now) ipBuckets.delete(k);
+  }
   let b = ipBuckets.get(key);
   if (!b || b.resetAt <= now) {
     b = { count: 0, resetAt: now + 60*60*1000 };
@@ -171,16 +191,28 @@ function rateLimitCheck(key, limit = RATE_LIMIT_PER_HOUR) {
   b.count++;
   return b.count <= limit;
 }
-let dailyCount = 0;
+// Separate daily counters, so busy quiz grading can't use up the budget for
+// Max's chat and lessons (or the other way round).
+const dailyCounts = { general: 0, grade: 0 };
 let dailyResetAt = nextUtcMidnight();
 function nextUtcMidnight() {
   const d = new Date();
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0);
 }
-function budgetCheck() {
-  if (Date.now() >= dailyResetAt) { dailyCount = 0; dailyResetAt = nextUtcMidnight(); }
-  dailyCount++;
-  return dailyCount <= DAILY_REQUEST_CAP;
+// For server-side AI calls outside /api/claude (Photo Atrium, study plans,
+// lesson and quiz generation): the same per-student hourly limit and the
+// same daily budget, so no single endpoint can run up the bill.
+function aiAllowance(req, res, u) {
+  const key = u ? 'user:' + u.id : 'ip:' + ipOf(req);
+  if (!rateLimitCheck(key)) { json(res, 429, { error: `You've hit the limit of ${RATE_LIMIT_PER_HOUR} AI requests an hour. Try again later.` }); return false; }
+  if (!budgetCheck('general')) { json(res, 429, { error: "The site has hit today's AI limit. It resets at midnight UTC." }); return false; }
+  return true;
+}
+
+function budgetCheck(kind = 'general') {
+  if (Date.now() >= dailyResetAt) { dailyCounts.general = 0; dailyCounts.grade = 0; dailyResetAt = nextUtcMidnight(); }
+  dailyCounts[kind]++;
+  return dailyCounts[kind] <= (kind === 'grade' ? DAILY_GRADE_CAP : DAILY_REQUEST_CAP);
 }
 
 // ---------- Auth routes ----------
@@ -244,7 +276,15 @@ async function handleSignupOrLogin(req, res) {
     expiresAt: Date.now() + PENDING_META_TTL_MS,
   });
 
+  // Each code allows only a few guesses, so cap how many codes can be sent:
+  // otherwise "request a code, guess 5 times, repeat" would still work.
+  const sendKey = String(user.email).trim().toLowerCase();
+  if (!rateLimitCheck('code-send:email:' + sendKey, CODE_SENDS_PER_HOUR)
+      || !rateLimitCheck('code-send:ip:' + ipOf(req), CODE_SENDS_PER_HOUR_PER_IP)) {
+    return json(res, 429, { error: 'Too many codes requested. Wait a while and try again.' });
+  }
   const code = await db.createCode(user.email);
+  codeGuesses.delete(sendKey);
   try {
     await email.sendVerificationCode(user.email, code);
   } catch (e) {
@@ -294,7 +334,23 @@ async function handleVerify(req, res) {
   if (!body || !isValidEmail(body.email) || !body.code) {
     return json(res, 400, { error: 'Email and code required.' });
   }
+  // A 6-digit code can't survive unlimited guessing: after a few wrong
+  // tries the code is thrown away and a new one has to be requested.
+  const guessKey = String(body.email).trim().toLowerCase();
+  if (!rateLimitCheck('code-verify:ip:' + ipOf(req), CODE_VERIFIES_PER_HOUR_PER_IP)) {
+    return json(res, 429, { error: 'Too many tries. Wait a while and try again.' });
+  }
   const result = await db.verifyCode(body.email, body.code);
+  if (!result.ok && result.reason === 'invalid') {
+    const n = (codeGuesses.get(guessKey) || 0) + 1;
+    codeGuesses.set(guessKey, n);
+    if (n >= MAX_CODE_GUESSES) {
+      codeGuesses.delete(guessKey);
+      await db.clearCodes(body.email);
+      return json(res, 400, { error: 'Too many wrong codes. Request a new code.' });
+    }
+  }
+  if (result.ok) codeGuesses.delete(guessKey);
   if (!result.ok) {
     const msg = result.reason === 'expired' ? 'Code expired. Request a new one.'
               : result.reason === 'used' ? 'Code already used.'
@@ -397,7 +453,8 @@ async function handleMe(req, res) {
 // the Stripe paywall is live so the landing page can hide the pricing
 // card and the upgrade modal when the kill switch is on.
 async function handleGetConfig(req, res) {
-  json(res, 200, { paywall_active: stripeLib.isConfigured() });
+  // ip_source: which header identified this visitor (should be cf-connecting-ip in production).
+  json(res, 200, { paywall_active: stripeLib.isConfigured(), ip_source: ipSource(req) });
 }
 
 async function handleUpdateProfile(req, res) {
@@ -673,6 +730,7 @@ async function handlePhotoSolve(req, res) {
   const thumbnail = typeof body.thumbnailDataUrl === 'string' && body.thumbnailDataUrl.length < 200000
     ? body.thumbnailDataUrl : null;
 
+  if (!aiAllowance(req, res, u)) return;
   const model = 'claude-sonnet-4-5-20250929';
   let result;
   try {
@@ -757,6 +815,7 @@ async function handlePhotoReSolve(req, res) {
     return json(res, 400, { error: 'problemText required.' });
   }
   const text = body.problemText.trim().slice(0, 2000);
+  if (!aiAllowance(req, res, u)) return;
   const model = 'claude-sonnet-4-5-20250929';
   let result;
   try {
@@ -1271,6 +1330,7 @@ ${(body.passedSections || []).map(s => `- bookId=${s.bookId}, sectionIdx=${s.sec
 
 Output the JSON plan now, following the schema in the system prompt exactly.`;
 
+  if (!aiAllowance(req, res, u)) return;
   let planJson;
   try {
     const system = prompts.buildSystem('study_plan');
@@ -1577,16 +1637,32 @@ async function handleGetLesson(req, res) {
     }
   }
 
+  // Lessons are cached and shown to every student, so what goes into the
+  // prompt comes from the server's own course data, never from the request:
+  // otherwise one student could save a lesson written to their own spec
+  // for everyone. A section the server doesn't know (a student's own
+  // AI-generated extra section) is generated for them but not shared.
+  const job = await findLessonJob(body.courseId, body.bookId, body.sectionIdx, sectionKind);
+  // Only admins can replace a shared lesson; a student's "regenerate" is theirs alone.
+  const shareable = !!job && (!forceRegenerate || !!u.is_admin);
+  if (!aiAllowance(req, res, u)) return;
+
   let result;
   try {
-    result = await generateLesson({
-      courseTitle: body.courseTitle,
-      bookTitle: body.bookTitle,
-      sectionTitle: body.sectionTitle,
+    result = await generateLesson(job ? {
+      courseTitle: job.courseTitle,
+      bookTitle: job.bookTitle,
+      sectionTitle: job.sectionTitle,
       sectionKind,
-      sampleQuestions: body.sampleQuestions,
-      studentName: body.studentName,
-      curriculumLesson: body.curriculumLesson || null,
+      sampleQuestions: job.sampleQuestions,
+      curriculumLesson: job.curriculumLesson || null,
+    } : {
+      courseTitle: String(body.courseTitle || '').slice(0, 200),
+      bookTitle: String(body.bookTitle || '').slice(0, 200),
+      sectionTitle: String(body.sectionTitle || '').slice(0, 300),
+      sectionKind,
+      sampleQuestions: Array.isArray(body.sampleQuestions) ? body.sampleQuestions.slice(0, 6) : [],
+      curriculumLesson: null,
     });
   } catch (e) {
     console.error('lesson generation failed:', e.message);
@@ -1594,13 +1670,28 @@ async function handleGetLesson(req, res) {
   }
 
   const safeContent = sanitizeLessonContent(result.content);
-  await db.saveCachedLesson(body.courseId, body.bookId, body.sectionIdx, sectionKind, safeContent, result.model);
+  if (shareable) await db.saveCachedLesson(body.courseId, body.bookId, body.sectionIdx, sectionKind, safeContent, result.model);
   json(res, 200, { content: safeContent, model: result.model, cached: false });
 }
 
+// The server's own description of a lesson (titles, sample questions,
+// curriculum metadata), or null if it isn't a section the server knows.
+async function findLessonJob(courseId, bookId, sectionIdx, sectionKind) {
+  const opts = { onlyCourse: courseId, onlyBook: bookId, onlySection: sectionIdx, onlySectionKind: sectionKind };
+  try {
+    const jobs = courseId.startsWith('curr:')
+      ? await buildCurriculumJobList(opts)
+      : buildJobList(loadCourses(), opts);
+    return jobs.find(j => j.bookId === bookId && j.sectionIdx === sectionIdx && j.sectionKind === sectionKind) || null;
+  } catch (e) {
+    console.warn('findLessonJob failed:', e.message);
+    return null;
+  }
+}
+
 async function handleClearLesson(req, res) {
-  const u = await currentUser(req);
-  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  // Clearing deletes the shared lesson for every student: admins only.
+  const u = await requireAdmin(req, res); if (!u) return;
   const body = await readJSON(req);
   if (!body || typeof body.courseId !== 'string' || typeof body.bookId !== 'string'
     || typeof body.sectionIdx !== 'number') {
@@ -1808,6 +1899,7 @@ async function handleGetCurriculumQuiz(req, res) {
     if (l) { unit = u2; lesson = l; break; }
   }
   if (!lesson) return json(res, 404, { error: 'Lesson not found.' });
+  if (!aiAllowance(req, res, u)) return;
   let result;
   try {
     result = await generateCurriculumQuiz({
@@ -2052,7 +2144,18 @@ async function handleGetLeaderboard(req, res) {
     db.getLeaderboard(from, to, 25),
     db.getMyLeaderboardRank(u.id, from, to),
   ]);
-  json(res, 200, { range, from, to, top, me });
+  // Students see each other only as initials ("Sa."). Emails, ids and full
+  // names never leave the server: many students are children.
+  const initials = (name) => {
+    const n = String(name || '').trim();
+    return n ? n[0].toUpperCase() + (n.length > 1 ? n.slice(1, 2).toLowerCase() + '.' : '') : '';
+  };
+  const safeTop = (top || []).map(r => ({
+    display_name: initials(r.display_name),
+    points: r.points,
+    is_me: r.user_id === u.id,
+  }));
+  json(res, 200, { range, from, to, top: safeTop, me });
 }
 
 // ---------- Problem of the Day (personalised, per-user, per-day) ----------
@@ -3086,14 +3189,16 @@ async function proxyClaude(req, res) {
   // Grading quiz answers gets its own, larger allowance per signed-in student,
   // so a classroom sharing one IP doesn't run out after a few quizzes (and
   // chat can't use up the grading allowance). Everything else: per IP.
-  if (body && body.intent === 'grade') {
-    const gu = await currentUser(req);
-    const key = gu ? 'grade:user:' + gu.id : 'grade:ip:' + ip;
-    if (!rateLimitCheck(key, GRADE_LIMIT_PER_HOUR)) return json(res, 429, { error: { message: `Grading limit: ${GRADE_LIMIT_PER_HOUR} answers/hour.` } });
-  } else if (!rateLimitCheck(ip)) {
-    return json(res, 429, { error: { message: `Rate limit: ${RATE_LIMIT_PER_HOUR} requests/hour per IP.` } });
+  // Signed-in students are counted by account, everyone else by IP.
+  const isGrade = !!(body && body.intent === 'grade');
+  const who = await currentUser(req);
+  const whoKey = who ? 'user:' + who.id : 'ip:' + ip;
+  if (isGrade) {
+    if (!rateLimitCheck('grade:' + whoKey, GRADE_LIMIT_PER_HOUR)) return json(res, 429, { error: { message: `Grading limit: ${GRADE_LIMIT_PER_HOUR} answers/hour.` } });
+  } else if (!rateLimitCheck(whoKey)) {
+    return json(res, 429, { error: { message: `Rate limit: ${RATE_LIMIT_PER_HOUR} requests/hour.` } });
   }
-  if (!budgetCheck()) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
+  if (!budgetCheck(isGrade ? 'grade' : 'general')) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
 
   // Capture intent + model BEFORE we strip them, so we can record usage.
   const callIntent = (body && typeof body.intent === 'string') ? body.intent : null;
@@ -3499,7 +3604,7 @@ server.listen(PORT, () => {
   console.log(`🗄  DB backend: ${db.backend}`);
   console.log(API_KEY ? '✨ Max (AI tutor): enabled' : '⚠️  Max disabled (no ANTHROPIC_API_KEY)');
   console.log(process.env.RESEND_API_KEY ? '📧 Email: Resend' : '📧 Email: console (set RESEND_API_KEY for real email)');
-  console.log(`⏱  Rate limit: ${RATE_LIMIT_PER_HOUR} req/hr/IP   💰 Daily cap: ${DAILY_REQUEST_CAP} req/day`);
+  console.log(`⏱  Rate limit: ${RATE_LIMIT_PER_HOUR} req/hr per student (or IP)   💰 Daily cap: ${DAILY_REQUEST_CAP} req/day + ${DAILY_GRADE_CAP} grading`);
 });
 
 // Exposed for tests only. Requiring this file also starts the server (harmless
