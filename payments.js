@@ -15,10 +15,10 @@
   // kill switch is off. The list price is struck through rather than hidden so
   // the promo reads as a discount instead of as "this was always free".
   const SUMMER = {
-    monthly: { trial: 'Free for the summer · no card required',
-               fine:  'Free all summer. After that: $30/month or $300/year.' },
-    yearly:  { trial: 'Free for the summer · no card required',
-               fine:  'Free all summer. After that: $300/year (≈$25/mo).' },
+    monthly: { trial: 'Free for now · no card required',
+               fine:  'Free for now. Later: $30/month or $300/year.' },
+    yearly:  { trial: 'Free for now · no card required',
+               fine:  'Free for now. Later: $300/year (≈$25/mo).' },
   };
 
   let selectedPlanCard = 'monthly';
@@ -157,10 +157,10 @@
         if (section) section.classList.add('is-summer');
 
         const badge = document.querySelector('.pricing-badge-pro');
-        if (badge) badge.textContent = 'Pro · free for the summer';
+        if (badge) badge.textContent = 'Pro · free for now';
 
         const sub = document.querySelector('.landing-pricing .landing-section-sub');
-        if (sub) sub.textContent = 'Pro is free for every student this summer — no card, no trial to cancel.';
+        if (sub) sub.textContent = 'Pro is free for every student right now. No card, no trial to cancel.';
 
         const cta = el('pricingSubscribeBtn');
         if (cta) {

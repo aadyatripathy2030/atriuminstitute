@@ -7332,3 +7332,113 @@ html.js-reveal #landing .landing-hero > * { animation-duration: .9s; animation-t
 .course-header-inner, .study-hero { border-left: 1px solid var(--border); }
 .book-card .book-subtitle, .course-header-inner p { font-style: normal; color: var(--muted); }
 .landing-stats { border-left: 0; border-right: 0; }
+
+/* ===================================================================
+   Impeccable pass (Nov 9 2026): polish + bolder, inside the ChartGauge
+   look. The signed-in pages still wore the old warm palette (amber and
+   gold gradients, per-course rainbow numbers, colored left edges, soft
+   colored glows); they now use the same tokens as the rest. The landing
+   page loses its eyebrow and its grid of same-size icon cards, and the
+   headline gets more size. Color is kept only where it means something:
+   pass/fail, correct/wrong, the streak flame.
+   =================================================================== */
+
+/* ---- Per-course and per-topic colors: one tone everywhere ---- */
+.course-card, .section-card, .book-card, .detail-header, .course-header-inner, .study-hero {
+  --a1: var(--text) !important; --a2: var(--muted) !important; }
+.course-cta { color: var(--text); font-weight: 510; }
+.course-card:hover .course-cta { text-decoration: underline; text-underline-offset: 3px; }
+.section-row .num { background: var(--wash-2); color: var(--text); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.status-badge.final { background: var(--text); color: var(--bg); border: 0; font-weight: 590; letter-spacing: .04em; }
+.learn-btn { background: var(--wash); border: 1px solid var(--border-strong); color: var(--text); }
+.learn-btn:hover { background: var(--wash-2); border-color: var(--text); }
+.start-btn, .practice-btn { transition: background-color .16s var(--ease-out-quad), border-color .16s var(--ease-out-quad); }
+.course-card em, .course-card i, .book-subtitle, .course-tagline { font-style: normal; }
+
+/* ---- Header pieces ---- */
+.study-nav-btn { background: var(--wash); color: var(--text); border: 1px solid var(--border-strong); box-shadow: none; font-weight: 510; padding: 8px 14px; }
+.study-nav-btn:hover { background: var(--wash-2); border-color: var(--text); transform: none; box-shadow: none; }
+.points-chip { background: var(--wash); color: var(--text); border: 1px solid var(--border); font-weight: 510; font-variant-numeric: tabular-nums; }
+.points-chip:hover { border-color: var(--border-strong); transform: none; }
+
+/* ---- Floating buttons: Snap & Solve is the quiet one, Ask Max the main ---- */
+.pa-fab { background: var(--card); color: var(--text); border: 1px solid var(--border-strong); font-weight: 510;
+  box-shadow: 0 8px 24px -12px rgba(0,0,0,.35); transition: background-color .16s var(--ease-out-quad), border-color .16s var(--ease-out-quad); }
+.pa-fab:hover { background: var(--card-hi); border-color: var(--text); transform: none; box-shadow: 0 8px 24px -12px rgba(0,0,0,.35); }
+.ask-fab { box-shadow: 0 8px 24px -12px rgba(0,0,0,.45); }
+
+/* ---- Home (signed in) ---- */
+#courses-home .hero-badges, .landing-eyebrow { display: none; }
+.rec-card { border-left: 1px solid var(--border); background: var(--card); box-shadow: none; }
+.rec-avatar { background: var(--wash); border-color: var(--border); }
+.rec-name { font-family: var(--font); font-weight: 590; }
+.pod-card, .pod-card.solved { background: var(--card); border: 1px solid var(--border); }
+.pod-card.solved { border-color: color-mix(in srgb, var(--good) 45%, var(--border)); }
+.pod-eyebrow { color: var(--text); font-weight: 590; }
+.pod-card.solved .pod-eyebrow { color: var(--good); }
+.pod-subject, .pod-stats { color: var(--muted); }
+.pod-question { background: var(--wash); color: var(--text); }
+.study-plan-card { background: var(--card); border: 1px solid var(--border); }
+@media (max-width: 600px) {
+  .study-plan-card { width: calc(100% - 32px); }
+  .plan-head { flex-wrap: wrap; }
+  .plan-head > div:not([class]) { flex: 1 1 200px; min-width: 0; }
+}
+.section-heading h2 { font-weight: 510; }
+
+/* ---- Achievements ---- */
+.ach-howto { background: var(--card); border: 1px solid var(--border); }
+.ach-howto-title { font-family: var(--font); font-weight: 590; letter-spacing: -.012em; }
+.ach-howto-lede, .ach-howto-detail { color: var(--muted); }
+.ach-howto-item { background: var(--wash); }
+
+/* ---- Shop: the coin count is a plain pill ---- */
+.shop-coins { background: var(--wash); border-color: var(--border-strong); font-weight: 590; font-variant-numeric: tabular-nums; }
+
+/* ---- Sign-up form: every field the same height and size ---- */
+.auth-field input, .auth-field select, #authEmail, #authAge {
+  height: 44px; min-height: 44px; padding: 0 14px; font-size: 15px; font-weight: 400; letter-spacing: -.011em; border-radius: 8px;
+  border: 1px solid var(--border-strong); background: var(--paper) !important; color: var(--text) !important; -webkit-text-fill-color: var(--text); }
+#authAge::placeholder { font-size: 15px; }
+.auth-field input:focus, .auth-field select:focus, #authEmail:focus { border-color: var(--text); box-shadow: 0 0 0 3px var(--wash-2); outline: none; }
+
+/* ---- Landing: a bigger headline, and the features as a list, not a
+   grid of boxes: icon, title and text in two columns, hairline between ---- */
+.landing-h1 { font-size: clamp(44px, 7vw, 88px); line-height: 1; letter-spacing: -.035em; max-width: 14ch; margin-left: auto; margin-right: auto; }
+.landing-lede { font-size: 18px; max-width: 54ch; margin-left: auto; margin-right: auto; }
+.features-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 64px; border-top: 1px solid var(--border); }
+.features-grid .feature, .features-grid .feature:hover { background: none; border: 0; border-bottom: 1px solid var(--border); border-radius: 0;
+  padding: 28px 0; display: grid; grid-template-columns: 40px 1fr; column-gap: 16px; align-items: start; transform: none; }
+.features-grid .feature-icon { grid-row: span 2; margin: 2px 0 0; width: 40px; height: 40px; display: grid; place-items: center;
+  border: 1px solid var(--border-strong); border-radius: 10px; color: var(--text); font-size: 0; }
+.features-grid .feature h3 { font-size: 16px; margin: 0 0 6px; }
+.features-grid .feature p { margin: 0; max-width: 46ch; }
+@media (max-width: 760px) { .features-grid { grid-template-columns: 1fr; } }
+
+/* ---- Browser surfaces ---- */
+html { scrollbar-color: var(--border-strong) transparent; accent-color: var(--text); }
+input, textarea { caret-color: var(--text); }
+a { text-underline-offset: 3px; }
+.stat-num, .num, .points-chip, .pod-stats { font-variant-numeric: tabular-nums; }
+
+/* Side panels cast their shadow only while open; closed, they sit off
+   screen and their shadow was shading the page edges. */
+.chat-panel, .study-panel { box-shadow: none; }
+.chat-panel.open, .study-panel.open { box-shadow: 0 0 80px -20px rgba(0,0,0,.35); }
+/* Fields in dark mode: several components hard-coded a white fill. */
+:root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+:root[data-theme="dark"] select, :root[data-theme="dark"] textarea {
+  background-color: var(--paper); color: var(--text); border-color: var(--border-strong); }
+:root[data-theme="dark"] ::placeholder { color: var(--muted); opacity: 1; }
+/* Subtitles upright; the headline holds its two lines on wide screens. */
+.course-subtitle { font-style: normal; color: var(--muted); }
+.landing-h1 { max-width: none; }
+/* Achievements point tiles and the "+5" chip: plain surfaces in both themes. */
+.ach-points-card, .ach-points-card.ach-points-total { background: var(--card); border: 1px solid var(--border); }
+.ach-points-card.ach-points-total { border-color: var(--border-strong); }
+.ach-points-label { color: var(--muted); }
+.ach-points-num { font-family: var(--font); font-weight: 510; color: var(--text); font-variant-numeric: tabular-nums; }
+.pts-chip { background: var(--wash-2); color: var(--muted); border: 0; font-weight: 510; }
+.detail-header .subtitle { font-style: normal; color: var(--muted); }
+/* Progress tracks: a faint wash in both themes (one was hard-coded light gray). */
+.section-progress-bar, .book-progress-bar { background: var(--wash-2); }
