@@ -1255,16 +1255,25 @@
       const onAdminRoute = window.location.pathname === '/admin' || window.location.hash === '#admin';
       if (onAdminRoute && user.is_admin) {
         // admin.js's checkRoute / retry loop will open the admin page.
+        signalReady();
         return;
       }
       // Signed-in users get routed straight to their app home rather than
       // staring at a marketing landing. Role-aware: parents → dashboard,
       // gated minors → consent gate, everyone else → courses home (or
       // onboarding if no profile yet).
-      enterAppAfterAuth(user);
+      try { await enterAppAfterAuth(user); } finally { signalReady(); }
     } else {
       setNavSignedOut();
+      signalReady();
     }
+  }
+
+  // Tells router.js that startup has decided where to land, so a direct
+  // visit to /faq, /profile, etc. can open that page.
+  function signalReady() {
+    window.__atriumBooted = true;
+    try { window.dispatchEvent(new Event('atrium:ready')); } catch (e) { /* ignore */ }
   }
 
   if (document.readyState === 'loading') {
