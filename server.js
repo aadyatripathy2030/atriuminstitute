@@ -6,6 +6,7 @@
 //   RESEND_API_KEY        Optional. If unset, verification codes print to server console.
 //   EMAIL_FROM            Optional. Default: "Atrium Institute <onboarding@resend.dev>"
 //   RATE_LIMIT_PER_HOUR   Claude requests per IP per hour (default 30)
+//   GRADE_LIMIT_PER_HOUR  quiz-grading requests per signed-in student per hour (default 300)
 //   DAILY_REQUEST_CAP     Total Claude requests per day (default 1000)
 //   DB_PATH               Where to store data.json (default ./data.json)
 
@@ -22,6 +23,7 @@ const stripeLib = require('./stripe-lib');
 const shopLib = require('./shop-lib');
 const refLib = require('./referral-lib');
 const billingLib = require('./billing-lib');
+const quizLib = require('./quiz-lib');
 
 // Anthropic pricing per million tokens (USD), as of mid-2026. If a model
 // is not listed we charge using Sonnet rates (conservative). Update when
@@ -78,6 +80,7 @@ function _isAdminEmail(emailStr) {
 const PORT = process.env.PORT || 8765;
 const ROOT = __dirname;
 const RATE_LIMIT_PER_HOUR = parseInt(process.env.RATE_LIMIT_PER_HOUR, 10) || 30;
+const GRADE_LIMIT_PER_HOUR = parseInt(process.env.GRADE_LIMIT_PER_HOUR, 10) || 300;
 const DAILY_REQUEST_CAP = parseInt(process.env.DAILY_REQUEST_CAP, 10) || 1000;
 
 // Anthropic key
@@ -158,15 +161,15 @@ function ipOf(req) {
   if (xff) return xff.split(',')[0].trim();
   return req.socket.remoteAddress || 'unknown';
 }
-function rateLimitCheck(ip) {
+function rateLimitCheck(key, limit = RATE_LIMIT_PER_HOUR) {
   const now = Date.now();
-  let b = ipBuckets.get(ip);
+  let b = ipBuckets.get(key);
   if (!b || b.resetAt <= now) {
     b = { count: 0, resetAt: now + 60*60*1000 };
-    ipBuckets.set(ip, b);
+    ipBuckets.set(key, b);
   }
   b.count++;
-  return b.count <= RATE_LIMIT_PER_HOUR;
+  return b.count <= limit;
 }
 let dailyCount = 0;
 let dailyResetAt = nextUtcMidnight();
@@ -979,13 +982,19 @@ async function handleLogQuizAttempt(req, res) {
       userAnswer: a.userAnswer == null ? null : String(a.userAnswer).slice(0, 2000),
       correctAnswer: a.correctAnswer == null ? '' : String(a.correctAnswer).slice(0, 2000),
       correct: !!a.correct,
+      overridden: !!a.overridden,
       note: a.note ? String(a.note).slice(0, 500) : undefined,
     }));
   }
+  // Points are worked out from today's earlier attempts before this one is
+  // saved: one pass payout per section per day, a daily cap on attempts, and
+  // a pass has to hold up on the answers themselves (see quiz-lib.js).
+  let earlier = [];
+  try { earlier = await db.listQuizAttempts(u.id, { limit: 200 }); } catch (e) { console.warn('listQuizAttempts failed:', e.message); }
+  const award = quizLib.pointsForAttempt({ ...body, answers }, earlier, POINT_VALUES);
   const row = await db.logQuizAttempt(u.id, { ...body, answers });
-  // Award points (fire-and-forget). Passes are worth more than attempts.
-  _awardPointsAsync(u.id, body && body.passed ? POINT_VALUES.quiz_passed : POINT_VALUES.quiz_attempted);
-  json(res, 200, { ok: true, attempt: row });
+  if (award.points) _awardPointsAsync(u.id, award.points);
+  json(res, 200, { ok: true, attempt: row, points: award.points, pointsReason: award.kind });
 }
 
 // Whitelisted client-emitted activity kinds. Server-emitted kinds (signin,
@@ -3067,15 +3076,24 @@ async function proxyClaude(req, res) {
   }
 
   const ip = ipOf(req);
-  if (!rateLimitCheck(ip)) return json(res, 429, { error: { message: `Rate limit: ${RATE_LIMIT_PER_HOUR} requests/hour per IP.` } });
-  if (!budgetCheck()) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
-
   let bodyStr;
   try { bodyStr = await readBody(req); } catch (_e) { res.writeHead(400); return res.end('bad body'); }
 
   let body;
   try { body = JSON.parse(bodyStr); }
   catch (_e) { return json(res, 400, { error: { message: 'Invalid JSON body.' } }); }
+
+  // Grading quiz answers gets its own, larger allowance per signed-in student,
+  // so a classroom sharing one IP doesn't run out after a few quizzes (and
+  // chat can't use up the grading allowance). Everything else: per IP.
+  if (body && body.intent === 'grade') {
+    const gu = await currentUser(req);
+    const key = gu ? 'grade:user:' + gu.id : 'grade:ip:' + ip;
+    if (!rateLimitCheck(key, GRADE_LIMIT_PER_HOUR)) return json(res, 429, { error: { message: `Grading limit: ${GRADE_LIMIT_PER_HOUR} answers/hour.` } });
+  } else if (!rateLimitCheck(ip)) {
+    return json(res, 429, { error: { message: `Rate limit: ${RATE_LIMIT_PER_HOUR} requests/hour per IP.` } });
+  }
+  if (!budgetCheck()) return json(res, 429, { error: { message: `Site has hit today's request cap. Resets at UTC midnight.` } });
 
   // Capture intent + model BEFORE we strip them, so we can record usage.
   const callIntent = (body && typeof body.intent === 'string') ? body.intent : null;
@@ -3244,14 +3262,36 @@ const SPA_ROUTES = new Set([
 // lesson, quiz, curriculum unit, or Photo Atrium result).
 const SPA_PREFIXES = ['/courses/', '/curriculum/', '/photo-atrium/'];
 
+// Only files the site actually uses are served: the page, its stylesheet,
+// the scripts index.html loads, quiz expansion scripts, and root-level icons
+// and crawler files. Everything else in the project folder (server code,
+// prompts, docs, data) stays private, including files added later.
+const PUBLIC_FILES = new Set(['/index.html', '/styles.css']);
+try {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  for (const m of html.matchAll(/<script[^>]*\ssrc="(\/[\w.-]+\.js)"/g)) PUBLIC_FILES.add(m[1]);
+} catch (e) { console.warn('Could not read index.html for the public file list:', e.message); }
+const PUBLIC_ROOT_EXTS = new Set(['.png', '.ico', '.svg', '.jpg', '.webp', '.webmanifest', '.txt', '.xml']);
+
+function isPublicPath(urlPath) {
+  if (PUBLIC_FILES.has(urlPath)) return true;
+  const parts = urlPath.split('/'); // ['', 'file'] or ['', 'dir', 'file']
+  if (parts.length === 2) return PUBLIC_ROOT_EXTS.has(path.extname(urlPath).toLowerCase()) && !parts[1].startsWith('.');
+  if (parts.length === 3 && parts[1] === 'expansions') return /^[\w-]+\.js$/.test(parts[2]);
+  return false;
+}
+
 function serveStatic(req, res) {
-  let urlPath = decodeURIComponent(req.url.split('?')[0]);
+  let urlPath;
+  try { urlPath = decodeURIComponent(req.url.split('?')[0]); }
+  catch (_e) { res.writeHead(400); return res.end('400'); }
   if (urlPath === '/') urlPath = '/index.html';
   // SPA route fallthrough: serve index.html for known client-side routes.
   if (urlPath.length > 1 && urlPath.endsWith('/')) urlPath = urlPath.slice(0, -1);
   if (SPA_ROUTES.has(urlPath.toLowerCase()) || (SPA_PREFIXES.some(p => urlPath.startsWith(p)) && !path.extname(urlPath))) urlPath = '/index.html';
+  if (!isPublicPath(urlPath)) { res.writeHead(404); return res.end('404'); }
   const filePath = path.join(ROOT, urlPath);
-  if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('403'); }
+  if (!filePath.startsWith(ROOT + path.sep)) { res.writeHead(403); return res.end('403'); }
   const base = path.basename(filePath);
   if (base === '.apikey' || base === 'server.js' || base === 'db.js' || base === 'email.js'
       || base === 'data.json' || base === 'package.json' || base === 'package-lock.json'

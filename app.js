@@ -46,50 +46,8 @@ function loadScores() {
 function saveScores(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 function sKey(bookId, sIdx) { return `${bookId}:${sIdx}`; }
 
-// ================= LOCAL FALLBACK NORMALIZER =================
-function normalizeAns(s) {
-  if (s == null) return '';
-  s = String(s).toLowerCase();
-  s = s.replace(/<[^>]+>/g, '');
-  s = s.replace(/\\\(|\\\)|\\\[|\\\]|\$/g, '');
-  s = s.replace(/\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)');
-  s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, 'sqrt($1)');
-  s = s.replace(/\\pm/g, '+-').replace(/\\cdot|\\times/g, '*').replace(/\\div/g, '/');
-  s = s.replace(/\\neq/g, '!=').replace(/\\leq/g, '<=').replace(/\\geq/g, '>=');
-  s = s.replace(/\\infty/g, 'inf').replace(/\\pi/g, 'pi');
-  s = s.replace(/\\overline\s*\{([^{}]*)\}/g, '$1');
-  s = s.replace(/\\[a-z]+\s*/gi, '');
-  s = s.replace(/[{}]/g, '');
-  s = s.replace(/±/g, '+-').replace(/×/g, '*').replace(/÷/g, '/').replace(/√/g, 'sqrt');
-  s = s.replace(/\bunits?\b|\bft\b|\bin\.?\b|\bcm\b|\bmph\b|\b°f?\b/g, '');
-  s = s.replace(/\band\b|\bor\b/g, ',');
-  s = s.replace(/[^\w\d/=+\-*.,()!<>]/g, ' ').replace(/\s+/g, '').replace(/\.$/, '');
-  return s;
-}
-function extractNumbers(s) {
-  return (s.match(/-?\d+(?:\.\d+)?(?:\/\d+)?/g) || []).map(n => {
-    if (n.includes('/')) { const [a,b] = n.split('/').map(Number); return b===0 ? n : (a/b).toFixed(4); }
-    return parseFloat(n).toFixed(4);
-  });
-}
-function localCheck(user, correct) {
-  if (!user || !user.trim()) return false;
-  const u = normalizeAns(user), c = normalizeAns(correct);
-  if (!u) return false;
-  if (u === c) return true;
-  const un = extractNumbers(u), cn = extractNumbers(c);
-  if (cn.length > 0 && un.length === cn.length) {
-    const a = un.slice().sort(), b = cn.slice().sort();
-    if (a.every((n,i) => n === b[i])) return true;
-  }
-  const strip = x => x.replace(/[^a-z0-9]/g, '');
-  const us = strip(u), cs = strip(c);
-  if (us.length >= 2) {
-    if (cs.includes(us) && us.length >= Math.min(cs.length * 0.5, 8)) return true;
-    if (us.includes(cs) && cs.length >= 2) return true;
-  }
-  return false;
-}
+// The local answer checker (used when the AI grader is unreachable) lives in
+// grade-lib.js so the tests can exercise it.
 
 // ================= MARKDOWN (minimal) =================
 function mdToHtml(md) {
@@ -539,7 +497,7 @@ function loadCourseExpansion(courseId) {
   if (_loadedExpansions[courseId]) return _loadedExpansions[courseId];
   _loadedExpansions[courseId] = new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = `expansions/${encodeURIComponent(courseId)}.js`;
+    s.src = `/expansions/${encodeURIComponent(courseId)}.js`; // absolute: pages live at nested URLs
     s.async = false;
     s.onload = () => resolve();
     s.onerror = () => {
@@ -2653,6 +2611,7 @@ async function submitAnswer() {
   let isCorrect = false;
   let aiNote = '';
   let usedAI = false;
+  let usedFallback = false;
 
   if (user) {
     try {
@@ -2663,6 +2622,7 @@ async function submitAnswer() {
     } catch (e) {
       console.warn('AI grading failed, using local check:', e.message);
       isCorrect = localCheck(user, q.answer);
+      usedFallback = true;
     }
   }
 
@@ -2693,9 +2653,10 @@ async function submitAnswer() {
         ${isCorrect ? '✓ Correct!' : '✗ Not quite.'}
         ${usedAI ? '<span class="ai-tag">✨ AI-graded</span>' : ''}
       </div>
-      <div class="reveal-row"><span class="lbl">Your answer</span><span class="val">${user || '<em>(blank)</em>'}</span></div>
+      <div class="reveal-row"><span class="lbl">Your answer</span><span class="val">${user ? escapeHtml(user) : '<em>(blank)</em>'}</span></div>
       <div class="reveal-row"><span class="lbl">Correct answer</span><span class="val correct">${q.answer}</span></div>
       ${aiNote ? `<div class="ai-note">💡 ${aiNote}</div>` : ''}
+      ${usedFallback ? `<div class="ai-note">Max couldn't grade this one, so it was checked against the answer key exactly. ${isCorrect ? '' : 'If yours means the same thing, use the button below.'}</div>` : ''}
       ${!isCorrect ? `<button class="override-btn" id="overrideBtn">I actually had it right — count it →</button>` : ''}
     </div>
   `;
@@ -2713,6 +2674,7 @@ async function submitAnswer() {
   if (overrideBtn) {
     overrideBtn.onclick = () => {
       answers[idx].correct = true;
+      answers[idx].overridden = true; // still counts for the score, not for points
       reveal.classList.remove('bad'); reveal.classList.add('good');
       const v = reveal.querySelector('.verdict');
       v.classList.remove('bad'); v.classList.add('good');
@@ -2782,6 +2744,7 @@ function finishQuiz() {
     correctAnswer: q.answer,
     userAnswer: (answers[i] && answers[i].user) || null,
     correct: !!(answers[i] && answers[i].correct),
+    overridden: !!(answers[i] && answers[i].overridden),
     note: (answers[i] && answers[i].aiNote) || undefined,
   }));
   fetch('/api/me/quiz-attempts', {
@@ -2799,15 +2762,15 @@ function finishQuiz() {
       startedAt: QUIZ && QUIZ.startedAt,
       answers: detailedAnswers,
     }),
+  }).then(r => (r.ok ? r.json() : null)).then(data => {
+    // Points feedback reflects what the server actually awarded (a section's
+    // pass pays out once a day; see quiz-lib.js).
+    if (!data || !data.points || typeof window.showPointToast !== 'function') return;
+    if (data.pointsReason === 'passed') window.showPointToast(data.points, 'Quiz passed', { icon: '🎯' });
+    else window.showPointToast(data.points, 'Quiz attempt', { icon: '💪' });
   }).catch(() => { /* ignore — best-effort */ });
   if (typeof window._behaviorQuizSubmit === 'function') {
     window._behaviorQuizSubmit(book.id, sIdx, correct, total, passed);
-  }
-  // Non-distracting points feedback for the quiz result.
-  if (typeof window.showPointToast === 'function' && typeof window.AtriumPoints === 'object') {
-    const P = window.AtriumPoints;
-    if (passed) window.showPointToast(P.quiz_passed, 'Quiz passed', { icon: '🎯' });
-    else window.showPointToast(P.quiz_attempted, 'Quiz attempt', { icon: '💪' });
   }
   // A pass might have triggered a new badge (Quiz Champion, First pass,
   // Sharpshooter, etc.). Check quietly and toast any new ones.

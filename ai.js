@@ -18,7 +18,8 @@ const AI = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       // 402 = server is saying Max is Pro-gated. Pop the upgrade modal.
-      if (res.status === 402 && typeof openUpgradeModal === 'function') {
+      // Grading quietly falls back to the answer-key check instead.
+      if (res.status === 402 && payload.intent !== 'grade' && typeof openUpgradeModal === 'function') {
         openUpgradeModal();
       }
       throw new Error(err.error?.message || `API ${res.status}`);
