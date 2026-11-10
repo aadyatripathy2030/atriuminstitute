@@ -104,6 +104,7 @@
   }
 
   function showAuthGate(initialMode) {
+    window.__atriumAuthMode = initialMode === 'signup' ? 'signup' : 'signin'; // read by router.js
     hide(el('landing'));
     hide(el('courses-home'));
     hide(el('home'));

@@ -228,6 +228,7 @@
   }
 
   async function openResult(id) {
+    window.__atriumPhotoId = id; // read by router.js for the URL
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
     show(el('photoAtriumResultPage'));
     window.scrollTo({ top: 0 });

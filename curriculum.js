@@ -128,6 +128,7 @@
   }
 
   async function openCourse(courseId, openUnitNumber) {
+    window.__atriumCurrCourse = courseId; // read by router.js for the URL
     hide(el('currCourseList'));
     const detail = el('currCourseDetail');
     show(detail);

@@ -3235,15 +3235,21 @@ async function proxyClaude(req, res) {
 const SPA_ROUTES = new Set([
   '/admin', '/shop', '/about', '/why-atrium', '/faq', '/contact', '/privacy',
   '/terms', '/courses', '/profile', '/activity', '/favorites', '/achievements',
-  '/leaderboard', '/curriculum', '/photo-atrium', '/parent',
+  '/leaderboard', '/curriculum', '/photo-atrium', '/parent', '/usage',
+  '/sign-in', '/sign-up', '/pricing', '/upgrade', '/calculator', '/calendar',
+  '/certificates', '/essay-grader', '/flashcards', '/formulas', '/notebook',
+  '/learning-path', '/referral', '/sat-prep',
 ]);
+// Every address under these is a client-side route too (a course, topic,
+// lesson, quiz, curriculum unit, or Photo Atrium result).
+const SPA_PREFIXES = ['/courses/', '/curriculum/', '/photo-atrium/'];
 
 function serveStatic(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') urlPath = '/index.html';
   // SPA route fallthrough: serve index.html for known client-side routes.
   if (urlPath.length > 1 && urlPath.endsWith('/')) urlPath = urlPath.slice(0, -1);
-  if (SPA_ROUTES.has(urlPath.toLowerCase())) urlPath = '/index.html';
+  if (SPA_ROUTES.has(urlPath.toLowerCase()) || (SPA_PREFIXES.some(p => urlPath.startsWith(p)) && !path.extname(urlPath))) urlPath = '/index.html';
   const filePath = path.join(ROOT, urlPath);
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('403'); }
   const base = path.basename(filePath);
