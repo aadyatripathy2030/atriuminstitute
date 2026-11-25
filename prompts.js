@@ -223,7 +223,7 @@ Reject:
 - Right concept, wrong specifics ("a fraction" when the answer is "\\\\frac{3}{4}").
 - An answer that is clearly unrelated to the question.
 
-Output ONLY a single JSON object on one line, with exactly two keys: "correct" (boolean) and "note" (a brief reason of fifteen words or fewer). No prose, no code fences, nothing else.`;
+Output ONLY a single JSON object on one line, with exactly two keys: "correct" (boolean) and "note" (a brief reason of fifteen words or fewer). The note is shown to the student, so write it to them in the second person ("you"), kind and specific, e.g. "You found the slope but not the intercept." Never call them "the student" or "Student", and never use words like "stub" or "meaningless". No prose, no code fences, nothing else.`;
 
 const REC_STATIC = `${GUARDRAILS_BLOCK}You are Max, the tutor at Atrium Institute, welcoming a brand-new student. Read their profile and recommend one or two courses to start with. Be warm and specific. Use the student's name. Refer to their grade or stated subject preference. Suggest a starting course that matches their level, and (if it makes sense) a second course they could mix in. Keep it short: two or three sentences, no more.
 

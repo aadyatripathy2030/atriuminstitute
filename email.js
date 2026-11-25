@@ -82,19 +82,19 @@ function sendVerificationCode(email, code) {
 
 function htmlBody(code) {
   return `<!DOCTYPE html>
-<html><body style="font-family:Inter,system-ui,sans-serif;background:#f7f5f0;padding:40px 20px;color:#1e2238">
+<html><body style="font-family:Inter,system-ui,sans-serif;background:#FFF8F8;padding:40px 20px;color:#2A1B1A">
 <table cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 32px;box-shadow:0 4px 20px rgba(0,0,0,.05)">
 <tr><td>
 <div style="text-align:center;margin-bottom:24px">
-  <div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#1e2238;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div>
+  <div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#105FD9;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div>
 </div>
 <h1 style="font-family:Georgia,serif;font-weight:500;font-size:24px;margin:0 0 12px;text-align:center">Welcome to ${SITE_NAME}</h1>
-<p style="color:#6b7084;text-align:center;margin:0 0 28px;font-size:15px">Enter this code to sign in:</p>
-<div style="background:#f7f5f0;border:1px solid #e6e2d7;border-radius:10px;padding:18px;text-align:center;margin-bottom:24px">
-  <div style="font-family:'Courier New',monospace;font-size:32px;font-weight:700;letter-spacing:6px;color:#1e2238">${code}</div>
+<p style="color:#685251;text-align:center;margin:0 0 28px;font-size:15px">Enter this code to sign in:</p>
+<div style="background:#D5EAD1;border:1px solid #C3DDBE;border-radius:10px;padding:18px;text-align:center;margin-bottom:24px">
+  <div style="font-family:'Courier New',monospace;font-size:32px;font-weight:700;letter-spacing:6px;color:#2A1B1A">${code}</div>
 </div>
-<p style="color:#6b7084;font-size:13px;margin:0 0 4px">This code expires in 15 minutes.</p>
-<p style="color:#6b7084;font-size:13px;margin:0">If you didn't request this, you can safely ignore this email.</p>
+<p style="color:#685251;font-size:13px;margin:0 0 4px">This code expires in 15 minutes.</p>
+<p style="color:#685251;font-size:13px;margin:0">If you didn't request this, you can safely ignore this email.</p>
 </td></tr>
 </table>
 </body></html>`;
@@ -161,15 +161,15 @@ function studentReminderHtml({ name, contentType, primaryCourse, weakTopic, unsu
   } else {
     body = `<p>Just a quick nudge to keep your study habit going. Even 15 minutes counts.</p>`;
   }
-  return `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#f7f5f0;padding:40px 20px;color:#1e2238">
+  return `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#FFF8F8;padding:40px 20px;color:#2A1B1A">
 <table cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 32px;box-shadow:0 4px 20px rgba(0,0,0,.05)">
 <tr><td>
-<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#1e2238;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
+<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#105FD9;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
 <h1 style="font-family:Georgia,serif;font-weight:500;font-size:22px;margin:0 0 12px;text-align:center">${greeting}</h1>
 ${body}
-<p style="text-align:center;margin:28px 0 12px"><a href="${SITE_URL}" style="display:inline-block;background:#1e2238;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open ${SITE_NAME}</a></p>
-<p style="color:#6b7084;font-size:12px;margin:20px 0 0;text-align:center">
-  Don't want these? <a href="${unsubUrl}" style="color:#6b7084">Turn off study reminders</a>.
+<p style="text-align:center;margin:28px 0 12px"><a href="${SITE_URL}" style="display:inline-block;background:#105FD9;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open ${SITE_NAME}</a></p>
+<p style="color:#685251;font-size:12px;margin:20px 0 0;text-align:center">
+  Don't want these? <a href="${unsubUrl}" style="color:#685251">Turn off study reminders</a>.
 </p>
 </td></tr></table></body></html>`;
 }
@@ -204,26 +204,26 @@ function parentDigestHtml({ name, studentSummaries, unsubUrl }) {
   const greeting = name ? `Hi ${name},` : 'Hi there,';
   let rows = '';
   if (studentSummaries.length === 0) {
-    rows = `<p style="color:#6b7084">No activity to report this week.</p>`;
+    rows = `<p style="color:#685251">No activity to report this week.</p>`;
   } else {
     rows = studentSummaries.map(s => `
-      <div style="border:1px solid #e6e2d7;border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="border:1px solid #D5EAD1;border-radius:10px;padding:14px;margin-bottom:10px">
         <div style="font-weight:600;margin-bottom:6px">${s.name}</div>
-        <div style="color:#1e2238;font-size:14px">${s.quizzesPassed} quizzes passed, ${s.quizzesFailed} did not pass.</div>
-        ${s.weakTopics.length ? `<div style="color:#6b7084;font-size:13px;margin-top:6px">Weak topics: ${s.weakTopics.join(', ')}</div>` : ''}
+        <div style="color:#2A1B1A;font-size:14px">${s.quizzesPassed} quizzes passed, ${s.quizzesFailed} did not pass.</div>
+        ${s.weakTopics.length ? `<div style="color:#685251;font-size:13px;margin-top:6px">Weak topics: ${s.weakTopics.join(', ')}</div>` : ''}
       </div>
     `).join('');
   }
-  return `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#f7f5f0;padding:40px 20px;color:#1e2238">
+  return `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#FFF8F8;padding:40px 20px;color:#2A1B1A">
 <table cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 32px;box-shadow:0 4px 20px rgba(0,0,0,.05)">
 <tr><td>
-<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#1e2238;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
+<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#105FD9;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
 <h1 style="font-family:Georgia,serif;font-weight:500;font-size:22px;margin:0 0 12px">${greeting}</h1>
-<p style="color:#6b7084;margin:0 0 20px">Here's how your students did this past week on ${SITE_NAME}.</p>
+<p style="color:#685251;margin:0 0 20px">Here's how your students did this past week on ${SITE_NAME}.</p>
 ${rows}
-<p style="text-align:center;margin:24px 0 12px"><a href="${SITE_URL}" style="display:inline-block;background:#1e2238;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open dashboard</a></p>
-<p style="color:#6b7084;font-size:12px;margin:20px 0 0;text-align:center">
-  Don't want these digests? <a href="${unsubUrl}" style="color:#6b7084">Unsubscribe from the weekly digest</a>.
+<p style="text-align:center;margin:24px 0 12px"><a href="${SITE_URL}" style="display:inline-block;background:#105FD9;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open dashboard</a></p>
+<p style="color:#685251;font-size:12px;margin:20px 0 0;text-align:center">
+  Don't want these digests? <a href="${unsubUrl}" style="color:#685251">Unsubscribe from the weekly digest</a>.
 </p>
 </td></tr></table></body></html>`;
 }
@@ -259,15 +259,15 @@ async function sendLinkApprovalRequest(toEmail, { inviterEmail, inviterRole, app
   const approverLabel = approverRole === 'parent' ? 'parent' : 'student';
   const subject = `${inviterEmail} wants to link with you on ${SITE_NAME}`;
   const approveUrl = `${SITE_URL}/#approvals`;
-  const html = `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#f7f5f0;padding:40px 20px;color:#1e2238">
+  const html = `<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;background:#FFF8F8;padding:40px 20px;color:#2A1B1A">
 <table cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 32px;box-shadow:0 4px 20px rgba(0,0,0,.05)">
 <tr><td>
-<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#1e2238;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
+<div style="text-align:center;margin-bottom:24px"><div style="display:inline-block;width:48px;height:48px;border-radius:10px;background:#105FD9;color:#fff;text-align:center;line-height:48px;font-family:Georgia,serif;font-size:20px;font-weight:700">∑</div></div>
 <h1 style="font-family:Georgia,serif;font-weight:500;font-size:20px;margin:0 0 12px;text-align:center">A ${inviterLabel} is asking to link with you</h1>
 <p><strong>${inviterEmail}</strong> entered your link code on ${SITE_NAME} and is asking to connect as your ${inviterLabel}. As the ${approverLabel} side, you need to approve before the link goes live.</p>
 <p>This two-sided check prevents a wrong child or parent from being associated with you by someone who happens to know your link code.</p>
-<p style="text-align:center;margin:28px 0 12px"><a href="${approveUrl}" style="display:inline-block;background:#1e2238;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open Atrium to review</a></p>
-<p style="color:#6b7084;font-size:12px;margin:20px 0 0;text-align:center">If you weren't expecting this, just reject it from the same screen. The other person will see the rejection.</p>
+<p style="text-align:center;margin:28px 0 12px"><a href="${approveUrl}" style="display:inline-block;background:#105FD9;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:500">Open Atrium to review</a></p>
+<p style="color:#685251;font-size:12px;margin:20px 0 0;text-align:center">If you weren't expecting this, just reject it from the same screen. The other person will see the rejection.</p>
 </td></tr></table></body></html>`;
   const text = `${inviterEmail} entered your link code on ${SITE_NAME} and is asking to connect with you.\n\nYou're being asked to approve this connection as the ${approverLabel} side. Open ${approveUrl} to approve or reject.\n\nIf you weren't expecting this request, just reject it.\n`;
   return sendEmail({ to: toEmail, subject, html, text });

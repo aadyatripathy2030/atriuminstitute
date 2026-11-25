@@ -411,20 +411,37 @@ function _simpleMathRender(s) {
 
 function _renderMathFallback(rootEl) {
   if (!rootEl || !rootEl.innerHTML) return;
-  let html = rootEl.innerHTML;
-  let changed = false;
-  // Match \[ ... \] OR \\[ ... \\] (single or double backslashes).
-  // Some lessons land with double-escaped delimiters from the
-  // prompt / DB round-trip; consume the whole opening sequence.
-  html = html.replace(/\\{1,2}\[([\s\S]*?)\\{1,2}\]/g, (_m, inner) => {
-    changed = true;
-    return `<span class="m-display">${_simpleMathRender(inner.trim())}</span>`;
+  // Work on text nodes only. Rewriting rootEl.innerHTML also rewrote math
+  // delimiters inside attribute values (breaking data-* payloads and
+  // printing raw JSON on the page) and dropped every event listener in
+  // the subtree.
+  // Matches \[ ... \] or \( ... \) with single or double backslashes;
+  // some lessons land double-escaped from the prompt / DB round-trip.
+  const re = /\\{1,2}\[([\s\S]*?)\\{1,2}\]|\\{1,2}\(([\s\S]*?)\\{1,2}\)/g;
+  const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.parentElement && n.parentElement.closest('script, style, textarea, code, pre, mjx-container, .m-inline, .m-display'))
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
   });
-  html = html.replace(/\\{1,2}\(([\s\S]*?)\\{1,2}\)/g, (_m, inner) => {
-    changed = true;
-    return `<span class="m-inline">${_simpleMathRender(inner.trim())}</span>`;
-  });
-  if (changed) rootEl.innerHTML = html;
+  const hits = [];
+  let n;
+  while ((n = walker.nextNode())) { re.lastIndex = 0; if (re.test(n.nodeValue)) hits.push(n); }
+  for (const node of hits) {
+    const text = node.nodeValue;
+    let html = '', last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(text))) {
+      html += esc(text.slice(last, m.index));
+      html += m[1] !== undefined
+        ? `<span class="m-display">${_simpleMathRender(m[1].trim())}</span>`
+        : `<span class="m-inline">${_simpleMathRender(m[2].trim())}</span>`;
+      last = re.lastIndex;
+    }
+    html += esc(text.slice(last));
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    node.replaceWith(tpl.content);
+  }
 }
 
 // ================= RENDER HOME =================
@@ -927,7 +944,7 @@ function openStudyPlanSetup(existingPlan) {
   const target = (existingPlan && existingPlan.target_date) || sixWeeks;
   const goal = existingPlan && existingPlan.goal_text || '';
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeModal()">✕</button>
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
     <div class="modal-content plan-setup">
       <h2>Plan your study</h2>
       <p>Tell Max where you're trying to land and by when. He'll lay out a week-by-week plan you can follow.</p>
@@ -2906,7 +2923,7 @@ function openHelpPopup(missedIdx) {
   const renderStep = () => {
     if (step >= missedIdx.length) {
       modal.innerHTML = `
-        <button class="modal-close" onclick="closeModal()">✕</button>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
         <div class="modal-content">
           <div class="tutor-avatar big">🧙‍♂️</div>
           <h2>You're ready for round two.</h2>
@@ -2926,7 +2943,7 @@ function openHelpPopup(missedIdx) {
     const user = answers[qi].user;
 
     modal.innerHTML = `
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
       <div class="modal-content">
         <div class="tutor-row">
           <div class="tutor-avatar">🧙‍♂️</div>

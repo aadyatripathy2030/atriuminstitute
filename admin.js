@@ -239,19 +239,19 @@
     if (!modal) return;
     show(modal); show(backdrop);
     modal.innerHTML = `
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
       <div class="modal-content"><div class="parent-empty">Loading user…</div></div>
     `;
     let detail;
     try { detail = await fetchJSON(`/api/admin/users/${userId}`); }
     catch (e) {
-      modal.innerHTML = `<button class="modal-close" onclick="closeModal()">✕</button><div class="modal-content"><div class="parent-empty err">${esc(e.message)}</div></div>`;
+      modal.innerHTML = `<button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button><div class="modal-content"><div class="parent-empty err">${esc(e.message)}</div></div>`;
       return;
     }
     const u = detail.user;
     const usage = detail.usage || {};
     modal.innerHTML = `
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
       <div class="modal-content admin-user-modal">
         <h2>${esc(u.email)}</h2>
         <div class="admin-user-meta">

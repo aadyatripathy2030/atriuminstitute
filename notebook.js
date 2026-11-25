@@ -67,7 +67,12 @@
 
   function selectNote(id) { activeId = id; renderList(); renderEditor(); }
 
+  function isBlank(n) { return !(n.title && n.title.trim()) && !(n.body && n.body.trim()); }
+
   function newNote() {
+    // Reuse a blank note rather than stacking up empty "Untitled note"s.
+    var blank = notes.filter(isBlank)[0];
+    if (blank) { selectNote(blank.id); var bt = el('nbNoteTitle'); if (bt) bt.focus(); return; }
     var n = { id: makeId(), title: '', body: '', updatedAt: Date.now() };
     notes.unshift(n);
     persist();
@@ -109,6 +114,10 @@
     var ov = el('nbOverlay');
     if (!ov) return;
     load();
+    // Drop blank notes left over from earlier sessions.
+    var before = notes.length;
+    notes = notes.filter(function (n) { return !isBlank(n); });
+    if (notes.length !== before) persist();
     activeId = notes.length ? notes[0].id : null;
     renderList(); renderEditor();
     show(ov);

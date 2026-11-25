@@ -2985,10 +2985,10 @@ async function handleUnsubscribe(req, res) {
     return res.end(`<h1>Could not unsubscribe</h1><p>${e.message}</p>`);
   }
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-  res.end(`<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;padding:40px 20px;color:#1e2238;text-align:center">
+  res.end(`<!DOCTYPE html><html><body style="font-family:Inter,system-ui,sans-serif;padding:40px 20px;color:#2A1B1A;text-align:center">
     <h1>You're unsubscribed</h1>
-    <p style="color:#6b7084">We won't send you any more ${kind === 'reminder' ? 'study reminders' : 'weekly digests'}.</p>
-    <p><a href="${process.env.SITE_URL || 'https://atriuminstitute.ai'}" style="color:#1e2238">Back to Atrium Institute</a></p>
+    <p style="color:#685251">We won't send you any more ${kind === 'reminder' ? 'study reminders' : 'weekly digests'}.</p>
+    <p><a href="${process.env.SITE_URL || 'https://atriuminstitute.ai'}" style="color:#2A1B1A">Back to Atrium Institute</a></p>
   </body></html>`);
 }
 

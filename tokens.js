@@ -7,6 +7,12 @@
   function show(node) { node && node.classList.remove('hidden'); }
   function hide(node) { node && node.classList.add('hidden'); }
 
+  // "claude-sonnet-4-5-20250929" -> "Sonnet 4.5" (full ID stays in the tooltip).
+  function modelName(id) {
+    var m = /claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(String(id || ''));
+    if (!m) return String(id || '');
+    return m[1].charAt(0).toUpperCase() + m[1].slice(1) + ' ' + m[2] + (m[3] ? '.' + m[3] : '');
+  }
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -120,7 +126,7 @@
     }
     tbody.innerHTML = rows.map(r => `
       <tr>
-        <td>${esc(r.model)}</td>
+        <td title="${esc(r.model)}">${esc(modelName(r.model))}</td>
         <td class="num">${num(r.calls)}</td>
         <td class="num">${num(r.input_tokens)}</td>
         <td class="num">${num(r.output_tokens)}</td>
@@ -156,7 +162,7 @@
         <tr class="token-row" data-i="${i}">
           <td>${esc(fmtDate(r.created_at))}</td>
           <td>${esc(r.intent || '—')}</td>
-          <td><span class="token-model">${esc(r.model)}</span></td>
+          <td><span class="token-model" title="${esc(r.model)}">${esc(modelName(r.model))}</span></td>
           <td class="num">${num(r.input_tokens)}</td>
           <td class="num">${num(cachedTotal)}</td>
           <td class="num">${num(r.output_tokens)}</td>
