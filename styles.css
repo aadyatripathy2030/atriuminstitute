@@ -7618,3 +7618,4 @@ body:has(#onboard:not(.hidden)) .pa-fab, body:has(#onboard:not(.hidden)) .ask-fa
 .pa-fab { color: var(--text); }
 .pa-answer-eq { color: var(--text); }
 .why-annotation { background: var(--accent-soft); border-left-color: var(--accent); }
+.landing-stats .stat { padding: 18px 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border); }
