@@ -282,7 +282,7 @@
       if (!buf.trim()) body.innerHTML = '<p>No summary right now. Take a quiz or two and refresh.</p>';
     } catch (e) {
       body.classList.add('err');
-      body.innerHTML = `Couldn't generate a summary just now: ${esc(e.message)}.`;
+      body.innerHTML = `Couldn't generate a summary just now: ${esc(String(e.message || '').replace(/\.+$/, ''))}. Try again in a little while.`;
     }
   }
 

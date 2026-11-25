@@ -82,7 +82,7 @@
     const list = el('currCourseList');
     if (!list) return;
     if (!courses.length) {
-      list.innerHTML = `<div class="parent-empty">No courses match the current filter. Try a different grade, or load the curriculum with <code>npm run import-curriculum</code>.</div>`;
+      list.innerHTML = `<div class="parent-empty">No courses match this filter yet. Try a different subject or grade.</div>`;
       return;
     }
     list.innerHTML = courses.map(c => `

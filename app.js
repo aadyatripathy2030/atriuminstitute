@@ -148,6 +148,8 @@ function mdToHtml(md) {
   return h;
 }
 function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+// For values placed inside a double- or single-quoted HTML attribute.
+function escapeAttr(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // MathJax loads async from a CDN. Before the bundle lands, window.MathJax
 // is only the config object set in <head>: it has tex/svg/options but NO
@@ -746,7 +748,7 @@ async function renderCourses() {
     }
     for (const t of tiles) grid.appendChild(t);
     if (renderedCount === 0 && tiles.length === 0) {
-      grid.innerHTML = '<div class="parent-empty">No topics for this grade and subject. Try a different grade or load the curriculum with <code>npm run import-curriculum</code>.</div>';
+      grid.innerHTML = '<div class="parent-empty">No topics for this grade and subject yet. Try a different grade.</div>';
     }
   } else {
     // Fallback: original behaviour, render every legacy course directly
@@ -1086,6 +1088,15 @@ async function maybeRenderRecommendation() {
     </div>
   `;
   const out = document.getElementById('recText');
+  // One AI call per browser tab, not one per page load: every deep link and
+  // refresh is a full load, and the stream also held up the requests the
+  // page itself needed. Keyed by the profile so a changed grade re-asks.
+  const cacheKey = 'atrium_rec_v1';
+  const profileKey = JSON.stringify([profile.name, profile.grade, profile.goals]);
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
+    if (cached && cached.k === profileKey && cached.text) { out.innerHTML = mdToHtml(cached.text); return; }
+  } catch (e) { /* storage unavailable: just ask */ }
   let buf = '';
   const courseTitles = Object.values(COURSES).map(c => c.title);
   try {
@@ -1093,6 +1104,7 @@ async function maybeRenderRecommendation() {
       buf += chunk;
       out.innerHTML = mdToHtml(buf);
     }
+    try { if (buf.trim()) sessionStorage.setItem(cacheKey, JSON.stringify({ k: profileKey, text: buf })); } catch (e) { /* ignore */ }
   } catch (e) {
     box.innerHTML = '';
   }
@@ -2257,7 +2269,7 @@ async function studyWithMax(book, section) {
                 <div class="study-q-answer"><b>Answer:</b> ${q.answer}</div>
                 ${q.solution ? `<div class="study-q-explain">${q.solution}</div>` : ''}
               </details>
-              <button class="study-q-ask" onclick='askMaxAboutQ(${JSON.stringify({ q: q.q, answer: q.answer, topic: section.title })})'>💬 Ask Max about this</button>
+              <button class="study-q-ask" data-ask="${escapeAttr(JSON.stringify({ q: q.q, answer: q.answer, topic: section.title }))}" onclick="askMaxAboutQ(JSON.parse(this.dataset.ask))">💬 Ask Max about this</button>
             </div>
           </div>
         `).join('')}
@@ -2322,6 +2334,9 @@ function backToBookFromStudy(bookId) {
 
 // Open Max chat seeded with context for a specific practice question.
 function askMaxAboutQ(ctx) {
+  // The question text arrives already turned into math HTML; Max gets plain text.
+  const plain = h => { const d = document.createElement('div'); d.innerHTML = String(h || ''); return d.textContent.trim(); };
+  ctx = { ...ctx, q: plain(ctx.q), answer: plain(ctx.answer) };
   openChat();
   const input = document.getElementById('chatInput');
   if (!input) return;
@@ -3351,7 +3366,7 @@ function renderGreeting() {
   const p = loadProfile();
   const greet = document.getElementById('greeting');
   if (!greet) return;
-  if (p && p.name) {
+  if (p && p.name && window.__atriumSignedIn) {
     greet.innerHTML = `Hi, <strong>${escapeHtml(p.name)}</strong>`;
     greet.classList.remove('hidden');
     greet.onclick = editProfile;

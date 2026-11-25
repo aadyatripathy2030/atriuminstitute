@@ -448,6 +448,8 @@
   function setNavSignedOut() {
     _stopHeartbeat();
     currentUser = null;
+    const greet = el('greeting');
+    if (greet) greet.classList.add('hidden');
     const signInBtn = el('navSignInBtn');
     const signUpBtn = el('navSignUpBtn');
     const navUser = el('navUser');
@@ -940,6 +942,7 @@
     pendingEmail = null;
     // Clear the local cached copy of progress so the next user on this
     // browser doesn't inherit it. Server-side data is untouched.
+    try { sessionStorage.removeItem('atrium_rec_v1'); } catch (_) {}
     for (const k of PROGRESS_KEYS) {
       try { _origSetItem.call(localStorage, k, JSON.stringify(null)); localStorage.removeItem(k); }
       catch (_) {}
