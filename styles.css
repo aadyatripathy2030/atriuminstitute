@@ -7782,7 +7782,7 @@ body.modal-open { overflow: hidden; }
    Contrast (WCAG 2.2): white on blue 13.9:1, muted 9.0:1, pink links on
    blue 5.8:1; navy on white 17.5:1, muted 7.2:1, pink links on white
    5.6:1; white on pink buttons 4.6:1. Pink buttons vs blue ground 3.0:1.
-   Stipples are SVG noise masks (stipple-*.svg) painted with theme colors.
+   Gradients and grain: see "Blended gradients (v2)" below.
    =================================================================== */
 :root, :root[data-theme="light"] {
   --blue-950: #061A55; --blue-900: #0A2472; --blue-800: #13338F; --pink: #E0187B;
@@ -7855,48 +7855,119 @@ html:root select:not([multiple]):not([size]), html:root[data-theme] select:not([
 .cta-secondary:hover { background: var(--wash-2); border-color: var(--text); }
 .back-btn { background: transparent; color: var(--text); border-color: var(--border-strong); }
 
-/* Footer: the deepest blue, with a pink stipple dissolving along its top edge. */
-.site-footer, :root[data-theme="dark"] .site-footer { position: relative; background: var(--band-deep); color: #E6EBFB; isolation: isolate; }
-.site-footer::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 110px; z-index: -1; pointer-events: none;
-  background: var(--pink); opacity: .85;
-  -webkit-mask: url(/stipple-edge-down.svg) center top / 100% 100% no-repeat; mask: url(/stipple-edge-down.svg) center top / 100% 100% no-repeat; }
-.site-footer a, .site-footer p, .site-footer span, .site-footer h4, .site-footer div { color: #D5DCF5; }
-.site-footer a:hover { color: #FFFFFF; }
+/* ---- Blended gradients (Nov 25 2026, v2) ----
+   The first pass used hard 1-bit dot sprays and put pure pink straight
+   against pure blue, which vibrates and reads as noise. This pass blends:
+   - a bridge hue (violet #6B2FD6) between the blue and the pink, so the
+     colors pass through each other instead of colliding;
+   - gradients interpolated in OKLCH, which keeps mid-tones clean instead of
+     going muddy/grey;
+   - soft mesh glows (layered radial gradients) that fade out, plus a very fine
+     grain over them (the "stippled" texture, now subtle, and it also stops
+     gradient banding);
+   - white surfaces lifted with soft blue-tinted shadows instead of hard edges,
+     and bands that fade into the blue rather than tearing. */
+:root { --violet: #6B2FD6; --glow-pink: rgb(224 24 123 / .85); --glow-violet: rgb(107 47 214 / .55); --glow-blue: rgb(37 99 235 / .45); }
+:root[data-theme="dark"] { --glow-pink: rgb(224 24 123 / .7); --glow-violet: rgb(107 47 214 / .5); --glow-blue: rgb(37 99 235 / .28); }
 
-/* ---- Stippled gradients ---- */
-/* Hero sprays: hot pink breaking up from the right edge, with a second
-   layer of light grain at the very edge, like spray paint. */
+/* The whole ground carries a faint violet/blue drift so long pages aren't one flat slab. */
+body { background-color: var(--bg);
+  background-image: radial-gradient(in oklch 70vw 600px at 100% 900px, rgb(107 47 214 / .16), transparent 70%),
+    radial-gradient(in oklch 60vw 500px at 0% 1300px, rgb(37 99 235 / .14), transparent 70%);
+  background-repeat: no-repeat; background-size: 100% 2200px, 100% 2200px; }
+
+/* Hero mesh: pink glow top-right, violet bridging into the blue, a cooler blue lower-left. */
 .landing-hero, #courses-home > header.hero, .info-hero, .why-hero { position: relative; isolation: isolate; }
-.landing-hero::before, .landing-hero::after, #courses-home > header.hero::before, .info-hero::before, .why-hero::before {
-  content: ""; position: absolute; z-index: -1; pointer-events: none;
-  top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw; }
-.landing-hero::before { top: -72px; background: var(--pink);
-  -webkit-mask: url(/stipple-spray.svg) right top / 135% 150% no-repeat; mask: url(/stipple-spray.svg) right top / 135% 150% no-repeat; }
-.landing-hero::after { top: -72px; background: var(--grain); opacity: .7;
-  -webkit-mask: url(/stipple-spray-2.svg) right center / 100% 100% no-repeat; mask: url(/stipple-spray-2.svg) right center / 100% 100% no-repeat; }
-#courses-home > header.hero::before, .info-hero::before, .why-hero::before { background: var(--pink); opacity: .9;
-  -webkit-mask: url(/stipple-spray.svg) right center / 100% 100% no-repeat; mask: url(/stipple-spray.svg) right center / 100% 100% no-repeat; }
+.landing-hero::before, .landing-hero::after, #courses-home > header.hero::before, #courses-home > header.hero::after,
+.info-hero::before, .why-hero::before, :root[data-theme="dark"] .landing-hero::before {
+  content: ""; display: block; position: absolute; z-index: -1; pointer-events: none;
+  top: -72px; bottom: -40px; left: calc(50% - 50vw); width: 100vw; opacity: 1;
+  -webkit-mask: linear-gradient(#000 62%, transparent); mask: linear-gradient(#000 62%, transparent); }
+.landing-hero::before, :root[data-theme="dark"] .landing-hero::before, #courses-home > header.hero::before {
+  animation: none; transform: none;
+  background:
+    radial-gradient(in oklch 38vw 70% at 94% 22%, var(--glow-pink), transparent 70%),
+    radial-gradient(in oklch 40vw 80% at 72% 14%, var(--glow-violet), transparent 72%),
+    radial-gradient(in oklch 40vw 80% at 4% 30%, var(--glow-blue), transparent 72%); }
+.landing-hero::after, #courses-home > header.hero::after { background: url(/grain-light.png) repeat; opacity: .45; }
+.info-hero::before, .why-hero::before { top: -40px; bottom: 0;
+  -webkit-mask: linear-gradient(transparent, #000 120px, #000 55%, transparent); mask: linear-gradient(transparent, #000 120px, #000 55%, transparent);
+  background:
+    radial-gradient(in oklch 36vw 90% at 98% 0%, rgb(224 24 123 / .5), transparent 72%),
+    radial-gradient(in oklch 34vw 90% at 78% 0%, rgb(107 47 214 / .4), transparent 72%),
+    url(/grain-light.png) repeat; }
 @media (max-width: 720px) {
-  /* On phones the text spans the full width: keep the spray to the lower
-     right corner and drop the light grain so text always sits on blue or pink. */
-  .landing-hero::before, #courses-home > header.hero::before, .info-hero::before, .why-hero::before {
-    top: 0; bottom: auto; height: 56px; opacity: .9;
-    -webkit-mask: url(/stipple-edge-down.svg) center top / 100% 100% no-repeat; mask: url(/stipple-edge-down.svg) center top / 100% 100% no-repeat; }
-  .landing-hero::after { display: none; }
+  /* Phones: text spans the width, so the glow stays in the top corner and lighter. */
+  .landing-hero::before, #courses-home > header.hero::before {
+    background:
+      radial-gradient(in oklch 80vw 45% at 100% 0%, rgb(224 24 123 / .55), transparent 72%),
+      radial-gradient(in oklch 70vw 50% at 55% 0%, rgb(107 47 214 / .4), transparent 72%); }
+  .info-hero::before, .why-hero::before { display: block; opacity: .7; }
 }
-/* White bands on the landing page dissolve into the blue above and below. */
+
+/* Gradient wordmark: pink easing into lavender instead of flat hot pink on blue. */
+.landing-h1 em, .hero h1 em, #courses-home > header.hero h1 span, .why-hero h1 em, .info-hero h1 em {
+  background: linear-gradient(in oklch 100deg, #FF8CC6, #C8A8FF); -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent; }
+
+/* White bands fade softly into the blue (through periwinkle) instead of tearing. */
 .landing-features, .landing-pricing { background: none !important; box-shadow: none !important; isolation: isolate;
   padding-top: 150px !important; padding-bottom: 150px !important; margin-bottom: 0 !important; }
 .landing-features::before, .landing-pricing::before { content: ""; position: absolute; z-index: -1; pointer-events: none;
-  top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw; background: var(--band);
-  -webkit-mask: url(/stipple-edge.svg) center top / 100% 130px no-repeat, linear-gradient(#000, #000) center 129px / 100% calc(100% - 258px) no-repeat, url(/stipple-edge-down.svg) center bottom / 100% 130px no-repeat;
-  mask: url(/stipple-edge.svg) center top / 100% 130px no-repeat, linear-gradient(#000, #000) center 129px / 100% calc(100% - 258px) no-repeat, url(/stipple-edge-down.svg) center bottom / 100% 130px no-repeat; }
+  top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw;
+  background: radial-gradient(in oklch 50% 40% at 90% 0%, rgb(224 24 123 / .07), transparent 70%),
+    linear-gradient(in oklch, #E9E4FF, #FFFFFF 160px, #FFFFFF calc(100% - 160px), #E9E4FF);
+  -webkit-mask: linear-gradient(transparent, rgb(0 0 0 / .08) 30px, rgb(0 0 0 / .3) 64px, rgb(0 0 0 / .65) 100px, #000 140px, #000 calc(100% - 140px), rgb(0 0 0 / .65) calc(100% - 100px), rgb(0 0 0 / .3) calc(100% - 64px), rgb(0 0 0 / .08) calc(100% - 30px), transparent);
+  mask: linear-gradient(transparent, rgb(0 0 0 / .08) 30px, rgb(0 0 0 / .3) 64px, rgb(0 0 0 / .65) 100px, #000 140px, #000 calc(100% - 140px), rgb(0 0 0 / .65) calc(100% - 100px), rgb(0 0 0 / .3) calc(100% - 64px), rgb(0 0 0 / .08) calc(100% - 30px), transparent); }
+:root[data-theme="dark"] .landing-features::before, :root[data-theme="dark"] .landing-pricing::before {
+  background: linear-gradient(in oklch, #111F57, #0F1D52); }
 .landing-features .feature, .landing-features .feature:hover { background: none; }
-.landing-features + *, .landing-pricing + * { margin-top: 40px; }
-@media (prefers-reduced-transparency: reduce) {
-  .landing-hero::after { display: none; }
-}
-@media (max-width: 720px) { .info-hero::before, .why-hero::before { display: none; } }
+.landing-features + *, .landing-pricing + * { margin-top: 24px; }
+
+/* Footer: deepest blue with a soft pink/violet dawn along its top. */
+.site-footer, :root[data-theme="dark"] .site-footer { position: relative; isolation: isolate; color: #E6EBFB;
+  background:     radial-gradient(in oklch 40% 90% at 85% 55%, rgb(224 24 123 / .26), transparent 70%),
+    radial-gradient(in oklch 40% 90% at 55% 45%, rgb(107 47 214 / .24), transparent 70%),
+    linear-gradient(in oklch, var(--bg), var(--band-deep) 160px); border-top: 0; }
+.site-footer a, .site-footer p, .site-footer span, .site-footer h4, .site-footer div { color: #D5DCF5; }
+.site-footer a:hover { color: #FFFFFF; }
+
+/* Grain sits on its own layer (as a lone tiled background it's cheap; mixed into
+   a multi-layer gradient background it made Chrome repaint very slowly). */
+.landing-features::after, .landing-pricing::after { content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw; background: url(/grain-dark.png) repeat; opacity: .7;
+  -webkit-mask: linear-gradient(transparent 60px, #000 120px, #000 calc(100% - 120px), transparent calc(100% - 60px));
+  mask: linear-gradient(transparent 60px, #000 120px, #000 calc(100% - 120px), transparent calc(100% - 60px)); }
+:root[data-theme="dark"] .landing-features::after, :root[data-theme="dark"] .landing-pricing::after { background-image: url(/grain-light.png); opacity: .28; }
+.site-footer::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: url(/grain-light.png) repeat; opacity: .4;
+  -webkit-mask: linear-gradient(transparent, #000 140px); mask: linear-gradient(transparent, #000 140px); }
+
+/* Cards: soft lift with blue-tinted shadows and a light rim instead of a hard white slab. */
+.course-card, .section-card, .book-card, .rec-card, .pod-card, .study-plan-card, .quiz-card, .detail-header, .cumulative-card,
+.why-card, .grade-card, .pricing-card, .method-card, .stat, .activity-summary-card, .parent-section, .multi-child-card,
+.admin-block, .ach-howto, .ach-points-card, .info-tldr, .faq-group details {
+  border-color: rgb(255 255 255 / .7);
+  box-shadow: 0 1px 2px rgb(3 10 48 / .18), 0 14px 34px -16px rgb(3 10 48 / .55); }
+:root[data-theme="dark"] :is(.course-card, .section-card, .book-card, .rec-card, .pod-card, .study-plan-card, .quiz-card,
+.detail-header, .cumulative-card, .why-card, .grade-card, .pricing-card, .method-card, .stat, .activity-summary-card,
+.parent-section, .multi-child-card, .admin-block, .ach-howto, .ach-points-card, .info-tldr, .faq-group details) {
+  border-color: rgb(255 255 255 / .09); background-image: linear-gradient(in oklch, rgb(255 255 255 / .035), transparent 60%);
+  box-shadow: 0 14px 34px -18px rgb(0 0 0 / .7); }
+.course-card, .grade-card, .why-card, .pricing-card, .method-card, .book-card, .section-card { transition: transform .18s ease, box-shadow .18s ease; }
+.course-card:hover, .grade-card:hover, .why-card:hover, .pricing-card:hover, .method-card:hover, .book-card:hover, .section-card:hover {
+  transform: translateY(-2px); box-shadow: 0 2px 4px rgb(3 10 48 / .18), 0 22px 44px -18px rgb(3 10 48 / .6), 0 0 0 1px rgb(224 24 123 / .18); }
+@media (prefers-reduced-motion: reduce) { .course-card:hover, .grade-card:hover, .why-card:hover, .pricing-card:hover, .method-card:hover, .book-card:hover, .section-card:hover { transform: none; } }
+/* Inner fills on white get a faint lavender cast so pink and blue both sit comfortably. */
+:is(.course-card, .section-card, .quiz-card, .pod-card, .rec-card, .study-plan-card, .detail-header, .auth-card, .modal, .chat-panel, .study-panel, .nb-panel, .lesson-modal-dialog) { --bg: #F5F4FD; --bg2: #EDEBFA; --card-hi: #F5F4FD; }
+:root[data-theme="dark"] :is(.course-card, .section-card, .quiz-card, .pod-card, .rec-card, .study-plan-card, .detail-header, .auth-card, .modal, .chat-panel, .study-panel, .nb-panel, .lesson-modal-dialog) { --bg: #0B1A4A; --bg2: #10225A; --card-hi: #142662; }
+
+/* Pink buttons: a slight pink-to-magenta sheen and a pink glow, white text stays >= 4.5:1. */
+.cta-primary, .nav-cta, .ask-fab, .btn-primary {
+  background: linear-gradient(in oklch 135deg, #E0187B, #B8106E) !important; color: #FFFFFF !important; border-color: transparent !important;
+  box-shadow: 0 8px 22px -10px rgb(224 24 123 / .8); }
+.cta-primary:hover, .nav-cta:hover, .ask-fab:hover, .btn-primary:hover {
+  background: linear-gradient(in oklch 135deg, #EA2287, #C2147A) !important; box-shadow: 0 10px 26px -10px rgb(224 24 123 / .95); }
+.nav { box-shadow: 0 1px 0 rgb(6 26 85 / .06), 0 10px 30px -22px rgb(6 26 85 / .6); }
 
 /* Equipped shop cosmetics recolor the pink accent (re-asserted after the theme block). */
 html:root[data-cosmetic="ocean"]  { --accent: #1f8f8f; --accent2: #3fa9a9; --accent-soft: color-mix(in srgb, #1f8f8f 16%, var(--paper)); }
