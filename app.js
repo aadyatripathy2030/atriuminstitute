@@ -1286,7 +1286,7 @@ function backToBooks() {
 }
 
 function _hideAllScreens() {
-  const ids = ['courses-home','home','detail','about','whyAtrium','faq','study','landing','privacy','terms','contact'];
+  const ids = ['courses-home','home','detail','about','whyAtrium','faq','study','landing','privacy','terms','contact','aiSafety'];
   for (const id of ids) {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
@@ -1374,6 +1374,13 @@ function showPrivacy() {
   document.getElementById('privacy').classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+function showAiSafety() {
+  _hideAllScreens();
+  document.getElementById('aiSafety').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.showAiSafety = showAiSafety;
 
 function showTerms() {
   _hideAllScreens();
@@ -3089,6 +3096,7 @@ async function sendChat() {
 
   CHAT_HISTORY.push({ role: 'user', content: text });
   if (typeof window._behaviorChatMessage === 'function') window._behaviorChatMessage(text.length);
+  maybeBreakReminder();
 
   const bubble = appendChat('assistant', '');
   bubble.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
@@ -3112,6 +3120,27 @@ async function sendChat() {
   } catch (e) {
     bubble.innerHTML = `<span class="ai-err">Error: ${e.message}</span>`;
   }
+}
+
+// Break reminder (CA SB 243 asks for one at least every 3 hours for minors;
+// we nudge every hour): shown in the chat log, never sent to the model.
+const BREAK_EVERY_MS = 60 * 60 * 1000;
+function maybeBreakReminder() {
+  let start;
+  try { start = Number(sessionStorage.getItem('atrium_chat_started')) || 0; } catch (_) { start = 0; }
+  const now = Date.now();
+  if (!start) {
+    try { sessionStorage.setItem('atrium_chat_started', String(now)); } catch (_) {}
+    return;
+  }
+  if (now - start < BREAK_EVERY_MS) return;
+  try { sessionStorage.setItem('atrium_chat_started', String(now)); } catch (_) {}
+  const log = document.getElementById('chatLog');
+  const note = document.createElement('div');
+  note.className = 'chat-notice';
+  note.setAttribute('role', 'status');
+  note.textContent = "You've been working with Max for a while. Time for a short break? Stretch, get some water, look away from the screen. Reminder: Max is an AI, not a person.";
+  log.appendChild(note);
 }
 
 function clearChat() {

@@ -209,6 +209,20 @@
           when,
         };
 
+      case 'parental_consent_granted':
+        return { icon: '✅', title: 'Parental consent given', detail: 'A parent signed the consent notice.', when };
+
+      case 'parental_consent_revoked':
+        return { icon: '🗑️', title: 'Parental consent withdrawn', detail: "The student's account and data were deleted.", when };
+
+      case 'safety_resources_shown':
+        return {
+          icon: '💙',
+          title: 'Max shared crisis support resources',
+          detail: 'A message to Max sounded like the student might be at risk, so Max replied with crisis lines (988) and suggested talking to a trusted adult. The message itself is not stored.',
+          when,
+        };
+
       case 'link_removed':
         return {
           icon: '✂️',

@@ -328,9 +328,8 @@ async function approveLink(linkId, approverUserId) {
       returning id, parent_user_id, student_user_id, status, created_at, confirmed_at`,
     [linkId],
   );
-  // Grant parental consent the moment the link becomes active (under-13s
-  // were gated on consent_required until this point).
-  await grantConsent(link.student_user_id);
+  // Approval alone never grants parental consent: under COPPA that has to
+  // be the parent's signed consent (recordParentalConsent below).
   return { ok: true, link: updated[0] };
 }
 
@@ -1898,15 +1897,157 @@ async function deleteUserAccount(userId) {
   // but make it explicit so the user is logged out everywhere
   // immediately.
   await q('delete from sessions where user_id = $1', [userId]);
+  // ai_usage keeps cost rows for billing (FK is "on delete set null"), so
+  // scrub the copied email before the user row goes.
+  await q('update ai_usage set user_email = null where user_id = $1', [userId]);
   // Now the main delete. CASCADE on every child FK does the rest.
   const rows = await q('delete from users where id = $1 returning id', [userId]);
   return rows.length > 0;
 }
 
+// ---------- Parental consent (COPPA) ----------
+
+// A parent signs the consent notice for an under-13 student. Activates the
+// link (the child's side is satisfied: they gave the parent their code),
+// records who signed what and when, and unlocks the child's account.
+async function recordParentalConsent(parentUserId, studentUserId, { signerName, noticeVersion, ip, userAgent }) {
+  const parent = await getUser(parentUserId);
+  const student = await getUser(studentUserId);
+  if (!parent || parent.role !== 'parent') return { ok: false, reason: 'not-parent' };
+  if (!student || student.role !== 'student') return { ok: false, reason: 'not-found' };
+  const link = (await q(
+    `select id, status from parent_student_links where parent_user_id = $1 and student_user_id = $2 limit 1`,
+    [parentUserId, studentUserId],
+  ))[0];
+  if (!link || link.status === 'rejected') return { ok: false, reason: 'not-linked' };
+  await q(
+    `insert into parental_consents (parent_user_id, student_user_id, signer_name, notice_version, ip, user_agent)
+     values ($1, $2, $3, $4, $5, $6)`,
+    [parentUserId, studentUserId, String(signerName).slice(0, 200), String(noticeVersion).slice(0, 40),
+      ip ? String(ip).slice(0, 64) : null, userAgent ? String(userAgent).slice(0, 300) : null],
+  );
+  await q(
+    `update parent_student_links set status = 'active', confirmed_at = coalesce(confirmed_at, now()) where id = $1`,
+    [link.id],
+  );
+  const updated = await grantConsent(studentUserId);
+  return { ok: true, student: updated };
+}
+
+async function listParentalConsents(studentUserId) {
+  return q(
+    `select id, parent_user_id, signer_name, notice_version, created_at, revoked_at
+       from parental_consents where student_user_id = $1 order by created_at desc`,
+    [studentUserId],
+  );
+}
+
+// Parent withdraws consent: mark the record revoked, then delete the child's
+// account and everything attached to it (FK cascades).
+async function revokeParentalConsent(parentUserId, studentUserId) {
+  const link = (await q(
+    `select l.id from parent_student_links l join users s on s.id = l.student_user_id
+      where l.parent_user_id = $1 and l.student_user_id = $2 and l.status = 'active' and s.consent_required
+      limit 1`,
+    [parentUserId, studentUserId],
+  ))[0];
+  if (!link) return { ok: false, reason: 'not-allowed' };
+  await q(
+    `update parental_consents set revoked_at = now()
+      where student_user_id = $1 and revoked_at is null`,
+    [studentUserId],
+  );
+  const deleted = await deleteUserAccount(studentUserId);
+  return { ok: deleted };
+}
+
+// Everything stored about one user, for "download my data" requests.
+const EXPORT_TABLES = [
+  'student_profiles', 'parent_profiles', 'progress', 'quiz_attempts', 'activity_log',
+  'section_mastery', 'study_plans', 'user_favorites', 'user_achievements',
+  'user_time_tracking', 'user_points_daily', 'user_pod_attempts', 'user_pod_picks',
+  'behavior_events', 'behavior_signals', 'photo_solutions', 'ai_usage',
+];
+async function exportUserData(userId) {
+  const user = await getUser(userId);
+  if (!user) return null;
+  const out = { exported_at: new Date().toISOString(), account: user, tables: {} };
+  for (const t of EXPORT_TABLES) {
+    try {
+      out.tables[t] = await q(`select * from ${t} where user_id = $1`, [userId]);
+    } catch (_e) {
+      out.tables[t] = { error: 'unavailable' };
+    }
+  }
+  out.links = await q(
+    `select id, parent_user_id, student_user_id, status, created_at, confirmed_at
+       from parent_student_links where parent_user_id = $1 or student_user_id = $1`,
+    [userId],
+  );
+  out.parental_consents = await q(
+    `select signer_name, notice_version, created_at, revoked_at
+       from parental_consents where student_user_id = $1 or parent_user_id = $1`,
+    [userId],
+  );
+  return out;
+}
+
 // ---------- Maintenance ----------
+// Retention schedule. Published in the Privacy Policy (section 6); keep the
+// two in sync. Every step is independent so one failure can't block the rest.
+const RETENTION = {
+  unconsentedChildDays: 14,     // under-13 sign-ups with no parental consent
+  pendingLinkDays: 30,          // link invitations nobody answered
+  behaviorEventDays: 90,        // raw click/timing events
+  behaviorSignalDays: 365,      // derived signals (rushing, struggling…)
+  photoThumbnailDays: 30,       // Snap & Solve image thumbnails
+  photoSolutionDays: 365,       // Snap & Solve transcriptions + solutions
+  aiUsageEmailDays: 90,         // email copied onto AI cost records
+  aiUsageDays: 730,             // AI cost records (needed for billing)
+  activityLogDays: 730,         // activity timeline
+  inactiveAccountDays: 730,     // accounts with no sign-in or activity
+};
+
+async function purgeExpiredData() {
+  const R = RETENTION;
+  const steps = [
+    ['unconsented_children', `delete from users where role = 'student' and consent_required
+        and consent_granted_at is null and created_at < now() - interval '${R.unconsentedChildDays} days'`],
+    ['pending_links', `delete from parent_student_links where status in ('pending','rejected')
+        and created_at < now() - interval '${R.pendingLinkDays} days'`],
+    ['behavior_events', `delete from behavior_events where created_at < now() - interval '${R.behaviorEventDays} days'`],
+    ['behavior_signals', `delete from behavior_signals where created_at < now() - interval '${R.behaviorSignalDays} days'`],
+    ['photo_thumbnails', `update photo_solutions set thumbnail_data = null where thumbnail_data is not null
+        and created_at < now() - interval '${R.photoThumbnailDays} days'`],
+    ['photo_solutions', `delete from photo_solutions where created_at < now() - interval '${R.photoSolutionDays} days'`],
+    ['ai_usage_email', `update ai_usage set user_email = null where user_email is not null
+        and created_at < now() - interval '${R.aiUsageEmailDays} days'`],
+    ['ai_usage', `delete from ai_usage where created_at < now() - interval '${R.aiUsageDays} days'`],
+    ['activity_log', `delete from activity_log where created_at < now() - interval '${R.activityLogDays} days'`],
+    ['inactive_accounts', `delete from users u where not coalesce(u.is_admin, false)
+        and u.created_at < now() - interval '${R.inactiveAccountDays} days'
+        and coalesce(u.subscription_status, '') not in ('active', 'trialing', 'past_due')
+        and not exists (select 1 from sessions s where s.user_id = u.id and s.created_at > now() - interval '${R.inactiveAccountDays} days')
+        and not exists (select 1 from activity_log a where a.user_id = u.id and a.created_at > now() - interval '${R.inactiveAccountDays} days')`],
+  ];
+  const counts = {};
+  for (const [name, sql] of steps) {
+    try {
+      const r = await pool.query(sql);
+      counts[name] = r.rowCount || 0;
+    } catch (e) {
+      console.warn(`retention step ${name} failed:`, e.message);
+    }
+  }
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  if (total) console.log('🧹 retention purge:', JSON.stringify(counts));
+  return counts;
+}
+
 async function cleanup() {
   await q('delete from verification_codes where expires_at < now() or used = true');
   await q('delete from sessions where expires_at < now()');
+  await purgeExpiredData();
 }
 
 // ---------- Student mastery tracking ----------
@@ -2343,6 +2484,7 @@ module.exports = {
   backend: 'postgres',
   findUser, getUser, findUserByLinkCode, upsertUser, markVerified,
   updateUserProfile, grantConsent,
+  recordParentalConsent, listParentalConsents, revokeParentalConsent, exportUserData, purgeExpiredData, RETENTION,
   setStripeCustomerId, findUserByStripeCustomerId, updateSubscription,
   createCode, verifyCode, clearCodes,
   createSession, getSession, deleteSession,

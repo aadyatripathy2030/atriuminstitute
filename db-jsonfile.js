@@ -357,7 +357,7 @@ async function approveLink(linkId, approverUserId) {
   link.status = 'active';
   link.confirmed_at = new Date().toISOString();
   save();
-  await grantConsent(link.student_user_id);
+  // Approval alone never grants parental consent (see recordParentalConsent).
   return { ok: true, link };
 }
 
@@ -729,7 +729,101 @@ async function listDigestCandidates() {
 }
 
 // ---------- Maintenance ----------
+// ---------- Parental consent (COPPA) ----------
+async function recordParentalConsent(parentUserId, studentUserId, { signerName, noticeVersion, ip, userAgent }) {
+  load();
+  const parent = state.users.find(u => u.id === parentUserId);
+  const student = state.users.find(u => u.id === studentUserId);
+  if (!parent || parent.role !== 'parent') return { ok: false, reason: 'not-parent' };
+  if (!student || student.role !== 'student') return { ok: false, reason: 'not-found' };
+  const link = state.links.find(l => l.parent_user_id === parentUserId && l.student_user_id === studentUserId);
+  if (!link || link.status === 'rejected') return { ok: false, reason: 'not-linked' };
+  if (!Array.isArray(state.consents)) state.consents = [];
+  state.consents.push({
+    id: crypto.randomUUID(), parent_user_id: parentUserId, student_user_id: studentUserId,
+    signer_name: String(signerName).slice(0, 200), notice_version: String(noticeVersion).slice(0, 40),
+    ip: ip || null, user_agent: userAgent || null, created_at: new Date().toISOString(), revoked_at: null,
+  });
+  link.status = 'active';
+  link.confirmed_at = link.confirmed_at || new Date().toISOString();
+  save();
+  const updated = await grantConsent(studentUserId);
+  return { ok: true, student: updated };
+}
+
+async function listParentalConsents(studentUserId) {
+  load();
+  return (state.consents || []).filter(c => c.student_user_id === studentUserId);
+}
+
+async function revokeParentalConsent(parentUserId, studentUserId) {
+  load();
+  const student = state.users.find(u => u.id === studentUserId);
+  const link = state.links.find(l => l.parent_user_id === parentUserId && l.student_user_id === studentUserId && l.status === 'active');
+  if (!link || !student || !student.consent_required) return { ok: false, reason: 'not-allowed' };
+  for (const c of state.consents || []) if (c.student_user_id === studentUserId && !c.revoked_at) c.revoked_at = new Date().toISOString();
+  save();
+  return { ok: await deleteUserAccount(studentUserId) };
+}
+
+async function exportUserData(userId) {
+  load();
+  const user = state.users.find(u => u.id === userId);
+  if (!user) return null;
+  const mine = arr => (arr || []).filter(x => x.user_id === userId);
+  return {
+    exported_at: new Date().toISOString(),
+    account: user,
+    tables: {
+      student_profiles: state.studentProfiles[userId] ? [state.studentProfiles[userId]] : [],
+      parent_profiles: state.parentProfiles[userId] ? [state.parentProfiles[userId]] : [],
+      progress: state.progress[userId] ? [state.progress[userId]] : [],
+      quiz_attempts: mine(state.quizAttempts),
+      activity_log: mine(state.activity),
+      user_favorites: mine(state.favorites),
+      ai_usage: mine(state.aiUsage),
+    },
+    links: state.links.filter(l => l.parent_user_id === userId || l.student_user_id === userId),
+    parental_consents: (state.consents || []).filter(c => c.student_user_id === userId || c.parent_user_id === userId)
+      .map(({ signer_name, notice_version, created_at, revoked_at }) => ({ signer_name, notice_version, created_at, revoked_at })),
+  };
+}
+
+// Same schedule as the Postgres backend (only the collections this backend has).
+const RETENTION = {
+  unconsentedChildDays: 14, pendingLinkDays: 30, behaviorEventDays: 90, behaviorSignalDays: 365,
+  photoThumbnailDays: 30, photoSolutionDays: 365, aiUsageEmailDays: 90, aiUsageDays: 730,
+  activityLogDays: 730, inactiveAccountDays: 730,
+};
+async function purgeExpiredData(nowMs) {
+  load();
+  const t = nowMs || now();
+  const days = d => t - d * 86400000;
+  // Unknown dates count as recent, so a missing field can never trigger a purge.
+  const ts = v => (typeof v === 'number' ? v : (v ? Date.parse(v) : NaN)) || Infinity;
+  const counts = {};
+  const doomed = state.users.filter(u => u.role === 'student' && u.consent_required && !u.consent_granted_at
+    && ts(u.createdAt != null ? u.createdAt : u.created_at) < days(RETENTION.unconsentedChildDays));
+  for (const u of doomed) await deleteUserAccount(u.id);
+  counts.unconsented_children = doomed.length;
+  const before = state.links.length;
+  state.links = state.links.filter(l => l.status === 'active' || ts(l.created_at) >= days(RETENTION.pendingLinkDays));
+  counts.pending_links = before - state.links.length;
+  let scrubbed = 0;
+  for (const r of state.aiUsage) if (r.user_email && ts(r.created_at) < days(RETENTION.aiUsageEmailDays)) { r.user_email = null; scrubbed++; }
+  counts.ai_usage_email = scrubbed;
+  const aiBefore = state.aiUsage.length;
+  state.aiUsage = state.aiUsage.filter(r => ts(r.created_at) >= days(RETENTION.aiUsageDays));
+  counts.ai_usage = aiBefore - state.aiUsage.length;
+  const actBefore = state.activity.length;
+  state.activity = state.activity.filter(a => ts(a.created_at) >= days(RETENTION.activityLogDays));
+  counts.activity_log = actBefore - state.activity.length;
+  save();
+  return counts;
+}
+
 async function cleanup() {
+  await purgeExpiredData();
   load();
   const t = now();
   const beforeCodes = state.codes.length;
@@ -1127,6 +1221,7 @@ module.exports = {
   searchSchoolDistricts, recordUserDistrict,
   savePhotoSolve, listPhotoSolves, getPhotoSolve, deletePhotoSolve, countPhotoSolves,
   deleteUserAccount,
+  recordParentalConsent, listParentalConsents, revokeParentalConsent, exportUserData, purgeExpiredData, RETENTION,
   // Mastery stubs (Postgres-only features; no-ops for jsonfile).
   updateSectionMastery: async () => {},
   getStudentInsights: async () => ({ strengths: [], weaknesses: [], overview: {}, recentTrend: 'steady', topCourses: [], strugglingSections: [], suggestedNext: [] }),

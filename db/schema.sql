@@ -828,3 +828,24 @@ create table if not exists photo_solutions (
 
 create index if not exists idx_photo_solutions_user_created
   on photo_solutions (user_id, created_at desc);
+
+-- ---------------------------------------------------------------------------
+-- Verifiable parental consent records (COPPA, amended rule 2025/2026).
+-- One row per consent a parent signs for an under-13 student. The student id
+-- deliberately has NO foreign key: when a parent revokes consent the child's
+-- account is deleted, but the record of the consent and its revocation stays
+-- (it holds only the parent's typed name, not the child's data).
+-- ---------------------------------------------------------------------------
+create table if not exists parental_consents (
+  id uuid primary key default gen_random_uuid(),
+  parent_user_id uuid not null references users (id) on delete cascade,
+  student_user_id uuid not null,
+  signer_name text not null,
+  notice_version text not null,
+  ip text,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  revoked_at timestamptz
+);
+create index if not exists idx_parental_consents_student on parental_consents (student_user_id);
+create index if not exists idx_parental_consents_parent on parental_consents (parent_user_id);

@@ -30,6 +30,7 @@
     { path: '/contact',           view: 'contact',                open: 'showContact',         auth: false, title: 'Contact' },
     { path: '/privacy',           view: 'privacy',                open: 'showPrivacy',         auth: false, title: 'Privacy Policy' },
     { path: '/terms',             view: 'terms',                  open: 'showTerms',           auth: false, title: 'Terms of Use' },
+    { path: '/ai-safety',         view: 'aiSafety',               open: 'showAiSafety',        auth: false, title: 'How Max works & AI safety' },
     { path: '/courses',           view: 'courses-home',           open: 'goToCourses',         auth: true,  title: 'Courses' },
     { path: '/profile',           view: 'profilePage',            open: 'openProfile',         auth: true,  title: 'Profile' },
     { path: '/activity',          view: 'activityPage',           open: 'openActivity',        auth: true,  title: 'Activity' },

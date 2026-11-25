@@ -7732,3 +7732,39 @@ body.nav-open .ask-fab, body.nav-open .pa-fab { display: none !important; }
 .token-table td, .token-table th { white-space: nowrap; }
 .fm-cat + .fm-row { border-top: none; }
 .fm-row { padding-left: 4px; padding-right: 4px; }
+
+/* ---------- Compliance UI (Nov 25 2026) ---------- */
+.consent-modal { position: fixed; inset: 0; z-index: 3000; background: rgba(10, 12, 20, .55); display: grid; place-items: center; padding: 16px; }
+.consent-modal.hidden { display: none; }
+.consent-modal-card { position: relative; width: min(640px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--bg); color: var(--text);
+  border: 1px solid var(--card-border); border-radius: 16px; padding: 28px; box-shadow: 0 24px 60px -20px rgba(0,0,0,.45); }
+.consent-modal-card h2 { margin: 0 32px 8px 0; font-size: 22px; }
+.consent-modal-card .modal-close { position: absolute; top: 14px; right: 14px; }
+.consent-modal-lede { color: var(--muted); margin: 0 0 14px; }
+.consent-notice { max-height: 300px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 12px; padding: 4px 18px 14px; background: var(--card); font-size: 14px; line-height: 1.55; }
+.consent-notice h3 { font-size: 14px; margin: 14px 0 4px; }
+.consent-notice ul { padding-left: 18px; margin: 4px 0; }
+.consent-notice p { margin: 4px 0; }
+.consent-form { display: grid; gap: 12px; margin-top: 16px; }
+.consent-check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; cursor: pointer; }
+.consent-check input { margin-top: 3px; width: 18px; height: 18px; flex: none; accent-color: var(--accent); }
+.consent-form-actions, .parent-rights-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.consent-form-actions .btn-primary, .consent-form-actions .btn-secondary { height: 42px; padding: 0 20px; border-radius: 999px; font-weight: 550; cursor: pointer; }
+.consent-form-actions .btn-primary { background: var(--accent); color: var(--on-accent); border: 0; }
+.consent-form-actions .btn-primary:disabled { opacity: .6; cursor: wait; }
+.consent-form-actions .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-strong); }
+.parent-rights-lede, .parent-rights-foot { color: var(--muted); font-size: 14px; }
+.parent-rights-actions .cta-secondary { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; text-decoration: none; }
+.danger-btn { height: 40px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--bad); background: transparent; color: var(--bad); font-weight: 550; cursor: pointer; }
+.danger-btn:hover { background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.parent-revoke-confirm { margin-top: 14px; display: grid; gap: 10px; max-width: 420px; }
+.auth-u13-note { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--text); font-size: 13px; line-height: 1.45; }
+.chat-disclaimer { margin: 0; padding: 6px 14px 10px; font-size: 11.5px; line-height: 1.4; color: var(--muted); text-align: center; }
+.chat-disclaimer a { color: var(--accent-ink); }
+.chat-notice { margin: 8px auto; max-width: 90%; padding: 10px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--text); font-size: 13px; text-align: center; }
+.retention-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.retention-table th, .retention-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.retention-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.retention-table td:last-child { white-space: normal; min-width: 140px; }
+.table-scroll { overflow-x: auto; }
+body.modal-open { overflow: hidden; }

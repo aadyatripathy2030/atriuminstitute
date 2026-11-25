@@ -19,6 +19,7 @@ const path = require('path');
 const db = require('./db');
 const email = require('./email');
 const prompts = require('./prompts');
+const safety = require('./safety-lib');
 const { loadCourses } = require('./curriculum-loader');
 const stripeLib = require('./stripe-lib');
 const shopLib = require('./shop-lib');
@@ -257,6 +258,12 @@ async function handleSignupOrLogin(req, res) {
       no_account: true,
     });
   }
+  // Neutral age screen (COPPA): a new student must give an age, since that
+  // decides whether a parent has to consent before anything else happens.
+  if (mode === 'signup' && !existingBefore && role === 'student'
+      && !(typeof body.age === 'number' && body.age >= 4 && body.age <= 120)) {
+    return json(res, 400, { error: 'Enter your age.' });
+  }
   const user = await db.upsertUser(body.email, role);
   const wasExisting = !!existingBefore;
 
@@ -381,6 +388,11 @@ async function handleVerify(req, res) {
   const meta = pendingSignupMeta.get(user.email);
   if (meta) {
     pendingSignupMeta.delete(user.email);
+    // Data minimisation for under-13s: until a parent consents we keep only
+    // what's needed to run the consent process (email, age, country, grade).
+    if (typeof meta.age === 'number' && meta.age < 13) {
+      meta.schoolName = null; meta.schoolDistrict = null; meta.isPrivateSchool = null; meta.stateCode = null;
+    }
     if (meta.age != null || meta.country != null || meta.gradeLevel != null
         || meta.schoolName != null || meta.schoolDistrict != null || meta.isPrivateSchool != null
         || meta.stateCode != null) {
@@ -454,7 +466,7 @@ async function handleMe(req, res) {
 // card and the upgrade modal when the kill switch is on.
 async function handleGetConfig(req, res) {
   // ip_source: which header identified this visitor (should be cf-connecting-ip in production).
-  json(res, 200, { paywall_active: stripeLib.isConfigured(), ip_source: ipSource(req) });
+  json(res, 200, { paywall_active: stripeLib.isConfigured(), ip_source: ipSource(req), consent_notice_version: CONSENT_NOTICE_VERSION });
 }
 
 async function handleUpdateProfile(req, res) {
@@ -705,6 +717,7 @@ function parsePhotoSolveResponse(text) {
 async function handlePhotoSolve(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to use PhotoAtrium.' });
+  if (consentBlocked(u)) return json(res, 403, { error: 'A parent needs to give consent before you can use this.' });
   if (!API_KEY) return json(res, 503, { error: 'Photo solve unavailable: server has no ANTHROPIC_API_KEY.' });
   const body = await readJSON(req);
   if (!body || typeof body.imageBase64 !== 'string') {
@@ -809,6 +822,7 @@ async function handlePhotoSolve(req, res) {
 async function handlePhotoReSolve(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to use PhotoAtrium.' });
+  if (consentBlocked(u)) return json(res, 403, { error: 'A parent needs to give consent before you can use this.' });
   if (!API_KEY) return json(res, 503, { error: 'Photo solve unavailable.' });
   const body = await readJSON(req);
   if (!body || typeof body.problemText !== 'string' || !body.problemText.trim()) {
@@ -941,6 +955,14 @@ async function handleCreateLink(req, res) {
     return json(res, 400, { error: msg });
   }
   await db.logActivity(u.id, 'link_invited', { linkId: result.link.id });
+  // A parent linking an under-13 student: the next step is the parent's own
+  // signed consent, not the child's approval.
+  if (u.role === 'parent' && result.other && result.other.consent_required && !result.other.consent_granted_at) {
+    return json(res, 200, {
+      ok: true, link: result.link, pending: true, consentNeeded: true, studentId: result.other.id,
+      message: 'Linked. Because this student is under 13, please review and sign the consent notice to unlock their account.',
+    });
+  }
   // Notify the other party so they can approve from their inbox / dashboard.
   // Best-effort: if email fails, the in-app pending list still works.
   if (result.other && result.other.email) {
@@ -1245,6 +1267,78 @@ async function handleListLinkedStudents(req, res) {
   if (!u || !isParentOnly(u)) return json(res, 403, { error: 'Parent accounts only.' });
   const students = await db.listLinkedStudents(u.id);
   json(res, 200, { students: students.map(s => ({ ...userPublic(s), link_status: s.link_status, linked_at: s.linked_at })) });
+}
+
+// ---------- COPPA: parental consent, parent data rights ----------
+
+// Bump when the consent notice text (index.html #consentNotice) changes in
+// substance; each signed record stores the version the parent agreed to.
+const CONSENT_NOTICE_VERSION = '2026-11-25';
+
+// An under-13 account with no signed parental consent yet. Such accounts
+// can't use anything that sends data to a third party (Max, Snap & Solve).
+function consentBlocked(u) {
+  return !!(u && u.role === 'student' && u.consent_required && !u.consent_granted_at);
+}
+
+async function handleParentConsent(req, res) {
+  const u = await currentUser(req);
+  if (!u || !isParentOnly(u)) return json(res, 403, { error: 'Parent accounts only.' });
+  const body = await readJSON(req) || {};
+  const signerName = typeof body.signerName === 'string' ? body.signerName.trim() : '';
+  if (!body.studentId || typeof body.studentId !== 'string') return json(res, 400, { error: 'Missing student.' });
+  if (body.agree !== true) return json(res, 400, { error: 'Please tick the box to confirm you agree.' });
+  if (signerName.length < 2) return json(res, 400, { error: 'Type your full name to sign.' });
+  if (body.noticeVersion !== CONSENT_NOTICE_VERSION) {
+    return json(res, 409, { error: 'The consent notice was updated. Reload the page and review it again.' });
+  }
+  const student = await db.getUser(body.studentId);
+  if (!student || !student.consent_required) return json(res, 400, { error: 'This student does not need parental consent.' });
+  const r = await db.recordParentalConsent(u.id, student.id, {
+    signerName, noticeVersion: CONSENT_NOTICE_VERSION,
+    ip: ipOf(req), userAgent: String(req.headers['user-agent'] || ''),
+  });
+  if (!r.ok) return json(res, 403, { error: 'Link this student to your account first (enter their link code).' });
+  await db.logActivity(student.id, 'parental_consent_granted', {});
+  await db.logActivity(u.id, 'parental_consent_granted', { studentId: student.id });
+  json(res, 200, { ok: true, student: userPublic(r.student) });
+}
+
+async function handleParentRevokeConsent(req, res, studentId) {
+  const u = await currentUser(req);
+  if (!u || !isParentOnly(u)) return json(res, 403, { error: 'Parent accounts only.' });
+  const body = await readJSON(req) || {};
+  if (body.confirm !== 'DELETE') return json(res, 400, { error: 'Type DELETE to confirm.' });
+  const r = await db.revokeParentalConsent(u.id, studentId);
+  if (!r.ok) return json(res, 403, { error: 'Only the linked parent of an under-13 student can do this.' });
+  await db.logActivity(u.id, 'parental_consent_revoked', {});
+  json(res, 200, { ok: true });
+}
+
+function sendExport(res, data, filename) {
+  res.writeHead(200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${filename}"`,
+    'Cache-Control': 'no-store',
+  });
+  res.end(JSON.stringify(data, null, 2));
+}
+
+async function handleParentExport(req, res, studentId) {
+  if (!await requireLinkedStudent(req, res, studentId)) return;
+  const student = await db.getUser(studentId);
+  if (!student || !student.consent_required) {
+    return json(res, 403, { error: 'Parents can download data for students under 13. Older students can download their own from their profile.' });
+  }
+  const data = await db.exportUserData(studentId);
+  if (!data) return json(res, 404, { error: 'Student not found.' });
+  sendExport(res, data, 'atrium-student-data.json');
+}
+
+async function handleMyExport(req, res) {
+  const u = await currentUser(req);
+  if (!u) return json(res, 401, { error: 'Not signed in.' });
+  sendExport(res, await db.exportUserData(u.id), 'atrium-my-data.json');
 }
 
 async function requireLinkedStudent(req, res, studentId) {
@@ -3186,6 +3280,26 @@ async function proxyClaude(req, res) {
   try { body = JSON.parse(bodyStr); }
   catch (_e) { return json(res, 400, { error: { message: 'Invalid JSON body.' } }); }
 
+  // COPPA: nothing from an under-13 account goes to the AI provider until a
+  // parent has signed consent.
+  const caller = await currentUser(req);
+  if (consentBlocked(caller)) {
+    return json(res, 403, { error: { message: 'A parent needs to give consent before you can use Max.', code: 'consent_required' } });
+  }
+
+  // Crisis protocol (SB 243): a student's own message that reads as
+  // self-harm or suicidal intent gets a fixed reply with crisis lines and
+  // is never sent to the model. See safety-lib.js and /ai-safety.
+  if (body && (body.intent === 'chat' || body.intent === 'hint')
+      && safety.isCrisisMessage(safety.lastUserText(body.messages))) {
+    if (caller) db.logActivity(caller.id, 'safety_resources_shown', {}).catch(() => {});
+    if (body.stream) {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' });
+      return res.end(safety.crisisSse(body.model));
+    }
+    return json(res, 200, safety.crisisJson(body.model));
+  }
+
   // Grading quiz answers gets its own, larger allowance per signed-in student,
   // so a classroom sharing one IP doesn't run out after a few quizzes (and
   // chat can't use up the grading allowance). Everything else: per IP.
@@ -3361,7 +3475,7 @@ const SPA_ROUTES = new Set([
   '/leaderboard', '/curriculum', '/photo-atrium', '/parent', '/usage',
   '/sign-in', '/sign-up', '/pricing', '/upgrade', '/calculator', '/calendar',
   '/certificates', '/essay-grader', '/flashcards', '/formulas', '/notebook',
-  '/learning-path', '/referral', '/sat-prep',
+  '/learning-path', '/referral', '/sat-prep', '/ai-safety',
 ]);
 // Every address under these is a client-side route too (a course, topic,
 // lesson, quiz, curriculum unit, or Photo Atrium result).
@@ -3540,6 +3654,13 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/lessons' && req.method === 'DELETE') return await handleClearLesson(req, res);
     // Parent dashboard
     if (url === '/api/parent/students' && req.method === 'GET') return await handleListLinkedStudents(req, res);
+    if (url === '/api/parent/consent' && req.method === 'POST') return await handleParentConsent(req, res);
+    if (url === '/api/me/export' && req.method === 'GET') return await handleMyExport(req, res);
+    {
+      const m2 = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(export|revoke-consent)$/);
+      if (m2 && req.method === 'GET' && m2[2] === 'export') return await handleParentExport(req, res, m2[1]);
+      if (m2 && req.method === 'POST' && m2[2] === 'revoke-consent') return await handleParentRevokeConsent(req, res, m2[1]);
+    }
     {
       const m = url.match(/^\/api\/parent\/students\/([0-9a-f-]+)\/(activity|activity-summary|quiz-attempts|weak-sections|progress|profile|study-plan|authorise-reminders)$/);
       if (m) {

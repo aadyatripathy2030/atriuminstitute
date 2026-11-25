@@ -128,11 +128,29 @@
           </div>
           <button class="cta-secondary cta-full mc-view-btn" type="button">View progress →</button>
         `;
-        card.querySelector('.mc-view-btn').addEventListener('click', () => openStudentDetail(s));
+        const needsConsent = s.consent_required && !s.consent_granted_at;
+        const viewBtn = card.querySelector('.mc-view-btn');
+        if (needsConsent) {
+          viewBtn.textContent = 'Review & give consent →';
+          viewBtn.className = 'nav-cta cta-full mc-view-btn';
+          viewBtn.addEventListener('click', () => openConsentModal(s));
+          card.querySelector('.multi-child-stats').classList.add('hidden');
+        } else {
+          viewBtn.addEventListener('click', () => openStudentDetail(s));
+        }
         grid.appendChild(card);
       }
       // Hydrate each card's stats in parallel.
-      await Promise.all(students.map(async (s) => {
+      const awaiting = students.find(s => s.consent_required && !s.consent_granted_at);
+      if (awaiting) {
+        let prompted = false;
+        try { prompted = sessionStorage.getItem('atrium_consent_prompted') === awaiting.id; } catch (_) {}
+        if (!prompted) {
+          try { sessionStorage.setItem('atrium_consent_prompted', awaiting.id); } catch (_) {}
+          openConsentModal(awaiting);
+        }
+      }
+      await Promise.all(students.filter(s => !(s.consent_required && !s.consent_granted_at)).map(async (s) => {
         const card = grid.querySelector(`.multi-child-card[data-student-id="${s.id}"]`);
         if (!card) return;
         try {
@@ -256,6 +274,7 @@
       meta.push(student.consent_granted_at ? 'Consent granted' : 'Awaiting consent');
     }
     el('parentDetailMeta').textContent = meta.join(' · ');
+    setupParentRights(student);
     // Wire + load the activity rollup for this student.
     _parentSummaryRange = 'daily';
     document.querySelectorAll('#parentSummaryTabs .summary-tab').forEach(b => b.classList.toggle('active', b.dataset.range === 'daily'));
@@ -393,6 +412,12 @@
     try {
       const r = await postJSON('/api/me/links', { linkCode: code });
       el('parentLinkInput').value = '';
+      if (r && r.consentNeeded) {
+        setLinkError(r.message, 'ok');
+        await renderStudentList();
+        openConsentModal({ id: r.studentId, email: '' });
+        return;
+      }
       if (r && r.pending) {
         // Two-sided approval: link is created in pending state. The
         // student now needs to approve it from their own dashboard.
@@ -458,6 +483,98 @@
       setLinkError(err.message);
     }
   }
+
+  // ---------- COPPA: consent notice, export, withdraw ----------
+  let consentFor = null;
+  let lastFocus = null;
+
+  async function openConsentModal(student) {
+    consentFor = student;
+    lastFocus = document.activeElement;
+    el('consentModalStudent').textContent = student.email || 'your child';
+    el('consentAgree').checked = false;
+    el('consentSigner').value = '';
+    setConsentError('');
+    show(el('consentModal'));
+    document.body.classList.add('modal-open');
+    el('consentNotice').scrollTop = 0;
+    el('consentNotice').focus();
+  }
+  function closeConsentModal() {
+    hide(el('consentModal'));
+    document.body.classList.remove('modal-open');
+    consentFor = null;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function setConsentError(msg) {
+    const e = el('consentError');
+    if (!e) return;
+    e.textContent = msg || '';
+    e.classList.toggle('hidden', !msg);
+  }
+  async function submitConsent(ev) {
+    ev.preventDefault();
+    if (!consentFor) return;
+    const btn = el('consentSubmit');
+    btn.disabled = true;
+    setConsentError('');
+    try {
+      const cfg = await fetchJSON('/api/config');
+      await postJSON('/api/parent/consent', {
+        studentId: consentFor.id,
+        agree: el('consentAgree').checked,
+        signerName: el('consentSigner').value,
+        noticeVersion: cfg.consent_notice_version,
+      });
+      closeConsentModal();
+      setLinkError('Consent recorded. Your child\'s account is unlocked.', 'ok');
+      await renderStudentList();
+    } catch (err) {
+      setConsentError(err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function setupParentRights(student) {
+    const sec = el('parentRights');
+    if (!sec) return;
+    const eligible = student.consent_required && student.consent_granted_at;
+    sec.classList.toggle('hidden', !eligible);
+    if (!eligible) return;
+    el('parentExportBtn').href = `/api/parent/students/${encodeURIComponent(student.id)}/export`;
+    el('parentConsentInfo').textContent = `consent given ${fmtDate(student.consent_granted_at)}`;
+    hide(el('parentRevokeForm'));
+    el('parentRevokeInput').value = '';
+    el('parentRevokeBtn').onclick = () => { show(el('parentRevokeForm')); el('parentRevokeInput').focus(); };
+    el('parentRevokeCancel').onclick = () => hide(el('parentRevokeForm'));
+    el('parentRevokeForm').onsubmit = async (ev) => {
+      ev.preventDefault();
+      const errEl = el('parentRevokeError');
+      errEl.classList.add('hidden');
+      try {
+        await postJSON(`/api/parent/students/${encodeURIComponent(student.id)}/revoke-consent`, { confirm: el('parentRevokeInput').value.trim() });
+        closeStudentDetail();
+        setLinkError('Consent withdrawn. Your child\'s account and data have been deleted.', 'ok');
+        await renderStudentList();
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+      }
+    };
+  }
+
+  function wireConsentModal() {
+    const form = el('consentForm');
+    if (!form || form.dataset.wired) return;
+    form.dataset.wired = '1';
+    form.addEventListener('submit', submitConsent);
+    el('consentDecline').addEventListener('click', closeConsentModal);
+    el('consentModalClose').addEventListener('click', closeConsentModal);
+    el('consentModal').addEventListener('keydown', (e) => { if (e.key === 'Escape') closeConsentModal(); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireConsentModal);
+  else wireConsentModal();
 
   async function initParentHome(user) {
     if (typeof window.hideAllTopLevel === 'function') {

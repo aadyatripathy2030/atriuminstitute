@@ -131,7 +131,7 @@ test('every new user gets a unique 8-char link_code', async () => {
   assert.notEqual(a.link_code, b.link_code);
 });
 
-test('createLinkFromCode connects a parent to a student and grants consent after two-sided approval', async () => {
+test('under-13 consent comes only from the parent signing the notice, not from link approval', async () => {
   const student = await db.upsertUser('kid1@example.com', 'student');
   await db.updateUserProfile(student.id, { age: 10, country: 'United States' });
   const refreshed = await db.getUser(student.id);
@@ -139,30 +139,84 @@ test('createLinkFromCode connects a parent to a student and grants consent after
   assert.equal(refreshed.consent_granted_at, null);
 
   const parent = await db.upsertUser('mom1@example.com', 'parent');
-  // Parent initiates with the student's link code -> link is 'pending',
-  // consent is NOT granted yet because the student hasn't approved.
   const result = await db.createLinkFromCode(parent.id, student.link_code);
   assert.equal(result.ok, true);
   assert.equal(result.link.status, 'pending');
-  const stillUnlinked = await db.getUser(student.id);
-  assert.equal(stillUnlinked.consent_granted_at, null, 'consent must wait for the other side to approve');
 
-  // The initiator cannot also approve (would defeat the whole point).
+  // The initiator cannot also approve.
   const selfApprove = await db.approveLink(result.link.id, parent.id);
   assert.equal(selfApprove.ok, false);
   assert.equal(selfApprove.reason, 'cannot-self-approve');
 
-  // Student (the other side) approves -> link becomes active + consent
-  // gets granted.
+  // The child approving the link is NOT parental consent.
   const approved = await db.approveLink(result.link.id, student.id);
   assert.equal(approved.ok, true);
-  assert.equal(approved.link.status, 'active');
-  const after = await db.getUser(student.id);
-  assert.ok(after.consent_granted_at, 'consent should be granted once both sides approve');
+  assert.equal((await db.getUser(student.id)).consent_granted_at, null, 'a child cannot consent for themselves');
+
+  // A stranger parent with no link cannot sign.
+  const stranger = await db.upsertUser('stranger1@example.com', 'parent');
+  const bad = await db.recordParentalConsent(stranger.id, student.id, { signerName: 'X', noticeVersion: 'v1' });
+  assert.equal(bad.ok, false);
+
+  // The linked parent signs -> consent granted and recorded.
+  const signed = await db.recordParentalConsent(parent.id, student.id, { signerName: 'Pat Parent', noticeVersion: '2026-11-25' });
+  assert.equal(signed.ok, true);
+  assert.ok((await db.getUser(student.id)).consent_granted_at);
+  const recs = await db.listParentalConsents(student.id);
+  assert.equal(recs.length, 1);
+  assert.equal(recs[0].signer_name, 'Pat Parent');
 
   const linked = await db.listLinkedStudents(parent.id);
   assert.equal(linked.length, 1);
   assert.equal(linked[0].id, student.id);
+});
+
+test('signing consent activates a pending parent-initiated link', async () => {
+  const student = await db.upsertUser('kid9@example.com', 'student');
+  await db.updateUserProfile(student.id, { age: 9 });
+  const parent = await db.upsertUser('dad9@example.com', 'parent');
+  await db.createLinkFromCode(parent.id, student.link_code);
+  const r = await db.recordParentalConsent(parent.id, student.id, { signerName: 'Dad', noticeVersion: 'v' });
+  assert.equal(r.ok, true);
+  const linked = await db.listLinkedStudents(parent.id);
+  assert.equal(linked[0].link_status, 'active');
+});
+
+test('revoking consent deletes the child account but keeps the consent record', async () => {
+  const student = await db.upsertUser('kid10@example.com', 'student');
+  await db.updateUserProfile(student.id, { age: 11 });
+  const parent = await db.upsertUser('mom10@example.com', 'parent');
+  await db.createLinkFromCode(parent.id, student.link_code);
+  await db.recordParentalConsent(parent.id, student.id, { signerName: 'Mom', noticeVersion: 'v' });
+  const other = await db.upsertUser('other10@example.com', 'parent');
+  assert.equal((await db.revokeParentalConsent(other.id, student.id)).ok, false, 'only the linked parent can revoke');
+  assert.equal((await db.revokeParentalConsent(parent.id, student.id)).ok, true);
+  assert.equal(await db.getUser(student.id), null);
+  const recs = await db.listParentalConsents(student.id);
+  assert.ok(recs[0].revoked_at);
+});
+
+test('exportUserData returns the account and its records', async () => {
+  const u = await db.upsertUser('export1@example.com', 'student');
+  await db.logActivity(u.id, 'signin', {});
+  const out = await db.exportUserData(u.id);
+  assert.equal(out.account.email, 'export1@example.com');
+  assert.ok(out.tables.activity_log.length >= 1);
+  assert.equal(await db.exportUserData('00000000-0000-0000-0000-000000000000'), null);
+});
+
+test('retention purge removes unconsented under-13 accounts after 14 days and nothing else', async () => {
+  const kid = await db.upsertUser('stale-kid@example.com', 'student');
+  await db.updateUserProfile(kid.id, { age: 10 });
+  const teen = await db.upsertUser('teen-keep@example.com', 'student');
+  await db.updateUserProfile(teen.id, { age: 15 });
+  // Not yet 14 days old: kept.
+  await db.purgeExpiredData(Date.now() + 13 * 86400000);
+  assert.ok(await db.getUser(kid.id));
+  // 15 days later: the unconsented child goes; the teen stays.
+  await db.purgeExpiredData(Date.now() + 15 * 86400000);
+  assert.equal(await db.getUser(kid.id), null);
+  assert.ok(await db.getUser(teen.id));
 });
 
 test('approveLink and rejectLink gate access and reset on retry', async () => {

@@ -254,6 +254,16 @@
   function dangerZoneFieldset(userInfo) {
     const email = (userInfo && userInfo.email) || '';
     return `
+      <fieldset>
+        <legend>Your data</legend>
+        <div class="profile-danger-row">
+          <div class="profile-danger-text">
+            <strong>Download a copy of your data.</strong>
+            <p>Everything we store about your account (profile, progress, quiz attempts, activity) as a JSON file. See the <a href="/privacy" onclick="showPrivacy(); return false;">Privacy Policy</a> for how long we keep each kind of data.</p>
+          </div>
+          <a class="cta-secondary" href="/api/me/export" download>Download data</a>
+        </div>
+      </fieldset>
       <fieldset class="profile-danger-zone">
         <legend>Danger zone</legend>
         <div class="profile-danger-row">

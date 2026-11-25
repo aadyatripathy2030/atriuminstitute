@@ -84,7 +84,7 @@
   const TOP_LEVEL_IDS = [
     'landing', 'authGate', 'consentGate',
     'courses-home', 'home', 'detail', 'study', 'onboard',
-    'about', 'whyAtrium', 'faq', 'contact', 'privacy', 'terms',
+    'about', 'whyAtrium', 'faq', 'contact', 'privacy', 'terms', 'aiSafety',
     'parentHome', 'parentStudentDetail',
     'profilePage', 'activityPage', 'tokenUsagePage', 'adminPage',
     'curriculumPage', 'favoritesPage', 'achievementsPage', 'leaderboardPage',
@@ -220,6 +220,26 @@
     }
 
     applyUsOnlyVisibility();
+
+    // COPPA data minimisation: an under-13 student gives only what we need
+    // to ask a parent for consent. School details wait until after consent.
+    const u13 = under13Signup();
+    if (u13) {
+      if (schoolRow) schoolRow.style.display = 'none';
+      if (schoolInput) schoolInput.required = false;
+      const stateLabel = document.querySelector('#authEmailForm .auth-field-state');
+      if (stateLabel) stateLabel.classList.add('hidden');
+      const stateSel = el('authState');
+      if (stateSel) stateSel.required = false;
+    }
+    const u13Note = el('authU13Note');
+    if (u13Note) u13Note.classList.toggle('hidden', !u13);
+  }
+
+  function under13Signup() {
+    if (authMode !== 'signup' || selectedRole !== 'student') return false;
+    const n = parseInt((el('authAge') && el('authAge').value || '').trim(), 10);
+    return Number.isFinite(n) && n > 0 && n < 13;
   }
 
   // State + district fields only apply when country is United States.
@@ -636,11 +656,12 @@
         // Age is optional. If the student types something, parse it
         // and store; otherwise leave null. We accept any positive int
         // here -- no upper or lower bound that could block sign-up.
+        // Age is required for students: it's the neutral age screen that
+        // decides whether a parent has to consent first (COPPA).
         const ageRaw = (el('authAge').value || '').trim();
-        if (ageRaw) {
-          const parsed = parseInt(ageRaw, 10);
-          if (Number.isFinite(parsed) && parsed > 0) ageNum = parsed;
-        }
+        const parsed = parseInt(ageRaw, 10);
+        if (!ageRaw || !Number.isFinite(parsed) || parsed < 4 || parsed > 120) return showError('Enter your age.');
+        ageNum = parsed;
         // Grade. Optional but recommended; defaults the home page
         // filter so the student sees grade-appropriate topics right
         // after signin without having to set anything.
@@ -666,7 +687,7 @@
     let schoolDistrict = null;
     let isPrivate = null;
     let stateVal = null;
-    if (authMode === 'signup') {
+    if (authMode === 'signup' && !under13Signup()) {
       schoolName = (el('authSchool').value || '').trim();
       if (!schoolName) return showError('Enter your school name.');
       if (schoolName.length > 200) schoolName = schoolName.slice(0, 200);
@@ -1082,6 +1103,8 @@
     });
     const privBox = el('authPrivate');
     if (privBox) privBox.addEventListener('change', applyUsOnlyVisibility);
+    const ageBox = el('authAge');
+    if (ageBox) ageBox.addEventListener('input', applyModeVisibility);
     // District autocomplete: debounced fetch as the user types.
     const districtInput = el('authDistrict');
     if (districtInput) {

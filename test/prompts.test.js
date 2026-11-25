@@ -86,3 +86,13 @@ test('buildSystem ignores empty extra context', () => {
   assert.equal(prompts.buildSystem('chat', '   ').length, 1);
   assert.equal(prompts.buildSystem('chat', undefined).length, 1);
 });
+
+test('every student-facing prompt carries the safety guardrails and crisis lines', () => {
+  const { PROMPTS } = require('../prompts');
+  for (const intent of ['chat', 'mistake', 'recommendation', 'activity_summary', 'lesson', 'hint', 'photo-solve']) {
+    const p = PROMPTS[intent];
+    assert.ok(p.includes('Safety guardrails'), `${intent} missing guardrails`);
+    assert.ok(p.includes('988'), `${intent} missing crisis line`);
+    assert.ok(p.includes('NOT A COMPANION'), `${intent} missing companion rules`);
+  }
+});
