@@ -66,9 +66,9 @@ async function importSubject(client, data) {
     let lessonOrder = 0;
     for (const u of (c.units || [])) {
       await client.query(
-        `insert into curriculum_units (course_id, unit_number, unit_title, weeks)
-         values ($1, $2, $3, $4)`,
-        [c.id, u.unit_number, u.unit_title, u.weeks || null]
+        `insert into curriculum_units (course_id, unit_number, unit_title, weeks, display_order)
+         values ($1, $2, $3, $4, $5)`,
+        [c.id, u.unit_number, u.unit_title, u.weeks || null, u.display_order ?? null]
       );
       for (const l of (u.lessons || [])) {
         lessonOrder += 1;
@@ -148,11 +148,47 @@ function curriculumFiles() {
     .map(f => path.join(CURRICULUM_DIR, f));
 }
 
+// Content fields that feed the AI lesson and quiz prompts. When any of
+// them changes, the cached lesson text and quiz for that lesson are stale.
+const LESSON_FIELDS = ['lesson_title', 'learning_objective', 'ccss_code', 'key_concepts', 'prerequisites',
+  'key_vocabulary', 'common_misconceptions', 'real_world_hook', 'practices'];
+const fingerprint = l => crypto.createHash('sha1').update(JSON.stringify(LESSON_FIELDS.map(f => l[f] || null))).digest('hex');
+
+async function lessonFingerprints(client, subjectId) {
+  const { rows } = await client.query(
+    `select cl.course_id, cl.unit_number, cl.lesson_number, ${LESSON_FIELDS.map(f => 'cl.' + f).join(', ')}
+     from curriculum_lessons cl join curriculum_courses cc on cc.id = cl.course_id
+     where cc.subject_id = $1`, [subjectId]);
+  const map = new Map();
+  for (const r of rows || []) map.set(`${r.course_id}|${r.lesson_number}`, fingerprint(r));
+  return map;
+}
+
+// Deletes the cached quiz (curriculum_lesson_quizzes) and cached AI lesson
+// (cached_lessons, keyed by the synthetic curr:<course> ids and the lesson's
+// 0-based position in its unit) for every lesson whose content changed.
+// New lessons have nothing cached; removed lessons' rows are left alone.
+async function clearStaleLessonCaches(client, before, data) {
+  let n = 0;
+  for (const c of data.courses || []) for (const u of c.units || []) {
+    for (let i = 0; i < (u.lessons || []).length; i++) {
+      const l = u.lessons[i];
+      const old = before.get(`${c.id}|${l.lesson_number}`);
+      if (!old || old === fingerprint(l)) continue;
+      await client.query('delete from curriculum_lesson_quizzes where course_id = $1 and lesson_number = $2', [c.id, l.lesson_number]);
+      await client.query('delete from cached_lessons where course_id = $1 and book_id = $2 and section_idx = $3',
+        ['curr:' + c.id, `curr:${c.id}:u${u.unit_number}`, i]);
+      n++;
+    }
+  }
+  return n;
+}
+
 // Re-import each subject whose JSON differs from what was last synced.
 // Runs in one transaction per subject, under an advisory lock so two
-// instances booting together don't import twice. Cached lesson quizzes
-// (curriculum_lesson_quizzes) are keyed by course id + lesson number and
-// have no foreign key, so they survive a re-import.
+// instances booting together don't import twice. Cached quizzes and AI
+// lessons have no foreign key, so they survive a re-import, except for
+// lessons whose content changed (clearStaleLessonCaches).
 async function syncCurriculum(pool, log = console) {
   await pool.query(`create table if not exists curriculum_sync (
     subject_id text primary key, content_hash text not null, synced_at timestamptz not null default now())`);
@@ -172,14 +208,16 @@ async function syncCurriculum(pool, log = console) {
         results.push({ subject: subjectId, changed: false });
         continue;
       }
+      const before = await lessonFingerprints(client, subjectId);
       const r = await importSubject(client, data);
+      const stale = await clearStaleLessonCaches(client, before, data);
       await client.query(
         `insert into curriculum_sync (subject_id, content_hash, synced_at) values ($1, $2, now())
          on conflict (subject_id) do update set content_hash = excluded.content_hash, synced_at = now()`,
         [subjectId, hash]);
       await client.query('commit');
-      log.log(`📘 Curriculum sync: ${subjectId} re-imported (${summarise(data).courses} courses, ${r.lessons} lessons)`);
-      results.push({ subject: subjectId, changed: true, lessons: r.lessons });
+      log.log(`📘 Curriculum sync: ${subjectId} re-imported (${summarise(data).courses} courses, ${r.lessons} lessons, ${stale} edited lessons' caches cleared)`);
+      results.push({ subject: subjectId, changed: true, lessons: r.lessons, stale });
     } catch (e) {
       await client.query('rollback').catch(() => {});
       throw e;

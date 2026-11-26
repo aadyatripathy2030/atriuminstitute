@@ -1086,6 +1086,11 @@ function _courseRow(c) {
     total_lessons: c.total_lessons || 0, legacy_course_id: c.legacy_course_id || null,
   };
 }
+// Units in presentation order (display_order, falling back to unit_number).
+function _orderedUnits(c) {
+  const key = u => (u.display_order ?? u.unit_number);
+  return (c.units || []).slice().sort((a, b) => key(a) - key(b) || a.unit_number - b.unit_number);
+}
 async function listCurriculumCourses(opts) {
   opts = opts || {};
   return _curriculum()
@@ -1094,8 +1099,8 @@ async function listCurriculumCourses(opts) {
     .map(c => {
       const row = _courseRow(c);
       if (opts.withUnits) {
-        row.units = (c.units || []).map(u => ({
-          unit_number: u.unit_number, unit_title: u.unit_title, weeks: u.weeks || null,
+        row.units = _orderedUnits(c).map((u, i) => ({
+          unit_number: u.unit_number, position: i + 1, unit_title: u.unit_title, weeks: u.weeks || null,
           lesson_count: (u.lessons || []).length,
         }));
       }
@@ -1108,8 +1113,8 @@ async function getCurriculumCourseFull(courseId) {
   let order = 0;
   return {
     ..._courseRow(c),
-    units: (c.units || []).map(u => ({
-      unit_number: u.unit_number, unit_title: u.unit_title, weeks: u.weeks || null,
+    units: _orderedUnits(c).map((u, i) => ({
+      unit_number: u.unit_number, position: i + 1, unit_title: u.unit_title, weeks: u.weeks || null,
       lessons: (u.lessons || []).map(l => ({ unit_number: u.unit_number, ...l, meta: l.meta || {}, display_order: ++order })),
     })),
   };

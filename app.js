@@ -1286,9 +1286,9 @@ async function openCurriculumUnitAsCourse(curriculumCourseId, unitNumber) {
     description: '',
     books: [{
       id: bookId,
-      num: unit.unit_number,
+      num: unit.position || unit.unit_number,
       title: unit.unit_title,
-      subtitle: `${course.title} — Unit ${unit.unit_number}`,
+      subtitle: `${course.title} — Unit ${unit.position || unit.unit_number}`,
       emoji,
       accent, accent2,
       sections,

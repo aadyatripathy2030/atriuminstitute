@@ -349,6 +349,10 @@ create table if not exists curriculum_units (
 );
 
 create index if not exists idx_curriculum_units_course on curriculum_units (course_id);
+-- Presentation order of units within a course. unit_number stays the
+-- stable key (quiz cache, favorites, progress), so a course can be
+-- re-sequenced without renumbering. Null falls back to unit_number.
+alter table curriculum_units add column if not exists display_order integer;
 
 create table if not exists curriculum_lessons (
   id uuid primary key default gen_random_uuid(),

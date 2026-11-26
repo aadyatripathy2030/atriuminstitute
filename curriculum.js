@@ -156,17 +156,17 @@
     }
     // If openUnitNumber is given, open that one and leave the rest
     // collapsed. Otherwise default to unit 1 open.
-    const defaultOpen = (typeof openUnitNumber === 'number' && Number.isFinite(openUnitNumber)) ? openUnitNumber : 1;
+    const defaultOpen = (typeof openUnitNumber === 'number' && Number.isFinite(openUnitNumber)) ? openUnitNumber : units[0].unit_number;
     el('currUnits').innerHTML = units.map(u => `
       <details class="curr-unit" data-unit-number="${u.unit_number}" ${u.unit_number === defaultOpen ? 'open' : ''}>
         <summary>
-          <span class="curr-unit-num">Unit ${u.unit_number}</span>
+          <span class="curr-unit-num">Unit ${u.position || u.unit_number}</span>
           <span class="curr-unit-title">${esc(u.unit_title)}</span>
           ${u.weeks ? `<span class="curr-unit-weeks">${u.weeks} weeks</span>` : ''}
           <span class="curr-unit-count">${(u.lessons || []).length} lessons</span>
         </summary>
         <div class="curr-unit-body">
-          ${(u.lessons || []).map(l => renderLesson(l)).join('')}
+          ${(u.lessons || []).map((l, i) => renderLesson(l, u.position && u.position !== u.unit_number ? `${u.position}.${i + 1}` : null)).join('')}
         </div>
       </details>
     `).join('');
@@ -180,7 +180,7 @@
     }
   }
 
-  function renderLesson(l) {
+  function renderLesson(l, label) {
     const fields = [
       ['Learning objective', l.learning_objective],
       ['Key concepts', l.key_concepts],
@@ -193,7 +193,7 @@
     return `
       <div class="curr-lesson">
         <div class="curr-lesson-head">
-          <span class="curr-lesson-num">${esc(l.lesson_number)}</span>
+          <span class="curr-lesson-num">${esc(label || l.lesson_number)}</span>
           <span class="curr-lesson-title">${esc(l.lesson_title)}</span>
           ${l.ccss_code ? `<span class="curr-lesson-ccss">${esc(l.ccss_code)}</span>` : ''}
         </div>

@@ -1624,8 +1624,8 @@
         9
       ],
       "display_order": 4,
-      "total_weeks": 26,
-      "total_lessons": 45,
+      "total_weeks": 29,
+      "total_lessons": 50,
       "units": [
         {
           "unit_number": 1,
@@ -1684,7 +1684,8 @@
               "practices": "2, 6",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 9
         },
         {
           "unit_number": 2,
@@ -1769,7 +1770,8 @@
               "practices": "1, 4",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 1
         },
         {
           "unit_number": 3,
@@ -1828,7 +1830,8 @@
               "practices": "2, 4",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 10
         },
         {
           "unit_number": 4,
@@ -1900,7 +1903,8 @@
               "practices": "7, 8",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 3
         },
         {
           "unit_number": 5,
@@ -1972,7 +1976,8 @@
               "practices": "4, 6",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 5
         },
         {
           "unit_number": 6,
@@ -2044,7 +2049,8 @@
               "practices": "3, 7",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 7
         },
         {
           "unit_number": 7,
@@ -2116,7 +2122,8 @@
               "practices": "1, 4",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 8
         },
         {
           "unit_number": 8,
@@ -2201,7 +2208,8 @@
               "practices": "7, 8",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 6
         },
         {
           "unit_number": 9,
@@ -2273,7 +2281,81 @@
               "practices": "3, 6",
               "meta": {}
             }
-          ]
+          ],
+          "display_order": 4
+        },
+        {
+          "unit_number": 10,
+          "unit_title": "Linear Functions and Slope",
+          "weeks": 3,
+          "lessons": [
+            {
+              "lesson_number": "10.1",
+              "lesson_title": "Slope as a Rate of Change",
+              "learning_objective": "Calculate and interpret slope from two points, a table, a graph, and a context, including its units",
+              "ccss_code": "F-IF.B.6",
+              "key_concepts": "Slope m = (y2 - y1)/(x2 - x1) as change in output per one unit of input; positive, negative, zero and undefined slope; slope units (e.g. dollars per hour)",
+              "prerequisites": "Plotting points, subtracting integers, simplifying fractions",
+              "key_vocabulary": "slope, rate of change, rise, run, average rate of change",
+              "common_misconceptions": "Students compute (x2 - x1)/(y2 - y1), inverting the ratio, or subtract the coordinates in opposite orders, e.g. (5 - 1)/(2 - 4) from points (2, 1) and (4, 5), getting -2 instead of 2",
+              "real_world_hook": "A phone plan bill that rises $15 for every extra 5 GB of data: the slope is $3 per GB",
+              "practices": "2, 4, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "10.2",
+              "lesson_title": "Slope-Intercept Form",
+              "learning_objective": "Write, graph and interpret linear functions in the form y = mx + b, identifying the meaning of m and b in context",
+              "ccss_code": "F-LE.A.2, F-LE.B.5",
+              "key_concepts": "y = mx + b; slope as constant rate, y-intercept as starting value; graphing from the intercept using rise over run; writing an equation from a slope and a point",
+              "prerequisites": "Slope as rate of change, evaluating expressions",
+              "key_vocabulary": "slope-intercept form, y-intercept, initial value, linear function",
+              "common_misconceptions": "Students read y = 4 - 2x as slope 4 and intercept -2 because they take the first number as the slope regardless of which term holds x",
+              "real_world_hook": "A rideshare charges a $3 base fee plus $1.50 per mile: C = 1.5m + 3",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "10.3",
+              "lesson_title": "Point-Slope and Standard Form",
+              "learning_objective": "Write linear equations in point-slope and standard form and convert between the forms of a line",
+              "ccss_code": "A-CED.A.2, A-SSE.A.1",
+              "key_concepts": "Point-slope form y - y1 = m(x - x1); standard form Ax + By = C and using intercepts to graph it; choosing the most useful form for the information given",
+              "prerequisites": "Slope-intercept form, distributive property",
+              "key_vocabulary": "point-slope form, standard form, x-intercept, y-intercept",
+              "common_misconceptions": "Students write the line through (3, -2) with slope 4 as y - 2 = 4(x - 3), missing that subtracting a negative y1 gives y + 2",
+              "real_world_hook": "Tickets cost $8 for students and $12 for adults and a show took in $960: 8s + 12a = 960 graphs quickly from its intercepts",
+              "practices": "2, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "10.4",
+              "lesson_title": "Parallel and Perpendicular Lines",
+              "learning_objective": "Use slopes to decide whether lines are parallel or perpendicular and write equations of lines parallel or perpendicular to a given line through a point",
+              "ccss_code": "G-GPE.B.5",
+              "key_concepts": "Parallel lines have equal slopes; perpendicular lines (neither vertical) have slopes whose product is -1; horizontal and vertical lines",
+              "prerequisites": "Slope-intercept and point-slope form",
+              "key_vocabulary": "parallel, perpendicular, opposite reciprocal, horizontal line, vertical line",
+              "common_misconceptions": "Students take the perpendicular slope to 2/3 as -2/3 (only the opposite) or 3/2 (only the reciprocal) instead of the opposite reciprocal -3/2",
+              "real_world_hook": "Laying out a street grid where new roads must run parallel or at right angles to an existing avenue",
+              "practices": "3, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "10.5",
+              "lesson_title": "Linear Models from Data and Context",
+              "learning_objective": "Build a linear function from a description, table or two data points, interpret slope and intercept in context, and decide whether a linear model fits",
+              "ccss_code": "F-BF.A.1a, F-LE.A.1b, S-ID.C.7",
+              "key_concepts": "Constant change over equal intervals signals a linear model; writing the model from two points; interpreting slope and intercept with units; limits of extrapolation",
+              "prerequisites": "Slope-intercept form, reading tables",
+              "key_vocabulary": "linear model, constant rate, interpolation, extrapolation",
+              "common_misconceptions": "Students call a table linear because the outputs keep increasing (2, 4, 8, 16) without checking that the differences are constant",
+              "real_world_hook": "A candle that is 20 cm tall and burns 1.5 cm per hour: h = 20 - 1.5t, which only makes sense until t = 13 1/3 hours",
+              "practices": "4, 5",
+              "meta": {}
+            }
+          ],
+          "display_order": 2
         }
       ],
       "legacy_course_id": "algebra"
@@ -2285,8 +2367,8 @@
         9
       ],
       "display_order": 5,
-      "total_weeks": 22,
-      "total_lessons": 38,
+      "total_weeks": 25,
+      "total_lessons": 43,
       "units": [
         {
           "unit_number": 1,
@@ -2387,11 +2469,93 @@
         },
         {
           "unit_number": 2,
-          "unit_title": "Functions",
+          "unit_title": "Linear Functions and Slope",
           "weeks": 3,
           "lessons": [
             {
               "lesson_number": "2.1",
+              "lesson_title": "Slope as a Rate of Change",
+              "learning_objective": "Calculate and interpret slope from two points, a table, a graph, and a context, including its units",
+              "ccss_code": "F-IF.B.6",
+              "key_concepts": "Slope m = (y2 - y1)/(x2 - x1) as change in output per one unit of input; positive, negative, zero and undefined slope; slope units (e.g. dollars per hour)",
+              "prerequisites": "Plotting points, subtracting integers, simplifying fractions",
+              "key_vocabulary": "slope, rate of change, rise, run, average rate of change",
+              "common_misconceptions": "Students compute (x2 - x1)/(y2 - y1), inverting the ratio, or subtract the coordinates in opposite orders, e.g. (5 - 1)/(2 - 4) from points (2, 1) and (4, 5), getting -2 instead of 2",
+              "real_world_hook": "A phone plan bill that rises $15 for every extra 5 GB of data: the slope is $3 per GB",
+              "practices": "2, 4, 6",
+              "meta": {
+                "source": "algebra1 10.1"
+              }
+            },
+            {
+              "lesson_number": "2.2",
+              "lesson_title": "Slope-Intercept Form",
+              "learning_objective": "Write, graph and interpret linear functions in the form y = mx + b, identifying the meaning of m and b in context",
+              "ccss_code": "F-LE.A.2, F-LE.B.5",
+              "key_concepts": "y = mx + b; slope as constant rate, y-intercept as starting value; graphing from the intercept using rise over run; writing an equation from a slope and a point",
+              "prerequisites": "Slope as rate of change, evaluating expressions",
+              "key_vocabulary": "slope-intercept form, y-intercept, initial value, linear function",
+              "common_misconceptions": "Students read y = 4 - 2x as slope 4 and intercept -2 because they take the first number as the slope regardless of which term holds x",
+              "real_world_hook": "A rideshare charges a $3 base fee plus $1.50 per mile: C = 1.5m + 3",
+              "practices": "2, 4, 7",
+              "meta": {
+                "source": "algebra1 10.2"
+              }
+            },
+            {
+              "lesson_number": "2.3",
+              "lesson_title": "Point-Slope and Standard Form",
+              "learning_objective": "Write linear equations in point-slope and standard form and convert between the forms of a line",
+              "ccss_code": "A-CED.A.2, A-SSE.A.1",
+              "key_concepts": "Point-slope form y - y1 = m(x - x1); standard form Ax + By = C and using intercepts to graph it; choosing the most useful form for the information given",
+              "prerequisites": "Slope-intercept form, distributive property",
+              "key_vocabulary": "point-slope form, standard form, x-intercept, y-intercept",
+              "common_misconceptions": "Students write the line through (3, -2) with slope 4 as y - 2 = 4(x - 3), missing that subtracting a negative y1 gives y + 2",
+              "real_world_hook": "Tickets cost $8 for students and $12 for adults and a show took in $960: 8s + 12a = 960 graphs quickly from its intercepts",
+              "practices": "2, 7",
+              "meta": {
+                "source": "algebra1 10.3"
+              }
+            },
+            {
+              "lesson_number": "2.4",
+              "lesson_title": "Parallel and Perpendicular Lines",
+              "learning_objective": "Use slopes to decide whether lines are parallel or perpendicular and write equations of lines parallel or perpendicular to a given line through a point",
+              "ccss_code": "G-GPE.B.5",
+              "key_concepts": "Parallel lines have equal slopes; perpendicular lines (neither vertical) have slopes whose product is -1; horizontal and vertical lines",
+              "prerequisites": "Slope-intercept and point-slope form",
+              "key_vocabulary": "parallel, perpendicular, opposite reciprocal, horizontal line, vertical line",
+              "common_misconceptions": "Students take the perpendicular slope to 2/3 as -2/3 (only the opposite) or 3/2 (only the reciprocal) instead of the opposite reciprocal -3/2",
+              "real_world_hook": "Laying out a street grid where new roads must run parallel or at right angles to an existing avenue",
+              "practices": "3, 7",
+              "meta": {
+                "source": "algebra1 10.4"
+              }
+            },
+            {
+              "lesson_number": "2.5",
+              "lesson_title": "Linear Models from Data and Context",
+              "learning_objective": "Build a linear function from a description, table or two data points, interpret slope and intercept in context, and decide whether a linear model fits",
+              "ccss_code": "F-BF.A.1a, F-LE.A.1b, S-ID.C.7",
+              "key_concepts": "Constant change over equal intervals signals a linear model; writing the model from two points; interpreting slope and intercept with units; limits of extrapolation",
+              "prerequisites": "Slope-intercept form, reading tables",
+              "key_vocabulary": "linear model, constant rate, interpolation, extrapolation",
+              "common_misconceptions": "Students call a table linear because the outputs keep increasing (2, 4, 8, 16) without checking that the differences are constant",
+              "real_world_hook": "A candle that is 20 cm tall and burns 1.5 cm per hour: h = 20 - 1.5t, which only makes sense until t = 13 1/3 hours",
+              "practices": "4, 5",
+              "meta": {
+                "source": "algebra1 10.5"
+              }
+            }
+          ]
+        },
+        {
+          "unit_number": 3,
+          "unit_title": "Functions",
+          "weeks": 3,
+          "lessons": [
+            {
+              "lesson_number": "3.1",
               "lesson_title": "Function Notation and Evaluation",
               "learning_objective": "Use function notation and evaluate functions including piecewise",
               "ccss_code": "F-IF.A.1",
@@ -2406,7 +2570,7 @@
               }
             },
             {
-              "lesson_number": "2.2",
+              "lesson_number": "3.2",
               "lesson_title": "Domain and Range",
               "learning_objective": "Identify domain and range of functions from graphs and equations",
               "ccss_code": "F-IF.A.1",
@@ -2421,7 +2585,7 @@
               }
             },
             {
-              "lesson_number": "2.3",
+              "lesson_number": "3.3",
               "lesson_title": "Key Features of Functions",
               "learning_objective": "Identify intercepts, intervals of increase or decrease, maxima, minima",
               "ccss_code": "F-IF.B.4",
@@ -2436,7 +2600,7 @@
               }
             },
             {
-              "lesson_number": "2.4",
+              "lesson_number": "3.4",
               "lesson_title": "Function Transformations",
               "learning_objective": "Apply translations, reflections, and stretches to functions",
               "ccss_code": "F-BF.B.3",
@@ -2451,7 +2615,7 @@
               }
             },
             {
-              "lesson_number": "2.5",
+              "lesson_number": "3.5",
               "lesson_title": "Inverse Functions Intro",
               "learning_objective": "Find inverses of simple functions and verify",
               "ccss_code": "F-BF.B.4.a",
@@ -2468,12 +2632,12 @@
           ]
         },
         {
-          "unit_number": 3,
+          "unit_number": 4,
           "unit_title": "Linear and Exponential Functions",
           "weeks": 3,
           "lessons": [
             {
-              "lesson_number": "3.1",
+              "lesson_number": "4.1",
               "lesson_title": "Exponential Growth",
               "learning_objective": "Identify and model exponential growth situations",
               "ccss_code": "F-LE.A.1",
@@ -2488,7 +2652,7 @@
               }
             },
             {
-              "lesson_number": "3.2",
+              "lesson_number": "4.2",
               "lesson_title": "Exponential Decay",
               "learning_objective": "Identify and model exponential decay situations",
               "ccss_code": "F-LE.A.1",
@@ -2503,7 +2667,7 @@
               }
             },
             {
-              "lesson_number": "3.3",
+              "lesson_number": "4.3",
               "lesson_title": "Graphs of Exponential Functions",
               "learning_objective": "Graph exponential functions and identify key features",
               "ccss_code": "F-IF.C.7.e",
@@ -2518,7 +2682,7 @@
               }
             },
             {
-              "lesson_number": "3.4",
+              "lesson_number": "4.4",
               "lesson_title": "Linear vs Exponential",
               "learning_objective": "Compare linear and exponential models from data",
               "ccss_code": "F-LE.A.1",
@@ -2533,7 +2697,7 @@
               }
             },
             {
-              "lesson_number": "3.5",
+              "lesson_number": "4.5",
               "lesson_title": "Exponential Modeling",
               "learning_objective": "Build exponential models from context and make predictions",
               "ccss_code": "F-BF.A.1",
@@ -2550,12 +2714,12 @@
           ]
         },
         {
-          "unit_number": 4,
+          "unit_number": 5,
           "unit_title": "Statistics: One and Two Variables",
           "weeks": 4,
           "lessons": [
             {
-              "lesson_number": "4.1",
+              "lesson_number": "5.1",
               "lesson_title": "Representing Data Graphically",
               "learning_objective": "Construct dot plots, histograms, and box plots for one variable data",
               "ccss_code": "S-ID.A.1",
@@ -2570,7 +2734,7 @@
               }
             },
             {
-              "lesson_number": "4.2",
+              "lesson_number": "5.2",
               "lesson_title": "Measures of Center and Spread",
               "learning_objective": "Compute and interpret mean, median, range, IQR, standard deviation",
               "ccss_code": "S-ID.A.2",
@@ -2585,7 +2749,7 @@
               }
             },
             {
-              "lesson_number": "4.3",
+              "lesson_number": "5.3",
               "lesson_title": "Comparing Distributions",
               "learning_objective": "Compare distributions using shape, center, spread, and outliers",
               "ccss_code": "S-ID.A.3",
@@ -2600,7 +2764,7 @@
               }
             },
             {
-              "lesson_number": "4.4",
+              "lesson_number": "5.4",
               "lesson_title": "Standard Deviation in Context",
               "learning_objective": "Use standard deviation to compare variability in data sets",
               "ccss_code": "S-ID.A.2",
@@ -2615,7 +2779,7 @@
               }
             },
             {
-              "lesson_number": "4.5",
+              "lesson_number": "5.5",
               "lesson_title": "Scatter Plots and Correlation",
               "learning_objective": "Construct scatter plots and describe correlation",
               "ccss_code": "S-ID.B.6",
@@ -2630,7 +2794,7 @@
               }
             },
             {
-              "lesson_number": "4.6",
+              "lesson_number": "5.6",
               "lesson_title": "Least Squares Regression",
               "learning_objective": "Find and interpret the least squares regression line",
               "ccss_code": "S-ID.B.6.a",
@@ -2645,7 +2809,7 @@
               }
             },
             {
-              "lesson_number": "4.7",
+              "lesson_number": "5.7",
               "lesson_title": "Residuals and Model Fit",
               "learning_objective": "Compute and interpret residuals and residual plots",
               "ccss_code": "S-ID.B.6.b",
@@ -2660,7 +2824,7 @@
               }
             },
             {
-              "lesson_number": "4.8",
+              "lesson_number": "5.8",
               "lesson_title": "Two Way Frequency Tables",
               "learning_objective": "Use two way tables for categorical data analysis",
               "ccss_code": "S-ID.B.5",
@@ -2677,12 +2841,12 @@
           ]
         },
         {
-          "unit_number": 5,
+          "unit_number": 6,
           "unit_title": "Transformations and Constructions",
           "weeks": 3,
           "lessons": [
             {
-              "lesson_number": "5.1",
+              "lesson_number": "6.1",
               "lesson_title": "Basic Constructions",
               "learning_objective": "Perform basic constructions using compass and straightedge",
               "ccss_code": "G-CO.D.12",
@@ -2697,7 +2861,7 @@
               }
             },
             {
-              "lesson_number": "5.2",
+              "lesson_number": "6.2",
               "lesson_title": "Definitions and Notation",
               "learning_objective": "Use precise geometric definitions and notation",
               "ccss_code": "G-CO.A.1",
@@ -2712,7 +2876,7 @@
               }
             },
             {
-              "lesson_number": "5.3",
+              "lesson_number": "6.3",
               "lesson_title": "Rigid Transformations",
               "learning_objective": "Define and apply translations, reflections, and rotations",
               "ccss_code": "G-CO.A.2",
@@ -2727,7 +2891,7 @@
               }
             },
             {
-              "lesson_number": "5.4",
+              "lesson_number": "6.4",
               "lesson_title": "Symmetry",
               "learning_objective": "Identify line and rotational symmetry in figures",
               "ccss_code": "G-CO.A.3",
@@ -2742,7 +2906,7 @@
               }
             },
             {
-              "lesson_number": "5.5",
+              "lesson_number": "6.5",
               "lesson_title": "Compositions of Transformations",
               "learning_objective": "Combine rigid transformations and analyze the result",
               "ccss_code": "G-CO.A.5",
@@ -2759,12 +2923,12 @@
           ]
         },
         {
-          "unit_number": 6,
+          "unit_number": 7,
           "unit_title": "Congruence",
           "weeks": 3,
           "lessons": [
             {
-              "lesson_number": "6.1",
+              "lesson_number": "7.1",
               "lesson_title": "Defining Congruence",
               "learning_objective": "Define congruence using rigid transformations",
               "ccss_code": "G-CO.B.6",
@@ -2779,7 +2943,7 @@
               }
             },
             {
-              "lesson_number": "6.2",
+              "lesson_number": "7.2",
               "lesson_title": "Triangle Congruence Criteria",
               "learning_objective": "Apply SSS, SAS, ASA, AAS, HL triangle congruence",
               "ccss_code": "G-CO.B.8",
@@ -2794,7 +2958,7 @@
               }
             },
             {
-              "lesson_number": "6.3",
+              "lesson_number": "7.3",
               "lesson_title": "Triangle Congruence Proofs",
               "learning_objective": "Write two column proofs of triangle congruence",
               "ccss_code": "G-CO.C.10",
@@ -2809,7 +2973,7 @@
               }
             },
             {
-              "lesson_number": "6.4",
+              "lesson_number": "7.4",
               "lesson_title": "CPCTC and Applications",
               "learning_objective": "Use CPCTC to prove relationships between parts of congruent triangles",
               "ccss_code": "G-CO.C.10",
@@ -2824,7 +2988,7 @@
               }
             },
             {
-              "lesson_number": "6.5",
+              "lesson_number": "7.5",
               "lesson_title": "Properties of Quadrilaterals",
               "learning_objective": "Prove properties of parallelograms and special quadrilaterals",
               "ccss_code": "G-CO.C.11",
@@ -2841,12 +3005,12 @@
           ]
         },
         {
-          "unit_number": 7,
+          "unit_number": 8,
           "unit_title": "Coordinate Geometry",
           "weeks": 2,
           "lessons": [
             {
-              "lesson_number": "7.1",
+              "lesson_number": "8.1",
               "lesson_title": "Distance and Midpoint",
               "learning_objective": "Find distance between points and midpoint of a segment",
               "ccss_code": "G-GPE.B.7",
@@ -2861,7 +3025,7 @@
               }
             },
             {
-              "lesson_number": "7.2",
+              "lesson_number": "8.2",
               "lesson_title": "Slope and Equations of Lines",
               "learning_objective": "Find slopes, write equations, and identify parallel and perpendicular lines",
               "ccss_code": "G-GPE.B.5",
@@ -2876,7 +3040,7 @@
               }
             },
             {
-              "lesson_number": "7.3",
+              "lesson_number": "8.3",
               "lesson_title": "Proofs in Coordinate Geometry",
               "learning_objective": "Use coordinates to prove geometric theorems",
               "ccss_code": "G-GPE.B.4",
@@ -2891,7 +3055,7 @@
               }
             },
             {
-              "lesson_number": "7.4",
+              "lesson_number": "8.4",
               "lesson_title": "Partitioning Segments",
               "learning_objective": "Partition a line segment in a given ratio",
               "ccss_code": "G-GPE.B.6",
@@ -6275,7 +6439,7 @@
               "lesson_title": "The Multiple-Choice Section",
               "learning_objective": "Describe the AP Precalculus multiple-choice section and practice both its no-calculator and calculator parts",
               "ccss_code": "AP Precalc Exam",
-              "key_concepts": "Section I is multiple choice with four answer choices per question and no penalty for wrong answers; Part A does not allow a calculator and Part B requires a graphing calculator; only Units 1-3 are tested; questions use algebraic, graphical, numerical, and verbal representations; for calculator questions, know how to graph, find intersections and zeros, and run regressions",
+              "key_concepts": "Section I is 42 multiple-choice questions in 1 hour 45 minutes, worth 62.5% of the score; Part A is 29 questions in 65 minutes with no calculator permitted (43.75%); Part B is 13 questions in 40 minutes with a graphing calculator required (18.75%), though only some Part B questions actually need it; each question has four answer choices and there is no penalty for wrong answers; only Units 1-3 are tested (Unit 4 is not on the exam); multiple-choice weighting by function type: general functions 15-25%, polynomial and rational 20-25%, exponential and logarithmic 20-30%, trigonometric and polar 30-35%; questions use algebraic, graphical, numerical, and verbal representations; the exam is hybrid digital, so multiple-choice answers are entered in the Bluebook app; for calculator questions, set radian mode and know how to graph, find intersections and zeros, and run regressions",
               "prerequisites": "Units 1-3",
               "key_vocabulary": "multiple choice, no-calculator, graphing calculator, representation, distractor",
               "common_misconceptions": "Students use the calculator to graph every Part B question even when a quick algebraic step is faster; students leave questions blank even though there is no guessing penalty",
@@ -6288,7 +6452,7 @@
               "lesson_title": "The Four Free-Response Question Types",
               "learning_objective": "Recognize and practice the four free-response question types: function concepts, modeling a non-periodic context, modeling a periodic context, and symbolic manipulations",
               "ccss_code": "AP Precalc Exam",
-              "key_concepts": "Section II has four free-response questions: (1) Function Concepts, working with graphs, tables, and compositions of functions; (2) Modeling a Non-Periodic Context, building and interpreting a linear, quadratic, exponential, or similar model; (3) Modeling a Periodic Context, building a sinusoidal model from a context or graph; (4) Symbolic Manipulations, solving and rewriting exponential, logarithmic, and trigonometric expressions and equations; part of Section II allows a graphing calculator and part does not; show work, use correct notation, and include units",
+              "key_concepts": "Section II has four free-response questions, each worth 6 points, in 1 hour 10 minutes, worth 37.5% of the score; Part A (2 questions, 35 minutes, graphing calculator required): (1) Function Concepts, working with graphs, tables, compositions, inverses, zeros, and end behavior, and (2) Modeling a Non-Periodic Context, building a model from a real-world context (polynomial, piecewise-defined, exponential, or logarithmic), using average rates of change with units, and judging the model's assumptions or limitations; Part B (2 questions, 35 minutes, no calculator permitted): (3) Modeling a Periodic Context, building a sinusoidal model from a context or graph, and (4) Symbolic Manipulations, solving and rewriting exponential, logarithmic, and trigonometric expressions and equations; Questions 2 and 3 use real-world contexts; FRQs are viewed in Bluebook but answered by hand in a paper booklet; show work, use correct notation, and include units",
               "prerequisites": "Units 1-3",
               "key_vocabulary": "free response, justification, model, units, notation, partial credit",
               "common_misconceptions": "Students write a final number with no supporting work or units, e.g. answering a periodic modeling part with '6.2' instead of 'about 6.2 feet at t = 3 hours'; students give a correct model but never answer the interpretation part of the question",
@@ -6301,7 +6465,7 @@
               "lesson_title": "Exam Pacing and Strategy",
               "learning_objective": "Plan pacing for each section of the AP Precalculus exam and build a review plan from practice results",
               "ccss_code": "AP Precalc Exam",
-              "key_concepts": "Budget time per question in each part; do easier questions first and return to marked ones; answer every multiple-choice question; for free response, attempt every part since parts are scored separately; check calculator mode (radians) before trig questions; keep an error log by unit and skill and target the weakest topics",
+              "key_concepts": "The exam is 2 hours 55 minutes: Part A multiple choice gives 65 minutes for 29 questions (about 2 minutes 15 seconds each) with no calculator; Part B multiple choice gives 40 minutes for 13 questions (about 3 minutes each) with a graphing calculator; each free-response part gives 35 minutes for 2 questions (about 17 minutes each), calculator required in Part A and not permitted in Part B; do easier questions first and return to marked ones; answer every multiple-choice question; for free response, attempt every part since parts are scored separately; check calculator mode (radians) before trig questions; keep an error log by unit and skill and target the weakest topics",
               "prerequisites": "All exam units",
               "key_vocabulary": "pacing, error log, radian mode, partial credit, review plan",
               "common_misconceptions": "Students leave the calculator in degree mode and get wrong values for sin(2), or spend ten minutes on one multiple-choice question and run out of time for the last several",
@@ -6333,7 +6497,7 @@
               "lesson_number": "1.1",
               "lesson_title": "Limits Graphically and Numerically",
               "learning_objective": "Estimate limits from graphs and tables",
-              "ccss_code": "AP Calc 1.2",
+              "ccss_code": "AP Calc 1.2, 1.3, 1.4",
               "key_concepts": "Limit notation, approaching value",
               "prerequisites": "Functions, sequences",
               "key_vocabulary": "limit notation, approach, asymptotic",
@@ -6346,7 +6510,7 @@
               "lesson_number": "1.2",
               "lesson_title": "Limits Algebraically",
               "learning_objective": "Evaluate limits using algebraic techniques",
-              "ccss_code": "AP Calc 1.5",
+              "ccss_code": "AP Calc 1.5, 1.6",
               "key_concepts": "Direct substitution, factoring, rationalizing",
               "prerequisites": "Algebra, limits",
               "key_vocabulary": "direct substitution, indeterminate, factor",
@@ -6372,7 +6536,7 @@
               "lesson_number": "1.4",
               "lesson_title": "Continuity",
               "learning_objective": "Determine continuity at a point and on intervals",
-              "ccss_code": "AP Calc 1.10",
+              "ccss_code": "AP Calc 1.10, 1.11, 1.12, 1.13",
               "key_concepts": "Three conditions of continuity, types of discontinuity",
               "prerequisites": "Limits, functions",
               "key_vocabulary": "continuous at a point, removable, jump",
@@ -6398,14 +6562,14 @@
         },
         {
           "unit_number": 2,
-          "unit_title": "Differentiation Definition and Rules",
+          "unit_title": "Differentiation: Definition and Fundamental Properties",
           "weeks": 4,
           "lessons": [
             {
               "lesson_number": "2.1",
               "lesson_title": "Definition of Derivative",
               "learning_objective": "Define the derivative as a limit",
-              "ccss_code": "AP Calc 2.1",
+              "ccss_code": "AP Calc 2.1, 2.2",
               "key_concepts": "Difference quotient, limit definition",
               "prerequisites": "Limits, slopes",
               "key_vocabulary": "difference quotient, derivative",
@@ -6418,7 +6582,7 @@
               "lesson_number": "2.2",
               "lesson_title": "Basic Differentiation Rules",
               "learning_objective": "Apply power, constant multiple, sum, and difference rules",
-              "ccss_code": "AP Calc 2.5",
+              "ccss_code": "AP Calc 2.5, 2.6",
               "key_concepts": "Power rule, derivative of constants",
               "prerequisites": "Polynomials, algebra",
               "key_vocabulary": "power rule, constant rule",
@@ -6431,7 +6595,7 @@
               "lesson_number": "2.3",
               "lesson_title": "Product and Quotient Rules",
               "learning_objective": "Apply product and quotient rules",
-              "ccss_code": "AP Calc 2.8",
+              "ccss_code": "AP Calc 2.8, 2.9",
               "key_concepts": "Product rule formula, quotient rule formula",
               "prerequisites": "Basic differentiation",
               "key_vocabulary": "product rule, quotient rule",
@@ -6444,7 +6608,7 @@
               "lesson_number": "2.4",
               "lesson_title": "Derivatives of Trig Functions",
               "learning_objective": "Differentiate trigonometric functions",
-              "ccss_code": "AP Calc 2.7",
+              "ccss_code": "AP Calc 2.7, 2.10",
               "key_concepts": "Six trig derivatives, memorization patterns",
               "prerequisites": "Trig, basic derivatives",
               "key_vocabulary": "derivative of sine, derivative of cosine",
@@ -6470,7 +6634,7 @@
         },
         {
           "unit_number": 3,
-          "unit_title": "Composite, Implicit, Inverse Derivatives",
+          "unit_title": "Differentiation: Composite, Implicit, and Inverse Functions",
           "weeks": 3,
           "lessons": [
             {
@@ -6549,7 +6713,7 @@
               "lesson_number": "4.2",
               "lesson_title": "Related Rates",
               "learning_objective": "Solve related rates problems",
-              "ccss_code": "AP Calc 4.4",
+              "ccss_code": "AP Calc 4.4, 4.5",
               "key_concepts": "Differentiating with respect to time, implicit differentiation",
               "prerequisites": "Implicit differentiation, geometry",
               "key_vocabulary": "related rates, dr dt",
@@ -6573,10 +6737,10 @@
             },
             {
               "lesson_number": "4.4",
-              "lesson_title": "L Hopital Rule",
-              "learning_objective": "Apply L Hopital rule to indeterminate forms",
+              "lesson_title": "L'Hospital's Rule",
+              "learning_objective": "Apply L'Hospital's Rule to indeterminate forms",
               "ccss_code": "AP Calc 4.7",
-              "key_concepts": "Conditions for L Hopital, repeated application",
+              "key_concepts": "Conditions for L'Hospital's Rule, repeated application",
               "prerequisites": "Limits, derivatives",
               "key_vocabulary": "L Hopital, indeterminate form",
               "common_misconceptions": "Students apply rule when conditions are not met",
@@ -6595,7 +6759,7 @@
               "lesson_number": "5.1",
               "lesson_title": "Extreme Value Theorem",
               "learning_objective": "Find absolute extrema on closed intervals",
-              "ccss_code": "AP Calc 5.2",
+              "ccss_code": "AP Calc 5.2, 5.5",
               "key_concepts": "EVT, critical points, endpoint comparison",
               "prerequisites": "Continuity, derivatives",
               "key_vocabulary": "extreme value, absolute max, absolute min",
@@ -6608,7 +6772,7 @@
               "lesson_number": "5.2",
               "lesson_title": "First Derivative Test",
               "learning_objective": "Use first derivative to find relative extrema and intervals",
-              "ccss_code": "AP Calc 5.4",
+              "ccss_code": "AP Calc 5.3, 5.4",
               "key_concepts": "Sign analysis of first derivative",
               "prerequisites": "Derivatives, sign analysis",
               "key_vocabulary": "first derivative test, relative max, relative min",
@@ -6621,7 +6785,7 @@
               "lesson_number": "5.3",
               "lesson_title": "Second Derivative Test",
               "learning_objective": "Apply second derivative for concavity and extrema",
-              "ccss_code": "AP Calc 5.7",
+              "ccss_code": "AP Calc 5.6, 5.7",
               "key_concepts": "Concavity from second derivative, inflection points",
               "prerequisites": "First derivative test, second derivative",
               "key_vocabulary": "second derivative test, inflection point, concavity",
@@ -6647,7 +6811,7 @@
               "lesson_number": "5.5",
               "lesson_title": "Optimization",
               "learning_objective": "Solve optimization problems",
-              "ccss_code": "AP Calc 5.10",
+              "ccss_code": "AP Calc 5.10, 5.11",
               "key_concepts": "Setting up function, finding critical points, applying tests",
               "prerequisites": "Derivative tests, modeling",
               "key_vocabulary": "optimization, constraint",
@@ -6660,14 +6824,14 @@
         },
         {
           "unit_number": 6,
-          "unit_title": "Integration and Accumulation",
+          "unit_title": "Integration and Accumulation of Change",
           "weeks": 4,
           "lessons": [
             {
               "lesson_number": "6.1",
               "lesson_title": "Antiderivatives",
               "learning_objective": "Find antiderivatives and indefinite integrals",
-              "ccss_code": "AP Calc 6.7",
+              "ccss_code": "AP Calc 6.8",
               "key_concepts": "Reverse power rule, basic antiderivatives",
               "prerequisites": "Derivatives, algebra",
               "key_vocabulary": "antiderivative, indefinite integral, constant of integration",
@@ -6680,7 +6844,7 @@
               "lesson_number": "6.2",
               "lesson_title": "Riemann Sums",
               "learning_objective": "Approximate areas using Riemann sums",
-              "ccss_code": "AP Calc 6.3",
+              "ccss_code": "AP Calc 6.2",
               "key_concepts": "Left, right, midpoint, trapezoidal sums",
               "prerequisites": "Area concepts, summation",
               "key_vocabulary": "Riemann sum, partition, regular",
@@ -6693,7 +6857,7 @@
               "lesson_number": "6.3",
               "lesson_title": "Definite Integral",
               "learning_objective": "Define and interpret the definite integral",
-              "ccss_code": "AP Calc 6.4",
+              "ccss_code": "AP Calc 6.3, 6.6",
               "key_concepts": "Integral as limit of Riemann sum, properties",
               "prerequisites": "Riemann sums, antiderivatives",
               "key_vocabulary": "definite integral, bounds, net area",
@@ -6706,7 +6870,7 @@
               "lesson_number": "6.4",
               "lesson_title": "Fundamental Theorem of Calculus",
               "learning_objective": "Apply both parts of the fundamental theorem",
-              "ccss_code": "AP Calc 6.6",
+              "ccss_code": "AP Calc 6.4, 6.7",
               "key_concepts": "FTC connecting derivatives and integrals",
               "prerequisites": "Antiderivatives, definite integrals",
               "key_vocabulary": "fundamental theorem, accumulation function",
@@ -6739,7 +6903,7 @@
               "lesson_number": "7.1",
               "lesson_title": "Slope Fields",
               "learning_objective": "Sketch and interpret slope fields",
-              "ccss_code": "AP Calc 7.3",
+              "ccss_code": "AP Calc 7.3, 7.4",
               "key_concepts": "Slope at each point from differential equation",
               "prerequisites": "Derivatives, graphing",
               "key_vocabulary": "slope field, differential equation",
@@ -6752,7 +6916,7 @@
               "lesson_number": "7.2",
               "lesson_title": "Separable Equations",
               "learning_objective": "Solve separable differential equations",
-              "ccss_code": "AP Calc 7.6",
+              "ccss_code": "AP Calc 7.6, 7.7",
               "key_concepts": "Separating variables, integrating both sides",
               "prerequisites": "Integration, algebra",
               "key_vocabulary": "separable, initial condition",
@@ -6798,7 +6962,7 @@
               "lesson_number": "8.2",
               "lesson_title": "Volumes by Disks and Washers",
               "learning_objective": "Compute volumes of revolution using disks and washers",
-              "ccss_code": "AP Calc 8.9",
+              "ccss_code": "AP Calc 8.9, 8.10, 8.11, 8.12",
               "key_concepts": "Cross sectional area function, integration",
               "prerequisites": "Integration, geometry",
               "key_vocabulary": "disk method, washer method, axis of revolution",
@@ -6811,7 +6975,7 @@
               "lesson_number": "8.3",
               "lesson_title": "Volumes Known Cross Sections",
               "learning_objective": "Compute volumes from known cross sections",
-              "ccss_code": "AP Calc 8.8",
+              "ccss_code": "AP Calc 8.7, 8.8",
               "key_concepts": "Cross section perpendicular to axis, area as function",
               "prerequisites": "Integration, geometry",
               "key_vocabulary": "cross section, perpendicular axis",
@@ -6824,7 +6988,7 @@
               "lesson_number": "8.4",
               "lesson_title": "Accumulation Functions",
               "learning_objective": "Analyze functions defined by integrals",
-              "ccss_code": "AP Calc 6.5",
+              "ccss_code": "AP Calc 6.5, 8.1, 8.3",
               "key_concepts": "Net change in a quantity, average value",
               "prerequisites": "FTC, definite integrals",
               "key_vocabulary": "accumulation, average value of function",
@@ -7521,26 +7685,596 @@
       ]
     },
     {
+      "id": "multivariable-calc",
+      "title": "Multivariable Calculus",
+      "grade_levels": [
+        11,
+        12
+      ],
+      "display_order": 14,
+      "total_weeks": 30,
+      "total_lessons": 38,
+      "legacy_course_id": "calculus",
+      "units": [
+        {
+          "unit_number": 1,
+          "unit_title": "Vectors and the Geometry of Space",
+          "weeks": 5,
+          "lessons": [
+            {
+              "lesson_number": "1.1",
+              "lesson_title": "Vectors in the Plane",
+              "learning_objective": "Represent vectors geometrically and in component form, perform vector addition and scalar multiplication, and find magnitudes and unit vectors",
+              "ccss_code": "OpenStax Calc 3 §2.1",
+              "key_concepts": "A vector has magnitude and direction but no fixed position; the vector from P(x1, y1) to Q(x2, y2) is <x2 - x1, y2 - y1>, e.g. P(1, 2) to Q(4, 6) gives <3, 4>; magnitude |<a, b>| = sqrt(a^2 + b^2), so |<3, 4>| = 5; the unit vector in the direction of v is v/|v| = <3/5, 4/5>; addition is componentwise (tip-to-tail / parallelogram rule); scalar multiplication cv scales length by |c| and reverses direction if c < 0; standard unit vectors i = <1, 0>, j = <0, 1>; triangle inequality |u + v| <= |u| + |v|",
+              "prerequisites": "Pythagorean theorem, right-triangle trigonometry, coordinate plane",
+              "key_vocabulary": "vector, scalar, component form, magnitude, unit vector, standard unit vectors, initial point, terminal point, parallelogram rule, zero vector",
+              "common_misconceptions": "Students compute the vector from P to Q as P - Q instead of Q - P (terminal minus initial); students assume |u + v| = |u| + |v|, e.g. claiming |<3, 0> + <0, 4>| = 7 when it is 5",
+              "real_world_hook": "A pilot heading east at 500 km/h in a 50 km/h north wind computes her true ground velocity <500, 50> and ground speed sqrt(252500), about 502.5 km/h",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.2",
+              "lesson_title": "Three-Dimensional Coordinates and Vectors",
+              "learning_objective": "Locate points in R^3, compute distances, write equations of spheres, and interpret simple equations as surfaces in space",
+              "ccss_code": "OpenStax Calc 3 §2.2",
+              "key_concepts": "Right-handed xyz coordinate system; distance between (x1, y1, z1) and (x2, y2, z2) is sqrt((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2), e.g. (1, 2, 3) to (4, 6, 15) is sqrt(9 + 16 + 144) = 13; sphere of radius r centered at (a, b, c): (x - a)^2 + (y - b)^2 + (z - c)^2 = r^2, completing the square to find center and radius; vectors in space <a, b, c> = ai + bj + ck with magnitude sqrt(a^2 + b^2 + c^2); in R^3 an equation in one variable such as y = 2 describes a plane",
+              "prerequisites": "Vectors in the plane, distance formula, completing the square",
+              "key_vocabulary": "octant, right-hand rule, coordinate plane, sphere, standard unit vectors i, j, k, distance formula",
+              "common_misconceptions": "Students interpret y = 2 in R^3 as a line, when it is the plane parallel to the xz-plane; students read the sphere x^2 + y^2 + z^2 - 2x + 4y = 4 as having radius 2, forgetting that completing the square gives (x - 1)^2 + (y + 2)^2 + z^2 = 9, radius 3",
+              "real_world_hook": "A drone at (10, 20, 30) meters must stay within 50 m of its controller at the origin; the sphere x^2 + y^2 + z^2 = 2500 is its flight boundary",
+              "practices": "2, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.3",
+              "lesson_title": "The Dot Product",
+              "learning_objective": "Compute dot products, use them to find angles between vectors, test orthogonality, and compute scalar and vector projections and work",
+              "ccss_code": "OpenStax Calc 3 §2.3",
+              "key_concepts": "u . v = u1 v1 + u2 v2 + u3 v3 = |u||v| cos(theta) where theta in [0, pi] is the angle between them; u . u = |u|^2; u and v are orthogonal iff u . v = 0, e.g. <1, 2, 2> . <2, -2, 1> = 2 - 4 + 2 = 0; direction cosines; scalar projection comp_v u = (u . v)/|v|; vector projection proj_v u = ((u . v)/|v|^2) v, e.g. proj of <3, 4> onto <1, 0> is <3, 0>; work done by a constant force along displacement d is W = F . d",
+              "prerequisites": "Vectors in space, law of cosines, inverse cosine",
+              "key_vocabulary": "dot product, scalar product, orthogonal, angle between vectors, direction cosines, scalar projection, vector projection, work",
+              "common_misconceptions": "Students divide by |v| instead of |v|^2 in the vector projection formula, producing a vector of the wrong length; students think the dot product of two vectors is a vector, writing <1, 2> . <3, 4> = <3, 8> instead of 11",
+              "real_world_hook": "Pulling a wagon 20 m with a 50 N force at 30 degrees above the ground does W = 50 * 20 * cos(30 deg) = 500 sqrt(3), about 866 J of work",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.4",
+              "lesson_title": "The Cross Product",
+              "learning_objective": "Compute cross products with the determinant formula, use the right-hand rule, and apply cross products to area, volume, and torque",
+              "ccss_code": "OpenStax Calc 3 §2.4",
+              "key_concepts": "u x v = <u2 v3 - u3 v2, u3 v1 - u1 v3, u1 v2 - u2 v1>, computed as a 3x3 determinant with i, j, k in the first row, e.g. <1, 2, 3> x <4, 5, 6> = <-3, 6, -3>; u x v is orthogonal to both u and v with direction given by the right-hand rule; i x j = k, j x k = i, k x i = j; anticommutative: v x u = -(u x v); |u x v| = |u||v| sin(theta) = area of the parallelogram spanned by u and v; scalar triple product u . (v x w) gives the signed volume of the parallelepiped; torque tau = r x F",
+              "prerequisites": "Dot product, 2x2 and 3x3 determinants",
+              "key_vocabulary": "cross product, vector product, determinant, right-hand rule, anticommutative, parallelogram area, scalar triple product, parallelepiped, torque",
+              "common_misconceptions": "Students forget the minus sign on the j-component in the cofactor expansion, getting <-3, -6, -3> for <1, 2, 3> x <4, 5, 6>; students assume u x v = v x u, when actually v x u = -(u x v)",
+              "real_world_hook": "A mechanic pushing 40 N perpendicular to the end of a 0.25 m wrench produces 10 N-m of torque, while pushing along the handle produces none",
+              "practices": "2, 7, 8",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.5",
+              "lesson_title": "Equations of Lines and Planes in Space",
+              "learning_objective": "Write vector, parametric, and symmetric equations of lines and scalar equations of planes, and compute distances and angles between them",
+              "ccss_code": "OpenStax Calc 3 §2.5",
+              "key_concepts": "Line through P0 with direction v: r(t) = r0 + tv, e.g. through (1, 2, 3) with direction <2, -1, 4>: x = 1 + 2t, y = 2 - t, z = 3 + 4t, symmetric form (x - 1)/2 = (y - 2)/(-1) = (z - 3)/4; lines in space can be parallel, intersecting, or skew; plane through P0 with normal n = <a, b, c>: a(x - x0) + b(y - y0) + c(z - z0) = 0, e.g. normal <3, -1, 2> through (1, 0, 2) gives 3x - y + 2z = 7; a plane through three points uses n = PQ x PR; distance from (x0, y0, z0) to ax + by + cz = d is |a x0 + b y0 + c z0 - d|/sqrt(a^2 + b^2 + c^2), so the origin is 7/sqrt(14) from 3x - y + 2z = 7; angle between planes is the angle between normals",
+              "prerequisites": "Dot product, cross product, parametric equations",
+              "key_vocabulary": "parametric equations, symmetric equations, direction vector, normal vector, skew lines, scalar equation of a plane, distance from a point to a plane",
+              "common_misconceptions": "Students conclude two non-parallel lines in space must intersect, forgetting skew lines; students use the coefficients <3, -1, 2> of the plane 3x - y + 2z = 7 as a direction vector lying in the plane, when it is the normal, perpendicular to the plane",
+              "real_world_hook": "A flight-path planner checks whether two aircraft routes, modeled as lines in 3D, intersect or are skew and safely separated",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.6",
+              "lesson_title": "Cylinders and Quadric Surfaces",
+              "learning_objective": "Sketch and identify cylinders and the six quadric surfaces using traces and the signs and powers in their equations",
+              "ccss_code": "OpenStax Calc 3 §2.6",
+              "key_concepts": "A cylinder is generated by lines parallel to an axis whose variable is missing, e.g. x^2 + y^2 = 1 in R^3 is a circular cylinder along the z-axis; traces are intersections with planes x = k, y = k, z = k; standard quadrics: ellipsoid x^2/a^2 + y^2/b^2 + z^2/c^2 = 1, hyperboloid of one sheet x^2/a^2 + y^2/b^2 - z^2/c^2 = 1 (one minus sign), hyperboloid of two sheets -x^2/a^2 - y^2/b^2 + z^2/c^2 = 1 (two minus signs), elliptic cone z^2 = x^2/a^2 + y^2/b^2, elliptic paraboloid z = x^2/a^2 + y^2/b^2, hyperbolic paraboloid (saddle) z = y^2/b^2 - x^2/a^2; the variable that is linear (or has the different sign) identifies the axis",
+              "prerequisites": "Conic sections, 3D coordinates, completing the square",
+              "key_vocabulary": "cylinder, rulings, trace, quadric surface, ellipsoid, hyperboloid of one sheet, hyperboloid of two sheets, elliptic cone, elliptic paraboloid, hyperbolic paraboloid",
+              "common_misconceptions": "Students read x^2 + y^2 = 1 in R^3 as a circle rather than an infinite cylinder; students mix up the hyperboloids, calling x^2 + y^2 - z^2 = 1 (one negative term, connected) a hyperboloid of two sheets",
+              "real_world_hook": "Cooling towers at power plants are hyperboloids of one sheet, and a Pringles chip is a piece of a hyperbolic paraboloid",
+              "practices": "2, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.7",
+              "lesson_title": "Cylindrical and Spherical Coordinates",
+              "learning_objective": "Convert points and equations among rectangular, cylindrical, and spherical coordinates and choose the system that best fits a surface",
+              "ccss_code": "OpenStax Calc 3 §2.7",
+              "key_concepts": "Cylindrical (r, theta, z): x = r cos(theta), y = r sin(theta), z = z, r^2 = x^2 + y^2; spherical (rho, theta, phi) with rho >= 0, 0 <= phi <= pi measured down from the positive z-axis: x = rho sin(phi) cos(theta), y = rho sin(phi) sin(theta), z = rho cos(phi), rho^2 = x^2 + y^2 + z^2; e.g. (1, 1, sqrt(2)) is cylindrical (sqrt(2), pi/4, sqrt(2)) and spherical (2, pi/4, pi/4); r = c is a cylinder, rho = c a sphere, phi = c a cone, theta = c a half-plane; choose theta in the correct quadrant rather than trusting arctan(y/x)",
+              "prerequisites": "Polar coordinates, right-triangle trigonometry, 3D coordinates",
+              "key_vocabulary": "cylindrical coordinates, spherical coordinates, rho, azimuthal angle theta, polar angle phi, half-plane, cone",
+              "common_misconceptions": "Students measure phi from the xy-plane (like latitude) instead of from the positive z-axis, giving z = rho sin(phi); students convert (-1, -1, 0) with theta = arctan(1) = pi/4 instead of 5pi/4, ignoring the quadrant",
+              "real_world_hook": "GPS and planetary science use spherical-type coordinates: a point on Earth is described by a radius, a longitude (theta), and a colatitude (phi = 90 degrees minus latitude)",
+              "practices": "2, 5, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 2,
+          "unit_title": "Vector-Valued Functions",
+          "weeks": 3,
+          "lessons": [
+            {
+              "lesson_number": "2.1",
+              "lesson_title": "Vector-Valued Functions and Space Curves",
+              "learning_objective": "Describe curves in space with vector-valued functions, find their domains, sketch them, and compute limits componentwise",
+              "ccss_code": "OpenStax Calc 3 §3.1",
+              "key_concepts": "A vector-valued function r(t) = <f(t), g(t), h(t)> traces a space curve as t varies; its domain is the intersection of the component domains; limits and continuity are computed componentwise; the helix r(t) = <cos t, sin t, t> winds around the cylinder x^2 + y^2 = 1; parametrizing the intersection of two surfaces, e.g. the cylinder x^2 + y^2 = 1 and the plane z = y gives r(t) = <cos t, sin t, sin t>",
+              "prerequisites": "Parametric equations, lines in space, limits",
+              "key_vocabulary": "vector-valued function, space curve, parameter, helix, componentwise limit, orientation of a curve",
+              "common_misconceptions": "Students treat r(t) = <cos t, sin t, t> as a surface rather than a one-dimensional curve; students state the domain of r(t) = <sqrt(t), ln(3 - t), 1/t> as t >= 0, missing the restrictions t < 3 and t != 0, so the domain is (0, 3)",
+              "real_world_hook": "Roller-coaster track designers and DNA models both describe helices with r(t) = <a cos t, a sin t, bt>",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.2",
+              "lesson_title": "Calculus of Vector-Valued Functions",
+              "learning_objective": "Differentiate and integrate vector-valued functions, find unit tangent vectors and tangent lines, and apply derivative rules for dot and cross products",
+              "ccss_code": "OpenStax Calc 3 §3.2",
+              "key_concepts": "r'(t) = <f'(t), g'(t), h'(t)> is tangent to the curve; unit tangent T(t) = r'(t)/|r'(t)|; for the helix <cos t, sin t, t>, r'(t) = <-sin t, cos t, 1> with |r'(t)| = sqrt(2); product rules d/dt[u . v] = u' . v + u . v' and d/dt[u x v] = u' x v + u x v' (order must be kept); if |r(t)| is constant then r(t) . r'(t) = 0; integrals are componentwise with a constant vector C, found from an initial condition",
+              "prerequisites": "Vector-valued functions, single-variable derivatives and integrals, cross product",
+              "key_vocabulary": "derivative of a vector function, tangent vector, unit tangent vector, smooth curve, indefinite integral of a vector function, constant vector",
+              "common_misconceptions": "Students write the cross-product rule as u' x v + v' x u, swapping the order in the second term and flipping its sign; students add a scalar + C instead of a constant vector <C1, C2, C3> when integrating",
+              "real_world_hook": "A spacecraft's velocity is the derivative of its position vector, and integrating measured acceleration twice reconstructs its trajectory",
+              "practices": "2, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.3",
+              "lesson_title": "Arc Length and Curvature",
+              "learning_objective": "Compute arc length of space curves, reparametrize by arc length, and compute curvature, the unit normal, and the binormal",
+              "ccss_code": "OpenStax Calc 3 §3.3",
+              "key_concepts": "Arc length L = integral from a to b of |r'(t)| dt; the helix <cos t, sin t, t> for 0 <= t <= 2pi has L = 2pi sqrt(2); arc-length function s(t) = integral from a to t of |r'(u)| du; curvature kappa = |dT/ds| = |T'(t)|/|r'(t)| = |r'(t) x r''(t)|/|r'(t)|^3; a circle of radius a has kappa = 1/a; for the helix, r' x r'' = <sin t, -cos t, 1> with magnitude sqrt(2), so kappa = sqrt(2)/(sqrt(2))^3 = 1/2; for y = f(x), kappa = |f''(x)|/(1 + f'(x)^2)^(3/2); principal unit normal N = T'/|T'|, binormal B = T x N",
+              "prerequisites": "Calculus of vector functions, cross product, arc length in single-variable calculus",
+              "key_vocabulary": "arc length, arc-length parametrization, curvature, radius of curvature, principal unit normal, binormal, osculating circle, TNB frame",
+              "common_misconceptions": "Students compute curvature as |T'(t)| without dividing by |r'(t)|, which is only correct for unit-speed curves (for the helix |T'(t)| = 1/sqrt(2), but kappa = 1/2); students think a curve's curvature depends on how fast it is traversed",
+              "real_world_hook": "Highway engineers limit the curvature of exit ramps because the sideways force on a car is proportional to kappa times speed squared",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.4",
+              "lesson_title": "Motion in Space",
+              "learning_objective": "Model position, velocity, and acceleration of objects in space and decompose acceleration into tangential and normal components",
+              "ccss_code": "OpenStax Calc 3 §3.4",
+              "key_concepts": "v(t) = r'(t), speed = |v(t)|, a(t) = r''(t); a = a_T T + a_N N with a_T = (v . a)/|v| = d|v|/dt and a_N = |v x a|/|v| = kappa |v|^2; for r(t) = <t, t^2> at t = 1: v = <1, 2>, a = <0, 2>, a_T = 4/sqrt(5), a_N = 2/sqrt(5), and a_T^2 + a_N^2 = 4 = |a|^2; projectile motion r(t) = <v0 cos(alpha) t, v0 sin(alpha) t - (1/2) g t^2>; uniform circular motion has acceleration of magnitude v^2/R pointing toward the center",
+              "prerequisites": "Calculus of vector functions, curvature, dot and cross product",
+              "key_vocabulary": "position vector, velocity, speed, acceleration, tangential component, normal component, projectile motion, centripetal acceleration",
+              "common_misconceptions": "Students claim an object moving at constant speed has zero acceleration, ignoring the normal component a_N = kappa |v|^2 (e.g. uniform circular motion); students assume acceleration always points in the direction of velocity",
+              "real_world_hook": "A baseball hit at 45 m/s at 30 degrees: solving the y-component for landing time t = 2 v0 sin(alpha)/g and plugging into x gives range v0^2 sin(2 alpha)/g, about 179 m without air resistance",
+              "practices": "4, 5, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 3,
+          "unit_title": "Differentiation of Functions of Several Variables",
+          "weeks": 6,
+          "lessons": [
+            {
+              "lesson_number": "3.1",
+              "lesson_title": "Functions of Several Variables",
+              "learning_objective": "Find domains and ranges of functions of two and three variables and interpret graphs, level curves, contour maps, and level surfaces",
+              "ccss_code": "OpenStax Calc 3 §4.1",
+              "key_concepts": "z = f(x, y) assigns one output to each point of a domain in R^2; e.g. f(x, y) = sqrt(9 - x^2 - y^2) has domain the closed disk x^2 + y^2 <= 9 and range [0, 3], and its graph is the upper hemisphere; level curve f(x, y) = k; a contour map shows level curves at equally spaced k, with closely spaced curves meaning steep terrain; level surfaces f(x, y, z) = k for functions of three variables, e.g. x^2 + y^2 + z^2 = k are spheres",
+              "prerequisites": "Function notation, quadric surfaces, inequalities in two variables",
+              "key_vocabulary": "function of two variables, domain, range, graph, level curve, contour map, level surface",
+              "common_misconceptions": "Students confuse a level curve with a trace of the graph in a vertical plane; students assume level curves for equally spaced k are equally spaced in the plane, e.g. for f = x^2 + y^2 the circles for k = 1, 2, 3, 4 have radii 1, 1.41, 1.73, 2, getting closer together",
+              "real_world_hook": "Hikers read topographic maps whose contour lines are level curves of elevation; tight contour spacing warns of a steep slope",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.2",
+              "lesson_title": "Limits and Continuity",
+              "learning_objective": "Evaluate limits of functions of two variables, prove limits do not exist using different paths, and determine continuity",
+              "ccss_code": "OpenStax Calc 3 §4.2",
+              "key_concepts": "lim (x, y) -> (a, b) f(x, y) = L requires f to approach L along every path; if two paths give different values the limit does not exist, e.g. xy/(x^2 + y^2) along y = mx gives m/(1 + m^2), which depends on m; checking all lines is not enough: x^2 y/(x^4 + y^2) -> 0 along every line through the origin but -> 1/2 along y = x^2; polar substitution or squeeze proves existence, e.g. x^2 y/(x^2 + y^2) = r cos^2(theta) sin(theta) -> 0; polynomials and rational functions are continuous on their domains; compositions of continuous functions are continuous",
+              "prerequisites": "Single-variable limits, squeeze theorem, polar coordinates",
+              "key_vocabulary": "limit of a function of two variables, path, neighborhood, open disk, continuity, squeeze theorem, interior point, boundary point",
+              "common_misconceptions": "Students conclude a limit exists because it agrees along the x-axis, the y-axis, and all lines y = mx, missing curved paths such as y = x^2; students treat a polar result r g(theta) as going to 0 even when g(theta) is unbounded",
+              "real_world_hook": "Engineers check that a temperature model on a metal plate has no jump at a seam: approaching the seam from different directions must give the same temperature",
+              "practices": "3, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.3",
+              "lesson_title": "Partial Derivatives",
+              "learning_objective": "Compute first and higher-order partial derivatives, interpret them as slopes and rates, and apply Clairaut's theorem",
+              "ccss_code": "OpenStax Calc 3 §4.3",
+              "key_concepts": "f_x is the derivative with respect to x holding y constant: the slope of the trace in the plane y = b; for f = x^2 y^3 + sin(xy), f_x = 2x y^3 + y cos(xy) and f_y = 3x^2 y^2 + x cos(xy); second partials f_xx, f_yy, f_xy, f_yx; Clairaut's theorem: if f_xy and f_yx are continuous near a point they are equal, and here both are 6x y^2 + cos(xy) - xy sin(xy); partial derivatives of functions of three variables; partial differential equations such as the heat equation u_t = k u_xx",
+              "prerequisites": "Single-variable differentiation rules, functions of several variables",
+              "key_vocabulary": "partial derivative, f_x, df/dx (partial), trace, second-order partial derivative, mixed partial, Clairaut's theorem, partial differential equation",
+              "common_misconceptions": "Students differentiate the held-constant variable, e.g. writing d/dx (x^2 y^3) = 2x y^3 + 3x^2 y^2; students believe that existence of f_x and f_y at a point implies continuity there, though f = xy/(x^2 + y^2) with f(0, 0) = 0 has f_x(0, 0) = f_y(0, 0) = 0 and is discontinuous",
+              "real_world_hook": "An economist uses the partial derivative of a production function with respect to labor to measure the marginal output of one more worker while capital is held fixed",
+              "practices": "2, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.4",
+              "lesson_title": "Tangent Planes and Linear Approximations",
+              "learning_objective": "Find tangent planes to surfaces, use linearization and differentials to approximate values and errors, and state the meaning of differentiability",
+              "ccss_code": "OpenStax Calc 3 §4.4",
+              "key_concepts": "Tangent plane to z = f(x, y) at (a, b): z = f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b); for f = x^2 + y^2 at (1, 2): z = 5 + 2(x - 1) + 4(y - 2), so f(1.1, 1.9) is about 4.8 (actual 4.82); linearization L(x, y) is the tangent plane function; total differential dz = f_x dx + f_y dy estimates change and propagated error; f is differentiable at (a, b) if the error of L goes to 0 faster than the distance to (a, b); if f_x and f_y are continuous near (a, b), f is differentiable there",
+              "prerequisites": "Partial derivatives, equations of planes, single-variable linearization",
+              "key_vocabulary": "tangent plane, linear approximation, linearization, differentiable, total differential, error estimation",
+              "common_misconceptions": "Students leave f_x(x, y) unevaluated in the tangent plane formula, producing a curved surface instead of a plane; students use dz = f_x + f_y without multiplying by dx and dy",
+              "real_world_hook": "A machinist measures a cylinder as r = 3 cm and h = 10 cm, each with 0.1 cm error; dV = 2 pi r h dr + pi r^2 dh = 6 pi + 0.9 pi = 6.9 pi, about 21.7 cubic cm of possible error",
+              "practices": "4, 5, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.5",
+              "lesson_title": "The Chain Rule",
+              "learning_objective": "Apply the multivariable chain rule using tree diagrams and use it for implicit differentiation",
+              "ccss_code": "OpenStax Calc 3 §4.5",
+              "key_concepts": "If z = f(x, y) with x = x(t), y = y(t), then dz/dt = f_x dx/dt + f_y dy/dt; e.g. z = x^2 y, x = cos t, y = sin t gives dz/dt = -2 cos t sin^2 t + cos^3 t, matching direct differentiation of cos^2 t sin t; with x = x(s, t), y = y(s, t): dz/ds = z_x x_s + z_y y_s; tree diagrams track every path from z to the final variable; implicit differentiation: if F(x, y) = 0 then dy/dx = -F_x/F_y, e.g. x^2 + y^2 = 25 gives dy/dx = -x/y; if F(x, y, z) = 0 then dz/dx = -F_x/F_z",
+              "prerequisites": "Partial derivatives, single-variable chain rule, implicit differentiation",
+              "key_vocabulary": "chain rule, tree diagram, intermediate variable, independent variable, implicit differentiation",
+              "common_misconceptions": "Students drop a branch of the tree diagram, writing dz/dt = f_x dx/dt only; students forget the negative sign in dy/dx = -F_x/F_y, giving x/y for the circle x^2 + y^2 = 25",
+              "real_world_hook": "The rate a gas's pressure changes as a balloon rises depends on how both its temperature and its volume change with time, combined through the chain rule applied to P = nRT/V",
+              "practices": "2, 7, 8",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.6",
+              "lesson_title": "Directional Derivatives and the Gradient",
+              "learning_objective": "Compute directional derivatives and gradients, interpret the gradient as the direction of steepest ascent, and use it to find normal lines and tangent planes to level surfaces",
+              "ccss_code": "OpenStax Calc 3 §4.6",
+              "key_concepts": "Gradient grad f = <f_x, f_y> (or <f_x, f_y, f_z>); directional derivative D_u f = grad f . u for a unit vector u; for f = x^2 + 3xy at (1, 2), grad f = <8, 3>, and in the direction of <3, 4>, u = <3/5, 4/5> and D_u f = 36/5; maximum rate of increase is |grad f| = sqrt(73) in the direction of grad f, minimum is -|grad f|; grad f is perpendicular to level curves; tangent plane to the level surface F(x, y, z) = k at P is grad F(P) . <x - x0, y - y0, z - z0> = 0",
+              "prerequisites": "Partial derivatives, dot product, unit vectors, chain rule",
+              "key_vocabulary": "directional derivative, gradient, steepest ascent, level curve, level surface, normal line, tangent plane to a level surface",
+              "common_misconceptions": "Students use a non-unit direction vector, e.g. computing <8, 3> . <3, 4> = 36 instead of 36/5; students think the gradient of f(x, y) is a vector in R^3 tangent to the graph, rather than a vector in the xy-plane perpendicular to the level curve",
+              "real_world_hook": "A heat-seeking robot moves in the direction of the temperature gradient to reach the hottest point fastest",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.7",
+              "lesson_title": "Maxima and Minima",
+              "learning_objective": "Find critical points, classify them with the second derivative test, and find absolute extrema on closed, bounded regions",
+              "ccss_code": "OpenStax Calc 3 §4.7",
+              "key_concepts": "Critical points occur where grad f = 0 or a partial does not exist; second derivative test with D = f_xx f_yy - (f_xy)^2: D > 0 and f_xx > 0 local min, D > 0 and f_xx < 0 local max, D < 0 saddle point, D = 0 inconclusive; e.g. f = x^3 - 3x + y^2 has critical points (1, 0) with D = 12 > 0, f_xx = 6 > 0, a local min with f = -2, and (-1, 0) with D = -12, a saddle; extreme value theorem: a continuous f on a closed bounded region attains an absolute max and min, found by comparing interior critical values with the extremes on the boundary",
+              "prerequisites": "Partial derivatives, single-variable optimization",
+              "key_vocabulary": "critical point, local maximum, local minimum, saddle point, discriminant, second derivative test, absolute extremum, closed and bounded region, extreme value theorem",
+              "common_misconceptions": "Students conclude D > 0 always means a minimum, forgetting to check the sign of f_xx; students treat D = 0 as meaning a saddle, though f = x^4 + y^4 has D = 0 at the origin and a minimum there",
+              "real_world_hook": "A company chooses the prices of two competing products to maximize total profit P(x, y), checking with the second derivative test that the critical point is really a maximum",
+              "practices": "1, 4, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.8",
+              "lesson_title": "Lagrange Multipliers",
+              "learning_objective": "Use the method of Lagrange multipliers to optimize a function subject to one or two constraints",
+              "ccss_code": "OpenStax Calc 3 §4.8",
+              "key_concepts": "At a constrained extremum of f subject to g(x, y) = k, the level curve of f is tangent to the constraint curve, so grad f = lambda grad g; solve f_x = lambda g_x, f_y = lambda g_y, g = k together; e.g. maximize f = xy on x + y = 10: y = lambda, x = lambda, so x = y = 5 and f = 25; f = x + y on x^2 + y^2 = 1 gives (1/sqrt(2), 1/sqrt(2)) with max sqrt(2) and (-1/sqrt(2), -1/sqrt(2)) with min -sqrt(2); two constraints: grad f = lambda grad g + mu grad h; evaluate f at every candidate to decide max vs min",
+              "prerequisites": "Gradient, systems of equations, extrema",
+              "key_vocabulary": "constraint, Lagrange multiplier, constrained optimization, objective function, tangency condition",
+              "common_misconceptions": "Students solve f_x = lambda g_x and f_y = lambda g_y but forget to use the constraint equation g = k, leaving infinitely many solutions; students report the value of lambda as the maximum instead of evaluating f at the candidate points",
+              "real_world_hook": "Designing a closed box of volume 1000 cubic cm with the least material: minimizing surface area subject to xyz = 1000 gives a 10 cm cube",
+              "practices": "1, 2, 4",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 4,
+          "unit_title": "Double Integrals",
+          "weeks": 4,
+          "lessons": [
+            {
+              "lesson_number": "4.1",
+              "lesson_title": "Double Integrals over Rectangular Regions",
+              "learning_objective": "Define double integrals with Riemann sums and evaluate them over rectangles as iterated integrals using Fubini's theorem",
+              "ccss_code": "OpenStax Calc 3 §5.1",
+              "key_concepts": "The double integral of f over R is the limit of Riemann sums sum f(x_ij*, y_ij*) dA; when f >= 0 it equals the volume under the surface; Fubini's theorem: over R = [a, b] x [c, d] with f continuous, the integral equals either iterated integral; e.g. integral over [0, 2] x [0, 1] of (x + 2y) dA = integral from 0 to 2 of (x + 1) dx = 4; if f(x, y) = g(x)h(y) the integral splits into a product; average value = (1/Area(R)) times the double integral, here 4/2 = 2",
+              "prerequisites": "Definite integrals, Riemann sums, functions of two variables",
+              "key_vocabulary": "double integral, Riemann sum, iterated integral, Fubini's theorem, volume under a surface, average value",
+              "common_misconceptions": "Students attach the limits to the wrong variable, integrating dy with the x-limits 0 to 2; students multiply integrals of non-separable functions, e.g. writing the integral of (x + 2y) as (integral of x dx)(integral of 2y dy)",
+              "real_world_hook": "Estimating total rainfall over a rectangular county from a rainfall-depth map is a Riemann sum for a double integral",
+              "practices": "2, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.2",
+              "lesson_title": "Double Integrals over General Regions",
+              "learning_objective": "Evaluate double integrals over Type I and Type II regions, reverse the order of integration, and compute areas and volumes",
+              "ccss_code": "OpenStax Calc 3 §5.2",
+              "key_concepts": "Type I region a <= x <= b, g1(x) <= y <= g2(x): integrate dy first; Type II region c <= y <= d, h1(y) <= x <= h2(y): integrate dx first; area of D is the double integral of 1 dA, e.g. between y = x^2 and y = x the area is the integral from 0 to 1 of (x - x^2) dx = 1/6; reversing the order requires redrawing the region: integral from 0 to 1, integral from x to 1 of e^(y^2) dy dx becomes integral from 0 to 1, integral from 0 to y of e^(y^2) dx dy = integral from 0 to 1 of y e^(y^2) dy = (e - 1)/2; outer limits must be constants",
+              "prerequisites": "Double integrals over rectangles, area between curves",
+              "key_vocabulary": "Type I region, Type II region, reversing the order of integration, iterated integral, region of integration",
+              "common_misconceptions": "Students reverse the order of integration by swapping dx and dy but keeping the old limits, e.g. writing integral from 0 to 1, integral from x to 1 dx dy; students leave a variable in the outer limits, producing an answer that depends on x",
+              "real_world_hook": "Computing the volume of concrete in an irregularly shaped foundation slab whose thickness varies across the slab",
+              "practices": "1, 2, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.3",
+              "lesson_title": "Double Integrals in Polar Coordinates",
+              "learning_objective": "Convert double integrals to polar coordinates with dA = r dr d(theta) and evaluate them over disks, sectors, and polar regions",
+              "ccss_code": "OpenStax Calc 3 §5.3",
+              "key_concepts": "x = r cos(theta), y = r sin(theta), x^2 + y^2 = r^2, dA = r dr d(theta); polar rectangles and regions r between h1(theta) and h2(theta); e.g. the volume under z = 4 - x^2 - y^2 above the xy-plane is integral from 0 to 2pi, integral from 0 to 2 of (4 - r^2) r dr d(theta) = 8 pi; integral over the disk of radius a of e^(-(x^2 + y^2)) dA = pi(1 - e^(-a^2)), and letting a -> infinity shows the integral of e^(-x^2) over the real line is sqrt(pi); area enclosed by a polar curve r = f(theta) is (1/2) times the integral of f(theta)^2 d(theta)",
+              "prerequisites": "Polar coordinates, double integrals over general regions",
+              "key_vocabulary": "polar coordinates, polar rectangle, area element r dr d(theta), polar region, Gaussian integral",
+              "common_misconceptions": "Students forget the r in dA = r dr d(theta) when converting to polar, getting 32 pi/3 instead of 8 pi for the paraboloid volume; students integrate theta from 0 to pi for a full disk",
+              "real_world_hook": "The Gaussian integral computed with polar coordinates is the reason the normal distribution's bell curve has the constant 1/sqrt(2 pi)",
+              "practices": "2, 5, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.4",
+              "lesson_title": "Mass, Center of Mass, and Moments of Inertia in the Plane",
+              "learning_objective": "Use double integrals to compute mass, moments, centers of mass, and moments of inertia of thin plates (laminas) with variable density",
+              "ccss_code": "OpenStax Calc 3 §5.6",
+              "key_concepts": "Mass m = double integral of rho(x, y) dA; moment about the x-axis M_x = double integral of y rho dA, about the y-axis M_y = double integral of x rho dA; center of mass (x-bar, y-bar) = (M_y/m, M_x/m); for the triangle with vertices (0, 0), (1, 0), (0, 1) and rho = 1: m = 1/2, M_y = 1/6, so (x-bar, y-bar) = (1/3, 1/3), the average of the vertices; moments of inertia I_x = double integral of y^2 rho dA, I_y = double integral of x^2 rho dA, I_0 = I_x + I_y; with constant density the center of mass is the centroid",
+              "prerequisites": "Double integrals over general and polar regions",
+              "key_vocabulary": "lamina, density, mass, first moment, center of mass, centroid, moment of inertia, polar moment of inertia",
+              "common_misconceptions": "Students swap the moments, using x-bar = M_x/m when M_x = double integral of y rho dA so x-bar = M_y/m; students forget to divide by mass and report the moment as the center of mass",
+              "real_world_hook": "Engineers find the balance point of an aircraft wing panel whose density increases toward the fuselage to place mounting points correctly",
+              "practices": "4, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.5",
+              "lesson_title": "Change of Variables and the Jacobian",
+              "learning_objective": "Use transformations and the Jacobian determinant to change variables in double integrals and simplify regions or integrands",
+              "ccss_code": "OpenStax Calc 3 §5.7",
+              "key_concepts": "A transformation T(u, v) = (x(u, v), y(u, v)) has Jacobian J = d(x, y)/d(u, v) = x_u y_v - x_v y_u; dA = |J| du dv; polar coordinates have J = r; x = u + v, y = u - v gives J = -2 and |J| = 2; x = au, y = bv maps the unit disk to the ellipse x^2/a^2 + y^2/b^2 <= 1 with J = ab, so its area is pi ab; choose u and v from the boundary equations, e.g. u = x + y, v = x - y for a region bounded by lines x + y = c and x - y = c; d(x, y)/d(u, v) = 1/(d(u, v)/d(x, y)); in 3D spherical coordinates the Jacobian is rho^2 sin(phi)",
+              "prerequisites": "Double integrals, polar coordinates, determinants, partial derivatives",
+              "key_vocabulary": "transformation, change of variables, Jacobian, determinant, image of a region, one-to-one",
+              "common_misconceptions": "Students use d(u, v)/d(x, y) directly instead of its reciprocal when u and v are given in terms of x and y; students forget the absolute value, using J = -2 and getting a negative area",
+              "real_world_hook": "Mapmakers and computer graphics programs stretch and warp regions; the Jacobian tells how much each tiny area is magnified",
+              "practices": "2, 7, 8",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 5,
+          "unit_title": "Triple Integrals",
+          "weeks": 3,
+          "lessons": [
+            {
+              "lesson_number": "5.1",
+              "lesson_title": "Triple Integrals in Rectangular Coordinates",
+              "learning_objective": "Set up and evaluate triple integrals over boxes and general solid regions in any of the six orders of integration",
+              "ccss_code": "OpenStax Calc 3 §5.4",
+              "key_concepts": "Triple integral = limit of Riemann sums f dV; Fubini over a box B: integral over [0, 1] x [0, 2] x [0, 3] of xyz dV = (1/2)(2)(9/2) = 9/2; general regions z between u1(x, y) and u2(x, y) over a projection D in the xy-plane; volume = triple integral of 1 dV, e.g. the tetrahedron x + y + z <= 1 in the first octant has volume integral from 0 to 1, integral from 0 to 1 - x, integral from 0 to 1 - x - y dz dy dx = 1/6; six possible orders, chosen by the shape of the region; average value over E is (1/V) times the triple integral",
+              "prerequisites": "Double integrals over general regions, equations of planes, quadric surfaces",
+              "key_vocabulary": "triple integral, iterated integral, solid region, projection onto a coordinate plane, order of integration, volume",
+              "common_misconceptions": "Students use limits for z that involve x and y, then put z into the limits of an outer integral; students project the solid onto the wrong plane, e.g. using the triangle in the xz-plane while writing dy dx as the outer differentials",
+              "real_world_hook": "Calculating the total mass of a gold ingot from a 3D density scan uses a triple integral of density",
+              "practices": "1, 2, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "5.2",
+              "lesson_title": "Triple Integrals in Cylindrical Coordinates",
+              "learning_objective": "Convert and evaluate triple integrals in cylindrical coordinates using dV = r dz dr d(theta)",
+              "ccss_code": "OpenStax Calc 3 §5.5",
+              "key_concepts": "dV = r dz dr d(theta); best for solids with circular symmetry about an axis: cylinders, paraboloids, cones; e.g. the solid inside r = 1 between z = 0 and z = 4 - r^2 has volume integral from 0 to 2pi, integral from 0 to 1 of (4 - r^2) r dr d(theta) = 2 pi (2 - 1/4) = 7 pi/2; the solid between the cone z = r and the plane z = 2 has volume integral from 0 to 2pi, integral from 0 to 2 of (2 - r) r dr d(theta) = 8 pi/3; describe z first, then project onto the xy-plane in polar coordinates",
+              "prerequisites": "Cylindrical coordinates, double integrals in polar coordinates, triple integrals",
+              "key_vocabulary": "cylindrical coordinates, cylindrical box, volume element, axis of symmetry",
+              "common_misconceptions": "Students forget the factor r in dV = r dz dr d(theta); students use cylindrical coordinates with z-limits but integrate r out to the wrong boundary, e.g. using r = 2 for the solid inside the cylinder x^2 + y^2 = 2, whose radius is sqrt(2)",
+              "real_world_hook": "Computing the volume of fluid in a parabolic satellite-dish-shaped tank",
+              "practices": "2, 5, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "5.3",
+              "lesson_title": "Triple Integrals in Spherical Coordinates",
+              "learning_objective": "Convert and evaluate triple integrals in spherical coordinates using dV = rho^2 sin(phi) d(rho) d(phi) d(theta)",
+              "ccss_code": "OpenStax Calc 3 §5.5",
+              "key_concepts": "dV = rho^2 sin(phi) d(rho) d(phi) d(theta), with 0 <= phi <= pi; the volume of a ball of radius a is integral from 0 to 2pi, from 0 to pi, from 0 to a of rho^2 sin(phi) d(rho) d(phi) d(theta) = (2pi)(2)(a^3/3) = 4 pi a^3/3; the ice-cream-cone region inside rho = a above the cone phi = pi/4 has volume (2 pi a^3/3)(1 - sqrt(2)/2); best for spheres, cones phi = c, and integrands involving x^2 + y^2 + z^2; the Jacobian rho^2 sin(phi) is the determinant of the spherical change of variables",
+              "prerequisites": "Spherical coordinates, change of variables, triple integrals",
+              "key_vocabulary": "spherical coordinates, spherical wedge, volume element, Jacobian, cone phi = c",
+              "common_misconceptions": "Students write dV = rho sin(phi) d(rho) d(phi) d(theta) or rho^2 sin(theta) d(rho) d(phi) d(theta) instead of rho^2 sin(phi); students let phi range from 0 to 2pi, doubling the volume of a sphere",
+              "real_world_hook": "Astronomers estimating the mass of a star whose density depends only on distance from its center integrate in spherical coordinates",
+              "practices": "2, 7, 8",
+              "meta": {}
+            },
+            {
+              "lesson_number": "5.4",
+              "lesson_title": "Mass, Centers of Mass, and Moments in Three Dimensions",
+              "learning_objective": "Use triple integrals to compute mass, centers of mass, centroids, and moments of inertia of solids, choosing an efficient coordinate system",
+              "ccss_code": "OpenStax Calc 3 §5.6",
+              "key_concepts": "m = triple integral of rho dV; first moments M_yz = triple integral of x rho dV, M_xz = of y rho dV, M_xy = of z rho dV; center of mass (M_yz/m, M_xz/m, M_xy/m); symmetry often makes coordinates zero; the solid hemisphere x^2 + y^2 + z^2 <= a^2, z >= 0 with constant density has M_xy = pi a^4/4 and volume 2 pi a^3/3, so z-bar = 3a/8; moment of inertia about the z-axis I_z = triple integral of (x^2 + y^2) rho dV",
+              "prerequisites": "Triple integrals in all three coordinate systems, center of mass of laminas",
+              "key_vocabulary": "center of mass, centroid, first moment, moment of inertia, symmetry, density function",
+              "common_misconceptions": "Students guess that the centroid of a solid hemisphere is at height a/2, when it is 3a/8; students compute M_xy with x instead of z, mixing up which coordinate the moment about the xy-plane uses",
+              "real_world_hook": "Naval architects compute a ship hull's center of mass and center of buoyancy to make sure it rights itself after rolling",
+              "practices": "4, 6, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 6,
+          "unit_title": "Vector Fields and Line Integrals",
+          "weeks": 4,
+          "lessons": [
+            {
+              "lesson_number": "6.1",
+              "lesson_title": "Vector Fields",
+              "learning_objective": "Sketch and interpret vector fields in two and three dimensions, including gradient, radial, and rotational fields",
+              "ccss_code": "OpenStax Calc 3 §6.1",
+              "key_concepts": "A vector field F assigns a vector to each point: F(x, y) = <P(x, y), Q(x, y)>; the rotational field <-y, x> circles the origin counterclockwise; the radial field <x, y> points away from the origin; gradient fields F = grad f are perpendicular to level curves of the potential f; inverse-square fields such as gravity F = -GMm r/|r|^3; flow lines (integral curves) are curves whose tangent at each point is F",
+              "prerequisites": "Vectors, gradient, functions of several variables",
+              "key_vocabulary": "vector field, gradient field, potential function, radial field, rotational field, flow line, inverse-square field",
+              "common_misconceptions": "Students draw every vector of the field starting at the origin instead of at its base point (x, y); students assume every vector field is a gradient field, though <-y, x> has no potential function",
+              "real_world_hook": "Weather maps of wind velocity and maps of ocean currents are vector fields",
+              "practices": "2, 4, 5",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.2",
+              "lesson_title": "Line Integrals of Scalar Functions",
+              "learning_objective": "Parametrize curves and evaluate scalar line integrals with respect to arc length, and apply them to mass and length of wires",
+              "ccss_code": "OpenStax Calc 3 §6.2",
+              "key_concepts": "Integral over C of f ds = integral from a to b of f(r(t)) |r'(t)| dt; it does not depend on orientation or on the choice of smooth parametrization; e.g. integral of (x^2 + y^2) ds over the circle of radius 2 is 4 times the circumference 4 pi = 16 pi; for piecewise smooth curves add the pieces; mass of a wire with linear density rho is integral of rho ds; line integrals with respect to x or y, integral of f dx = integral of f(r(t)) x'(t) dt",
+              "prerequisites": "Parametric curves, arc length, vector-valued functions",
+              "key_vocabulary": "line integral, arc length element ds, parametrization, piecewise smooth curve, linear density",
+              "common_misconceptions": "Students forget the factor |r'(t)| and integrate f(r(t)) dt, which gives 8 pi instead of 16 pi for the circle example; students think reversing the direction of C changes the sign of a scalar line integral with respect to arc length",
+              "real_world_hook": "Finding the total mass of a curved metal railing whose thickness, and hence density, varies along its length",
+              "practices": "2, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.3",
+              "lesson_title": "Line Integrals of Vector Fields and Work",
+              "learning_objective": "Evaluate line integrals of vector fields, interpret them as work, circulation, and flux across plane curves, and account for orientation",
+              "ccss_code": "OpenStax Calc 3 §6.2",
+              "key_concepts": "Integral over C of F . dr = integral from a to b of F(r(t)) . r'(t) dt = integral of P dx + Q dy + R dz; it equals the integral of F . T ds, the work done by F along C; reversing orientation changes the sign: integral over -C = -integral over C; for F = <-y, x> around the unit circle counterclockwise, F(r(t)) . r'(t) = sin^2 t + cos^2 t = 1, so the circulation is 2 pi; flux of F = <P, Q> across a plane curve with outward normal is integral of F . n ds = integral of P dy - Q dx",
+              "prerequisites": "Scalar line integrals, dot product, vector fields",
+              "key_vocabulary": "line integral of a vector field, work, circulation, flux across a curve, orientation, closed curve",
+              "common_misconceptions": "Students ignore orientation and report +2 pi for the clockwise circle, which gives -2 pi; students multiply by |r'(t)| as well as dotting with r'(t), double-counting the speed",
+              "real_world_hook": "Computing the work a river current does on a barge towed along a curved channel",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.4",
+              "lesson_title": "Conservative Vector Fields and the Fundamental Theorem for Line Integrals",
+              "learning_objective": "Test whether a vector field is conservative, find potential functions, and evaluate line integrals with the Fundamental Theorem for Line Integrals",
+              "ccss_code": "OpenStax Calc 3 §6.3",
+              "key_concepts": "Fundamental Theorem: integral over C of grad f . dr = f(r(b)) - f(r(a)), so the integral is path independent and is 0 around every closed curve; on an open simply connected region, F = <P, Q> is conservative iff P_y = Q_x (in 3D iff curl F = 0); e.g. F = <2xy, x^2 + 3y^2> has P_y = Q_x = 2x and potential f = x^2 y + y^3, so the integral from (0, 0) to (1, 2) is f(1, 2) - f(0, 0) = 10; find f by integrating P in x and determining the function of y from Q; the field <-y/(x^2 + y^2), x/(x^2 + y^2)> has P_y = Q_x but circulation 2 pi around the unit circle because its domain is not simply connected; conservation of energy",
+              "prerequisites": "Line integrals of vector fields, gradient, partial derivatives",
+              "key_vocabulary": "conservative vector field, potential function, path independence, simply connected region, closed curve, cross-partial test, conservation of energy",
+              "common_misconceptions": "Students conclude a field is conservative from P_y = Q_x on a domain with a hole, such as the plane minus the origin; students find the potential by integrating P dx and Q dy separately and adding them, counting the shared term twice (getting 2x^2 y + y^3 instead of x^2 y + y^3)",
+              "real_world_hook": "Gravity is conservative, so the work it does on a hiker depends only on the change in elevation, not on the trail chosen",
+              "practices": "3, 7, 8",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.5",
+              "lesson_title": "Green's Theorem",
+              "learning_objective": "Apply Green's theorem in circulation and flux form to convert line integrals around closed curves into double integrals and to compute areas",
+              "ccss_code": "OpenStax Calc 3 §6.4",
+              "key_concepts": "For a positively oriented (counterclockwise, region on the left) simple closed piecewise smooth curve C bounding D: integral around C of P dx + Q dy = double integral over D of (Q_x - P_y) dA; e.g. for P = xy, Q = x^2 around the boundary of the unit square, Q_x - P_y = 2x - x = x and the integral is 1/2; for F = <-y, x>, Q_x - P_y = 2 so the circulation around the unit circle is 2 times pi = 2 pi; area of D = (1/2) integral around C of x dy - y dx; flux form: integral of F . n ds = double integral of (P_x + Q_y) dA; extends to regions with holes by orienting inner boundaries clockwise",
+              "prerequisites": "Line integrals of vector fields, double integrals, partial derivatives",
+              "key_vocabulary": "Green's theorem, positive orientation, simple closed curve, circulation form, flux form, region with holes",
+              "common_misconceptions": "Students compute P_x - Q_y or reverse the order to P_y - Q_x, getting the wrong sign; students apply Green's theorem to a clockwise curve without negating, or to a curve that is not closed",
+              "real_world_hook": "A planimeter, a mechanical device that measures the area of a region on a map by tracing its boundary, works because of Green's theorem",
+              "practices": "2, 7, 8",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 7,
+          "unit_title": "Surface Integrals and the Fundamental Theorems",
+          "weeks": 5,
+          "lessons": [
+            {
+              "lesson_number": "7.1",
+              "lesson_title": "Divergence and Curl",
+              "learning_objective": "Compute the divergence and curl of vector fields, interpret them physically, and use identities and the curl test for conservative fields",
+              "ccss_code": "OpenStax Calc 3 §6.5",
+              "key_concepts": "With del = <d/dx, d/dy, d/dz>: div F = del . F = P_x + Q_y + R_z, a scalar measuring outflow per unit volume; curl F = del x F = <R_y - Q_z, P_z - R_x, Q_x - P_y>, a vector measuring rotation; e.g. F = <xy, yz, zx> has div F = x + y + z and curl F = <-y, -z, -x>; identities curl(grad f) = 0 and div(curl F) = 0; if F is defined on all of R^3 with continuous partials and curl F = 0, then F is conservative; the k-component of curl in 2D is Q_x - P_y, the integrand of Green's theorem",
+              "prerequisites": "Partial derivatives, cross product, conservative fields",
+              "key_vocabulary": "divergence, curl, del operator, irrotational, incompressible, source, sink, Laplacian",
+              "common_misconceptions": "Students report divergence as a vector <P_x, Q_y, R_z> and curl as a scalar, reversing which is which; students get the sign of the middle component of curl wrong, writing R_x - P_z instead of P_z - R_x",
+              "real_world_hook": "Meteorologists use the curl of wind velocity (vorticity) to spot rotating storms and its divergence to find regions of rising or sinking air",
+              "practices": "2, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "7.2",
+              "lesson_title": "Parametric Surfaces and Surface Area",
+              "learning_objective": "Parametrize surfaces, find tangent planes and normal vectors with r_u x r_v, and compute surface area",
+              "ccss_code": "OpenStax Calc 3 §6.6",
+              "key_concepts": "A parametric surface r(u, v) = <x(u, v), y(u, v), z(u, v)> over a parameter domain D; r_u x r_v is normal to the surface; surface area = double integral over D of |r_u x r_v| dA; the sphere of radius a, r(phi, theta) = <a sin(phi) cos(theta), a sin(phi) sin(theta), a cos(phi)>, has |r_phi x r_theta| = a^2 sin(phi), so its area is 4 pi a^2; the cylinder r(theta, z) = <a cos(theta), a sin(theta), z>; for a graph z = g(x, y), dS = sqrt(1 + g_x^2 + g_y^2) dA, e.g. the part of the plane z = 2x + 2y over a region D has area 3 times area(D)",
+              "prerequisites": "Cross product, double integrals, spherical and cylindrical coordinates",
+              "key_vocabulary": "parametric surface, parameter domain, grid curves, normal vector, smooth surface, surface area, surface element dS",
+              "common_misconceptions": "Students treat dS as dA, so they compute the projected area instead of the surface area; students forget the absolute value (magnitude) of r_u x r_v and integrate the vector itself",
+              "real_world_hook": "Estimating how much paint is needed to coat a domed roof means computing a surface area integral",
+              "practices": "2, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "7.3",
+              "lesson_title": "Surface Integrals and Flux",
+              "learning_objective": "Evaluate surface integrals of scalar functions and flux integrals of vector fields across oriented surfaces",
+              "ccss_code": "OpenStax Calc 3 §6.6",
+              "key_concepts": "Scalar surface integral: double integral over S of f dS = double integral over D of f(r(u, v)) |r_u x r_v| dA; an orientation is a continuous choice of unit normal n; closed surfaces are oriented outward by convention; flux = double integral of F . n dS = double integral over D of F(r(u, v)) . (r_u x r_v) dA when r_u x r_v points in the chosen direction; for the sphere, r_phi x r_theta = a sin(phi) r points outward; e.g. the flux of F = <x, y, z> outward through the sphere of radius a is a times 4 pi a^2 = 4 pi a^3; for z = g(x, y) oriented upward, F . n dS = (-P g_x - Q g_y + R) dA; a Mobius strip is not orientable",
+              "prerequisites": "Parametric surfaces, line integrals, dot product",
+              "key_vocabulary": "surface integral, oriented surface, unit normal vector, flux, outward orientation, orientable surface, Mobius strip",
+              "common_misconceptions": "Students use r_v x r_u when the problem asks for outward or upward orientation and get the flux with the wrong sign, without checking the direction of the normal; students divide F . (r_u x r_v) by |r_u x r_v| and then forget to multiply back, computing the integral of F . n dA instead of F . n dS",
+              "real_world_hook": "Engineers compute the flux of water through a fishing net or of air through a filter to rate how much flow passes per second",
+              "practices": "2, 4, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "7.4",
+              "lesson_title": "Stokes' Theorem",
+              "learning_objective": "Use Stokes' theorem to relate the circulation of a vector field around a closed curve to the flux of its curl through a surface the curve bounds",
+              "ccss_code": "OpenStax Calc 3 §6.7",
+              "key_concepts": "Integral around C of F . dr = double integral over S of curl F . n dS, where S is an oriented piecewise smooth surface with boundary C and C is oriented by the right-hand rule (walking along C with your head pointing in the direction of n, S is on your left); e.g. F = <-y, x, 0> with S the upper unit hemisphere oriented upward: curl F = <0, 0, 2>, and both sides equal 2 pi; the flux of curl F is the same for any surface with the same boundary, so a hemisphere can be replaced by the flat disk; Green's theorem is the special case of a flat region in the xy-plane",
+              "prerequisites": "Curl, surface integrals, line integrals, Green's theorem",
+              "key_vocabulary": "Stokes' theorem, boundary curve, right-hand rule, positive orientation, surface independence, circulation",
+              "common_misconceptions": "Students orient the boundary curve clockwise while using an upward normal, getting -2 pi instead of 2 pi; students think the flux of curl F depends on which surface with boundary C is chosen, and evaluate a hard hemisphere integral instead of the flat disk",
+              "real_world_hook": "Faraday's law of induction, which explains how generators and wireless chargers produce current, is Stokes' theorem applied to the electric field",
+              "practices": "2, 7, 8",
+              "meta": {}
+            },
+            {
+              "lesson_number": "7.5",
+              "lesson_title": "The Divergence Theorem",
+              "learning_objective": "Use the divergence theorem to relate the outward flux through a closed surface to the triple integral of divergence over the enclosed solid",
+              "ccss_code": "OpenStax Calc 3 §6.8",
+              "key_concepts": "For a solid E with closed boundary S oriented outward: double integral over S of F . n dS = triple integral over E of div F dV; e.g. F = <x, y, z> has div F = 3, so the flux out of the sphere of radius a is 3(4 pi a^3/3) = 4 pi a^3, matching the direct computation; F = <x^3, y^3, z^3> through the unit sphere: div F = 3 rho^2, triple integral of 3 rho^2 rho^2 sin(phi) = 3(1/5)(4 pi) = 12 pi/5; to use it for an open surface, close the surface and subtract the flux through the added piece; divergence as flux density; Gauss's law: flux of the electric field through a closed surface is the enclosed charge over epsilon_0",
+              "prerequisites": "Divergence, surface integrals, triple integrals in spherical coordinates",
+              "key_vocabulary": "divergence theorem, Gauss's theorem, closed surface, outward normal, flux density, Gauss's law, source and sink",
+              "common_misconceptions": "Students apply the divergence theorem to an open surface such as a hemisphere without the base disk, then report the triple integral as the hemisphere's flux; students use the spherical volume element without the rho^2 sin(phi) factor when evaluating the triple integral",
+              "real_world_hook": "Gauss's law lets physicists find the electric field of a charged sphere in one line instead of a hard surface integral",
+              "practices": "2, 7, 8",
+              "meta": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "ap-stats",
       "title": "AP Statistics",
       "grade_levels": [
         11,
         12
       ],
-      "display_order": 14,
+      "display_order": 15,
       "total_weeks": 25,
-      "total_lessons": 36,
+      "total_lessons": 38,
       "units": [
         {
           "unit_number": 1,
-          "unit_title": "Exploring One Variable Data",
-          "weeks": 3,
+          "unit_title": "Exploring One-Variable Data and Collecting Data",
+          "weeks": 6,
           "lessons": [
             {
               "lesson_number": "1.1",
+              "lesson_title": "Investigative Questions and Variables",
+              "learning_objective": "Write a statistical investigative question and classify the variables needed to answer it as categorical or quantitative",
+              "ccss_code": "AP Stats 1.1, 1.2",
+              "key_concepts": "Statistics answers questions using data that vary; an investigative question names a population and a variable and can be answered with data; individuals and variables; categorical versus quantitative variables; a question about one variable versus a question comparing groups",
+              "prerequisites": "Statistics basics",
+              "key_vocabulary": "investigative question, individual, variable, categorical, quantitative, population",
+              "common_misconceptions": "Students call zip codes or jersey numbers quantitative because they are written as numbers, even though averaging them has no meaning",
+              "real_world_hook": "Turning a school cafeteria complaint into a question a survey can actually answer",
+              "practices": "1, 4",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.2",
               "lesson_title": "Categorical Data",
               "learning_objective": "Summarize categorical data using frequency tables and bar charts",
-              "ccss_code": "AP Stats 1.3",
+              "ccss_code": "AP Stats 1.3, 1.4",
               "key_concepts": "Frequency, relative frequency, marginal",
               "prerequisites": "Statistics basics",
               "key_vocabulary": "categorical, frequency, relative frequency",
@@ -7550,10 +8284,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "1.2",
+              "lesson_number": "1.3",
               "lesson_title": "Quantitative Data Graphs",
               "learning_objective": "Construct and interpret displays for quantitative data",
-              "ccss_code": "AP Stats 1.5",
+              "ccss_code": "AP Stats 1.5, 1.6",
               "key_concepts": "Dot plots, stem plots, histograms, choice of bins",
               "prerequisites": "Statistics basics",
               "key_vocabulary": "distribution, skew, mode",
@@ -7563,10 +8297,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "1.3",
+              "lesson_number": "1.4",
               "lesson_title": "Measures of Center and Position",
               "learning_objective": "Compute mean, median, percentiles, and z scores",
-              "ccss_code": "AP Stats 1.7",
+              "ccss_code": "AP Stats 1.7, 1.9",
               "key_concepts": "Robustness to outliers, position measures",
               "prerequisites": "Mean, median basics",
               "key_vocabulary": "percentile, quartile, z score",
@@ -7576,102 +8310,49 @@
               "meta": {}
             },
             {
-              "lesson_number": "1.4",
+              "lesson_number": "1.5",
               "lesson_title": "Measures of Variability",
               "learning_objective": "Compute range, IQR, standard deviation, and variance",
-              "ccss_code": "AP Stats 1.7",
-              "key_concepts": "Interpretation of variability measures",
+              "ccss_code": "AP Stats 1.7, 1.8",
+              "key_concepts": "Interpretation of variability measures, boxplots from the five-number summary, 1.5 times IQR outlier rule",
               "prerequisites": "Mean, summary statistics",
-              "key_vocabulary": "variance, standard deviation, IQR",
+              "key_vocabulary": "variance, standard deviation, IQR, five-number summary, boxplot",
               "common_misconceptions": "Students use sd formula without dividing by n minus one",
               "real_world_hook": "Risk assessment in finance",
               "practices": "2, 6",
               "meta": {}
             },
             {
-              "lesson_number": "1.5",
-              "lesson_title": "Normal Distribution",
-              "learning_objective": "Use normal distribution and empirical rule",
-              "ccss_code": "AP Stats 1.10",
-              "key_concepts": "Standard normal, z scores, probability",
-              "prerequisites": "Standard deviation, normal curve",
-              "key_vocabulary": "normal, empirical rule, z table",
-              "common_misconceptions": "Students assume any bell curve follows empirical rule exactly",
-              "real_world_hook": "Quality control specifications",
-              "practices": "2, 6",
-              "meta": {}
-            }
-          ]
-        },
-        {
-          "unit_number": 2,
-          "unit_title": "Exploring Two Variable Data",
-          "weeks": 2,
-          "lessons": [
-            {
-              "lesson_number": "2.1",
-              "lesson_title": "Scatter Plots and Correlation",
-              "learning_objective": "Describe and quantify association between two variables",
-              "ccss_code": "AP Stats 2.4",
-              "key_concepts": "Direction, form, strength, correlation coefficient",
-              "prerequisites": "Scatter plots, regression",
-              "key_vocabulary": "correlation coefficient, association",
-              "common_misconceptions": "Students confuse correlation with causation",
-              "real_world_hook": "Predicting health outcomes",
+              "lesson_number": "1.6",
+              "lesson_title": "Comparing Distributions of a Quantitative Variable",
+              "learning_objective": "Compare two or more distributions of a quantitative variable by shape, center, variability, and unusual features, and use z scores to compare relative position",
+              "ccss_code": "AP Stats 1.9",
+              "key_concepts": "Back-to-back stemplots, parallel dotplots, and side-by-side boxplots; comparisons must use comparative words (greater than, less than, about the same) for center and variability, in context; z score as number of standard deviations from the mean for comparing values from different distributions",
+              "prerequisites": "Measures of center, measures of variability, boxplots",
+              "key_vocabulary": "comparative boxplots, back-to-back stemplot, z score, relative position",
+              "common_misconceptions": "Students describe each distribution separately (\"Class A has median 78, Class B has median 84\") without ever stating which is greater, so no comparison is actually made",
+              "real_world_hook": "Deciding whether a 1350 SAT or a 30 ACT is the more impressive score",
               "practices": "4, 6",
               "meta": {}
             },
             {
-              "lesson_number": "2.2",
-              "lesson_title": "Regression Lines",
-              "learning_objective": "Find and interpret least squares regression lines",
-              "ccss_code": "AP Stats 2.6",
-              "key_concepts": "Equation, slope and intercept interpretation",
-              "prerequisites": "Linear equations, scatter plots",
-              "key_vocabulary": "LSRL, least squares, intercept",
-              "common_misconceptions": "Students interpret slope and intercept without context",
-              "real_world_hook": "Predicting test scores",
-              "practices": "4, 7",
+              "lesson_number": "1.7",
+              "lesson_title": "The Investigative Question Revisited: Observational Studies and Experiments",
+              "learning_objective": "Choose a data collection method that fits an investigative question and explain what kind of conclusion an observational study or an experiment supports",
+              "ccss_code": "AP Stats 1.10",
+              "key_concepts": "Census versus sample; observational study versus experiment; random selection allows generalization to the population, random assignment allows cause-and-effect conclusions; confounding variables in observational studies; matching the method to the question",
+              "prerequisites": "Investigative questions and variables",
+              "key_vocabulary": "census, sample, observational study, experiment, random selection, random assignment, confounding variable",
+              "common_misconceptions": "Students conclude that drinking coffee causes longer life from a survey of coffee drinkers, treating an observational study as if treatments had been randomly assigned",
+              "real_world_hook": "Reading a headline that says a food 'cuts cancer risk' and asking how the data were collected",
+              "practices": "3, 4",
               "meta": {}
             },
             {
-              "lesson_number": "2.3",
-              "lesson_title": "Residuals and Influence",
-              "learning_objective": "Analyze residuals and identify influential points",
-              "ccss_code": "AP Stats 2.7",
-              "key_concepts": "Residual plots, leverage, influence",
-              "prerequisites": "Regression, scatter plots",
-              "key_vocabulary": "residual, residual plot, influential",
-              "common_misconceptions": "Students miss when residual patterns suggest nonlinearity",
-              "real_world_hook": "Improving forecast models",
-              "practices": "4, 7",
-              "meta": {}
-            },
-            {
-              "lesson_number": "2.4",
-              "lesson_title": "Transformations and Models",
-              "learning_objective": "Use transformations to linearize relationships",
-              "ccss_code": "AP Stats 2.9",
-              "key_concepts": "Log and power transformations, choosing models",
-              "prerequisites": "Logs, regression",
-              "key_vocabulary": "log transformation, linearize",
-              "common_misconceptions": "Students apply wrong transformation for given pattern",
-              "real_world_hook": "Modeling exponential phenomena",
-              "practices": "4, 5",
-              "meta": {}
-            }
-          ]
-        },
-        {
-          "unit_number": 3,
-          "unit_title": "Collecting Data",
-          "weeks": 3,
-          "lessons": [
-            {
-              "lesson_number": "3.1",
+              "lesson_number": "1.8",
               "lesson_title": "Sampling Methods",
               "learning_objective": "Identify and use various sampling methods",
-              "ccss_code": "AP Stats 3.3",
+              "ccss_code": "AP Stats 1.11",
               "key_concepts": "SRS, stratified, cluster, systematic, convenience",
               "prerequisites": "Statistics basics",
               "key_vocabulary": "SRS, stratified, cluster, systematic",
@@ -7681,10 +8362,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "3.2",
+              "lesson_number": "1.9",
               "lesson_title": "Bias in Sampling",
               "learning_objective": "Identify sources of bias in samples",
-              "ccss_code": "AP Stats 3.4",
+              "ccss_code": "AP Stats 1.12",
               "key_concepts": "Undercoverage, nonresponse, response bias, wording effects",
               "prerequisites": "Sampling methods",
               "key_vocabulary": "undercoverage, nonresponse, response bias",
@@ -7694,10 +8375,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "3.3",
+              "lesson_number": "1.10",
               "lesson_title": "Experimental Design",
               "learning_objective": "Design experiments using randomization and control",
-              "ccss_code": "AP Stats 3.5",
+              "ccss_code": "AP Stats 1.13",
               "key_concepts": "Treatment, control, placebo, blinding",
               "prerequisites": "Statistics basics",
               "key_vocabulary": "treatment, control, placebo, double blind",
@@ -7707,10 +8388,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "3.4",
+              "lesson_number": "1.11",
               "lesson_title": "Blocking and Matched Pairs",
               "learning_objective": "Use blocking and matched pairs to reduce variability",
-              "ccss_code": "AP Stats 3.6",
+              "ccss_code": "AP Stats 1.13",
               "key_concepts": "Blocking variables, paired data",
               "prerequisites": "Experimental design",
               "key_vocabulary": "block, matched pairs",
@@ -7720,10 +8401,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "3.5",
+              "lesson_number": "1.12",
               "lesson_title": "Confounding and Causation",
               "learning_objective": "Identify confounding and conditions for causal claims",
-              "ccss_code": "AP Stats 3.7",
+              "ccss_code": "AP Stats 1.10, 1.13",
               "key_concepts": "Confounding variables, lurking variables, causal inference",
               "prerequisites": "Experimental design",
               "key_vocabulary": "confounding, lurking variable, causation",
@@ -7735,15 +8416,41 @@
           ]
         },
         {
-          "unit_number": 4,
-          "unit_title": "Probability, Random Variables, Distributions",
-          "weeks": 4,
+          "unit_number": 2,
+          "unit_title": "Probability, Random Variables, and Probability Distributions",
+          "weeks": 5,
           "lessons": [
             {
-              "lesson_number": "4.1",
+              "lesson_number": "2.1",
+              "lesson_title": "Two Categorical Variables: Two-Way Tables",
+              "learning_objective": "Build two-way tables and segmented bar graphs and compute joint, marginal, and conditional relative frequencies to describe the association between two categorical variables",
+              "ccss_code": "AP Stats 2.1, 2.2",
+              "key_concepts": "Two-way (contingency) tables; joint, marginal, and conditional relative frequencies; side-by-side bar charts, segmented bar charts, and mosaic plots; association exists when conditional distributions differ across groups",
+              "prerequisites": "Categorical data, relative frequency",
+              "key_vocabulary": "two-way table, joint relative frequency, marginal relative frequency, conditional relative frequency, segmented bar chart, mosaic plot",
+              "common_misconceptions": "Students compare raw counts across groups of different sizes (\"more seniors than juniors chose pizza\") instead of comparing conditional percentages within each group",
+              "real_world_hook": "Checking whether streaming preferences differ by age group",
+              "practices": "4, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.2",
+              "lesson_title": "Simulations",
+              "learning_objective": "Use simulations to estimate sampling distributions",
+              "ccss_code": "AP Stats 2.3",
+              "key_concepts": "Building distributions through repeated sampling",
+              "prerequisites": "Random sampling, relative frequency",
+              "key_vocabulary": "simulation, repeated sampling",
+              "common_misconceptions": "Students treat one simulation as definitive",
+              "real_world_hook": "Bootstrap methods preview",
+              "practices": "4, 5",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.3",
               "lesson_title": "Probability Rules",
               "learning_objective": "Apply probability rules including conditional and complement",
-              "ccss_code": "AP Stats 4.3",
+              "ccss_code": "AP Stats 2.4, 2.5, 2.6, 2.7",
               "key_concepts": "Addition rule, multiplication rule, complement",
               "prerequisites": "Basic probability",
               "key_vocabulary": "conditional probability, complement, union",
@@ -7753,10 +8460,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "4.2",
+              "lesson_number": "2.4",
               "lesson_title": "Independence",
               "learning_objective": "Determine and use independence of events",
-              "ccss_code": "AP Stats 4.5",
+              "ccss_code": "AP Stats 2.6, 2.7",
               "key_concepts": "Definition of independence, testing for independence",
               "prerequisites": "Probability rules",
               "key_vocabulary": "independent, mutually exclusive",
@@ -7766,23 +8473,23 @@
               "meta": {}
             },
             {
-              "lesson_number": "4.3",
+              "lesson_number": "2.5",
               "lesson_title": "Random Variables",
-              "learning_objective": "Define discrete random variables and find expected value",
-              "ccss_code": "AP Stats 4.7",
-              "key_concepts": "Probability distribution table, expected value formula",
+              "learning_objective": "Define discrete random variables and find their mean (expected value) and standard deviation",
+              "ccss_code": "AP Stats 2.8, 2.9",
+              "key_concepts": "Probability distribution table, expected value formula, standard deviation of a discrete random variable",
               "prerequisites": "Probability, summation",
-              "key_vocabulary": "random variable, expected value, variance",
+              "key_vocabulary": "random variable, expected value, standard deviation",
               "common_misconceptions": "Students compute expected value as simple average of values",
               "real_world_hook": "Lottery and game expected outcomes",
               "practices": "2, 7",
               "meta": {}
             },
             {
-              "lesson_number": "4.4",
+              "lesson_number": "2.6",
               "lesson_title": "Binomial Distribution",
               "learning_objective": "Apply binomial distribution to count problems",
-              "ccss_code": "AP Stats 4.10",
+              "ccss_code": "AP Stats 2.10",
               "key_concepts": "Conditions for binomial, formula, mean and sd",
               "prerequisites": "Random variables, probability",
               "key_vocabulary": "binomial, n choose k, success",
@@ -7792,30 +8499,23 @@
               "meta": {}
             },
             {
-              "lesson_number": "4.5",
-              "lesson_title": "Geometric Distribution",
-              "learning_objective": "Apply geometric distribution for trials until first success",
-              "ccss_code": "AP Stats 4.12",
-              "key_concepts": "Geometric setting, mean as 1 over p",
-              "prerequisites": "Random variables, probability",
-              "key_vocabulary": "geometric, first success",
-              "common_misconceptions": "Students confuse geometric with binomial settings",
-              "real_world_hook": "Waiting time problems",
-              "practices": "4, 7",
+              "lesson_number": "2.7",
+              "lesson_title": "Normal Distribution",
+              "learning_objective": "Use normal distribution and empirical rule",
+              "ccss_code": "AP Stats 2.11",
+              "key_concepts": "Standard normal, z scores, probability",
+              "prerequisites": "Standard deviation, z scores",
+              "key_vocabulary": "normal, empirical rule, z table",
+              "common_misconceptions": "Students assume any bell curve follows empirical rule exactly",
+              "real_world_hook": "Quality control specifications",
+              "practices": "2, 6",
               "meta": {}
-            }
-          ]
-        },
-        {
-          "unit_number": 5,
-          "unit_title": "Sampling Distributions",
-          "weeks": 3,
-          "lessons": [
+            },
             {
-              "lesson_number": "5.1",
+              "lesson_number": "2.8",
               "lesson_title": "Sampling Distribution of Sample Mean",
               "learning_objective": "Describe the sampling distribution of sample means",
-              "ccss_code": "AP Stats 5.5",
+              "ccss_code": "AP Stats 2.12",
               "key_concepts": "Central Limit Theorem, mean and sd of distribution",
               "prerequisites": "Mean, normal distribution",
               "key_vocabulary": "sampling distribution, CLT",
@@ -7823,12 +8523,32 @@
               "real_world_hook": "Quality control with averages",
               "practices": "2, 6",
               "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 3,
+          "unit_title": "Inference for Categorical Data: Proportions",
+          "weeks": 6,
+          "lessons": [
+            {
+              "lesson_number": "3.1",
+              "lesson_title": "Bias and Variability",
+              "learning_objective": "Distinguish bias and variability of estimators",
+              "ccss_code": "AP Stats 3.1",
+              "key_concepts": "Unbiased estimator, role of sample size",
+              "prerequisites": "Sampling distributions, Central Limit Theorem",
+              "key_vocabulary": "bias, variability, estimator",
+              "common_misconceptions": "Students think reducing sample size reduces bias",
+              "real_world_hook": "Designing studies for accuracy",
+              "practices": "3, 6",
+              "meta": {}
             },
             {
-              "lesson_number": "5.2",
+              "lesson_number": "3.2",
               "lesson_title": "Sampling Distribution of Sample Proportion",
               "learning_objective": "Describe the sampling distribution of sample proportions",
-              "ccss_code": "AP Stats 5.4",
+              "ccss_code": "AP Stats 3.2",
               "key_concepts": "Conditions, mean and sd of p hat",
               "prerequisites": "Proportions, probability",
               "key_vocabulary": "sample proportion, p hat",
@@ -7838,43 +8558,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "5.3",
-              "lesson_title": "Bias and Variability",
-              "learning_objective": "Distinguish bias and variability of estimators",
-              "ccss_code": "AP Stats 5.2",
-              "key_concepts": "Unbiased estimator, role of sample size",
-              "prerequisites": "Sampling distributions",
-              "key_vocabulary": "bias, variability, estimator",
-              "common_misconceptions": "Students think reducing sample size reduces bias",
-              "real_world_hook": "Designing studies for accuracy",
-              "practices": "3, 6",
-              "meta": {}
-            },
-            {
-              "lesson_number": "5.4",
-              "lesson_title": "Simulations",
-              "learning_objective": "Use simulations to estimate sampling distributions",
-              "ccss_code": "AP Stats 5.1",
-              "key_concepts": "Building distributions through repeated sampling",
-              "prerequisites": "Probability, sampling",
-              "key_vocabulary": "simulation, repeated sampling",
-              "common_misconceptions": "Students treat one simulation as definitive",
-              "real_world_hook": "Bootstrap methods preview",
-              "practices": "4, 5",
-              "meta": {}
-            }
-          ]
-        },
-        {
-          "unit_number": 6,
-          "unit_title": "Inference for Proportions",
-          "weeks": 3,
-          "lessons": [
-            {
-              "lesson_number": "6.1",
+              "lesson_number": "3.3",
               "lesson_title": "Confidence Intervals One Proportion",
               "learning_objective": "Construct and interpret confidence intervals for one proportion",
-              "ccss_code": "AP Stats 6.3",
+              "ccss_code": "AP Stats 3.3, 3.4",
               "key_concepts": "Critical value, margin of error, interpretation",
               "prerequisites": "Sampling distribution of p hat",
               "key_vocabulary": "confidence interval, critical value",
@@ -7884,10 +8571,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "6.2",
+              "lesson_number": "3.4",
               "lesson_title": "Hypothesis Tests One Proportion",
               "learning_objective": "Perform one sample z test for proportion",
-              "ccss_code": "AP Stats 6.5",
+              "ccss_code": "AP Stats 3.5, 3.6, 3.7",
               "key_concepts": "Null and alternative hypotheses, test statistic, p value",
               "prerequisites": "Sampling distribution, probability",
               "key_vocabulary": "null hypothesis, p value, alpha",
@@ -7897,10 +8584,23 @@
               "meta": {}
             },
             {
-              "lesson_number": "6.3",
+              "lesson_number": "3.5",
+              "lesson_title": "Type I and Type II Errors",
+              "learning_objective": "Identify Type I and Type II errors and their consequences in context, and explain how significance level and sample size affect error probabilities and power",
+              "ccss_code": "AP Stats 3.8",
+              "key_concepts": "Type I error rejects a true null hypothesis and has probability alpha; Type II error fails to reject a false null hypothesis; power is 1 minus the probability of a Type II error; lowering alpha raises the chance of a Type II error; increasing sample size increases power",
+              "prerequisites": "Hypothesis tests for one proportion",
+              "key_vocabulary": "Type I error, Type II error, significance level, power",
+              "common_misconceptions": "Students define a Type I error as 'the null hypothesis is wrong' instead of 'we reject the null hypothesis when it is actually true', and leave out the context of the problem",
+              "real_world_hook": "A smoke detector that goes off for burnt toast versus one that stays silent during a real fire",
+              "practices": "3, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.6",
               "lesson_title": "Confidence Intervals Two Proportions",
               "learning_objective": "Construct two proportion confidence intervals",
-              "ccss_code": "AP Stats 6.8",
+              "ccss_code": "AP Stats 3.9, 3.10, 3.11",
               "key_concepts": "Pooled versus unpooled, two sample variance",
               "prerequisites": "One proportion inference",
               "key_vocabulary": "two proportion CI",
@@ -7910,10 +8610,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "6.4",
+              "lesson_number": "3.7",
               "lesson_title": "Hypothesis Tests Two Proportions",
               "learning_objective": "Perform two sample z test for proportions",
-              "ccss_code": "AP Stats 6.10",
+              "ccss_code": "AP Stats 3.12, 3.13",
               "key_concepts": "Pooled proportion, hypothesis test mechanics",
               "prerequisites": "One proportion test",
               "key_vocabulary": "two proportion z test",
@@ -7921,93 +8621,14 @@
               "real_world_hook": "A B testing in marketing",
               "practices": "3, 6",
               "meta": {}
-            }
-          ]
-        },
-        {
-          "unit_number": 7,
-          "unit_title": "Inference for Means",
-          "weeks": 3,
-          "lessons": [
-            {
-              "lesson_number": "7.1",
-              "lesson_title": "One Sample t Interval",
-              "learning_objective": "Construct and interpret one sample t intervals",
-              "ccss_code": "AP Stats 7.3",
-              "key_concepts": "Conditions, degrees of freedom, t critical",
-              "prerequisites": "Confidence intervals, mean",
-              "key_vocabulary": "t distribution, degrees of freedom",
-              "common_misconceptions": "Students use z when sample size is small and sigma unknown",
-              "real_world_hook": "Estimating average response time",
-              "practices": "6, 7",
-              "meta": {}
             },
             {
-              "lesson_number": "7.2",
-              "lesson_title": "One Sample t Test",
-              "learning_objective": "Perform one sample t test",
-              "ccss_code": "AP Stats 7.4",
-              "key_concepts": "Test statistic, p value with t distribution",
-              "prerequisites": "t interval, hypothesis test",
-              "key_vocabulary": "one sample t test",
-              "common_misconceptions": "Students fail to check normality or use of t",
-              "real_world_hook": "Industrial process specifications",
-              "practices": "3, 6",
-              "meta": {}
-            },
-            {
-              "lesson_number": "7.3",
-              "lesson_title": "Two Sample t Test and Interval",
-              "learning_objective": "Perform two sample t procedures",
-              "ccss_code": "AP Stats 7.7",
-              "key_concepts": "Two sample standard error, degrees of freedom approximation",
-              "prerequisites": "One sample t, two samples",
-              "key_vocabulary": "two sample t, pooled",
-              "common_misconceptions": "Students pool when not appropriate",
-              "real_world_hook": "Comparing teaching methods",
-              "practices": "3, 7",
-              "meta": {}
-            },
-            {
-              "lesson_number": "7.4",
-              "lesson_title": "Paired t Procedures",
-              "learning_objective": "Apply paired t procedures for matched data",
-              "ccss_code": "AP Stats 7.8",
-              "key_concepts": "Working with differences, paired versus independent",
-              "prerequisites": "One sample t, study design",
-              "key_vocabulary": "paired, matched, difference",
-              "common_misconceptions": "Students use two sample test for paired data",
-              "real_world_hook": "Pre and post intervention studies",
-              "practices": "3, 7",
-              "meta": {}
-            }
-          ]
-        },
-        {
-          "unit_number": 8,
-          "unit_title": "Chi Square Tests",
-          "weeks": 2,
-          "lessons": [
-            {
-              "lesson_number": "8.1",
-              "lesson_title": "Goodness of Fit",
-              "learning_objective": "Perform chi square goodness of fit test",
-              "ccss_code": "AP Stats 8.2",
-              "key_concepts": "Expected counts, chi square statistic",
-              "prerequisites": "Probability distributions",
-              "key_vocabulary": "goodness of fit, chi square",
-              "common_misconceptions": "Students forget to check expected count conditions",
-              "real_world_hook": "Testing claimed proportions",
-              "practices": "3, 7",
-              "meta": {}
-            },
-            {
-              "lesson_number": "8.2",
+              "lesson_number": "3.8",
               "lesson_title": "Test for Homogeneity",
               "learning_objective": "Perform chi square test of homogeneity",
-              "ccss_code": "AP Stats 8.5",
+              "ccss_code": "AP Stats 3.14, 3.15",
               "key_concepts": "Two way table, comparing distributions",
-              "prerequisites": "Goodness of fit, two way tables",
+              "prerequisites": "Two way tables, hypothesis tests for proportions",
               "key_vocabulary": "homogeneity, contingency",
               "common_misconceptions": "Students confuse homogeneity and independence tests",
               "real_world_hook": "Comparing distributions across groups",
@@ -8015,10 +8636,10 @@
               "meta": {}
             },
             {
-              "lesson_number": "8.3",
+              "lesson_number": "3.9",
               "lesson_title": "Test for Independence",
               "learning_objective": "Perform chi square test of independence",
-              "ccss_code": "AP Stats 8.6",
+              "ccss_code": "AP Stats 3.14, 3.15",
               "key_concepts": "Categorical variables, dependence in population",
               "prerequisites": "Probability, two way tables",
               "key_vocabulary": "independence, contingency",
@@ -8030,34 +8651,139 @@
           ]
         },
         {
-          "unit_number": 9,
-          "unit_title": "Inference for Regression",
-          "weeks": 2,
+          "unit_number": 4,
+          "unit_title": "Inference for Quantitative Data: Means",
+          "weeks": 4,
           "lessons": [
             {
-              "lesson_number": "9.1",
-              "lesson_title": "Sampling Distribution of Slope",
-              "learning_objective": "Describe sampling distribution of regression slope",
-              "ccss_code": "AP Stats 9.2",
-              "key_concepts": "Standard error of slope, t distribution for slope",
-              "prerequisites": "Regression, sampling distributions",
-              "key_vocabulary": "sampling distribution of slope",
-              "common_misconceptions": "Students confuse standard error of slope with sd of residuals",
-              "real_world_hook": "Significance of trends",
+              "lesson_number": "4.1",
+              "lesson_title": "One Sample t Interval",
+              "learning_objective": "Construct and interpret one sample t intervals",
+              "ccss_code": "AP Stats 4.1, 4.2, 4.3",
+              "key_concepts": "Conditions, degrees of freedom, t critical",
+              "prerequisites": "Confidence intervals, mean",
+              "key_vocabulary": "t distribution, degrees of freedom",
+              "common_misconceptions": "Students use z when sample size is small and sigma unknown",
+              "real_world_hook": "Estimating average response time",
               "practices": "6, 7",
               "meta": {}
             },
             {
-              "lesson_number": "9.2",
-              "lesson_title": "CI and Test for Slope",
-              "learning_objective": "Build confidence intervals and test hypotheses for slope",
-              "ccss_code": "AP Stats 9.3",
-              "key_concepts": "Computing t test for slope, interpreting in context",
-              "prerequisites": "Slope inference, t procedures",
-              "key_vocabulary": "t test for slope, regression inference",
-              "common_misconceptions": "Students report only the slope without standard error context",
-              "real_world_hook": "Significance of relationships",
+              "lesson_number": "4.2",
+              "lesson_title": "One Sample t Test",
+              "learning_objective": "Perform one sample t test",
+              "ccss_code": "AP Stats 4.4, 4.5",
+              "key_concepts": "Test statistic, p value with t distribution",
+              "prerequisites": "t interval, hypothesis test",
+              "key_vocabulary": "one sample t test",
+              "common_misconceptions": "Students fail to check normality or use of t",
+              "real_world_hook": "Industrial process specifications",
+              "practices": "3, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.3",
+              "lesson_title": "Paired t Procedures",
+              "learning_objective": "Apply paired t procedures for matched data",
+              "ccss_code": "AP Stats 4.2, 4.3, 4.4, 4.5",
+              "key_concepts": "Working with differences, paired versus independent",
+              "prerequisites": "One sample t, study design",
+              "key_vocabulary": "paired, matched, difference",
+              "common_misconceptions": "Students use two sample test for paired data",
+              "real_world_hook": "Pre and post intervention studies",
               "practices": "3, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.4",
+              "lesson_title": "Two Sample t Test and Interval",
+              "learning_objective": "Perform two sample t procedures",
+              "ccss_code": "AP Stats 4.6, 4.7, 4.8, 4.9, 4.10",
+              "key_concepts": "Two sample standard error, degrees of freedom approximation",
+              "prerequisites": "One sample t, two samples",
+              "key_vocabulary": "two sample t, independent samples",
+              "common_misconceptions": "Students subtract the two groups' values pairwise and run a paired t test even though the two samples are independent and have no natural pairing",
+              "real_world_hook": "Comparing teaching methods",
+              "practices": "3, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 5,
+          "unit_title": "Regression Analysis",
+          "weeks": 3,
+          "lessons": [
+            {
+              "lesson_number": "5.1",
+              "lesson_title": "Scatter Plots and Correlation",
+              "learning_objective": "Describe and quantify association between two variables",
+              "ccss_code": "AP Stats 5.1, 5.2",
+              "key_concepts": "Direction, form, strength, correlation coefficient",
+              "prerequisites": "Quantitative variables, graphing ordered pairs",
+              "key_vocabulary": "correlation coefficient, association",
+              "common_misconceptions": "Students confuse correlation with causation",
+              "real_world_hook": "Predicting health outcomes",
+              "practices": "4, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "5.2",
+              "lesson_title": "Regression Lines",
+              "learning_objective": "Find and interpret least squares regression lines",
+              "ccss_code": "AP Stats 5.3, 5.5",
+              "key_concepts": "Equation, slope and intercept interpretation, coefficient of determination r squared",
+              "prerequisites": "Linear equations, scatter plots, correlation",
+              "key_vocabulary": "LSRL, least squares, intercept",
+              "common_misconceptions": "Students interpret slope and intercept without context",
+              "real_world_hook": "Predicting test scores",
+              "practices": "4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "5.3",
+              "lesson_title": "Residuals and Residual Plots",
+              "learning_objective": "Calculate and interpret residuals and use residual plots to judge whether a linear model is appropriate",
+              "ccss_code": "AP Stats 5.4",
+              "key_concepts": "Residual equals observed minus predicted, positive residual means the model underpredicts, residual plots, curvature signals a nonlinear form",
+              "prerequisites": "Regression, scatter plots",
+              "key_vocabulary": "residual, residual plot, predicted value",
+              "common_misconceptions": "Students miss when residual patterns suggest nonlinearity",
+              "real_world_hook": "Improving forecast models",
+              "practices": "4, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 6,
+          "unit_title": "AP exam practice (not a College Board CED unit)",
+          "weeks": 1,
+          "lessons": [
+            {
+              "lesson_number": "6.1",
+              "lesson_title": "The AP Statistics Exam Format",
+              "learning_objective": "Describe the format of the AP Statistics exam and practice each section under exam conditions",
+              "ccss_code": "AP Stats Exam",
+              "key_concepts": "The exam is 3 hours and fully digital in the Bluebook app starting May 2027; Section I is 42 multiple-choice questions in 90 minutes, worth 50% of the score, with four answer choices each; Section II is 4 free-response questions in 90 minutes, worth 50%, each worth 10 points and 12.5%; Question 1 focuses on formulating questions and collecting data, Question 2 on analyzing data and interpreting results, Question 3 is an inference question (hypothesis test or confidence interval), and Question 4 combines collecting data, analyzing data, and interpreting results; a graphing calculator with statistical capabilities is expected on both sections; formulas and tables are provided for both sections; multiple-choice weighting is Unit 1 20-30%, Unit 2 15-25%, Unit 3 15-25%, Unit 4 10-20%, Unit 5 10-20%",
+              "prerequisites": "Units 1-5",
+              "key_vocabulary": "multiple choice, free response, Bluebook, formula sheet, statistical practices",
+              "common_misconceptions": "Students memorize the standard error formula for a proportion and waste time rewriting it from memory instead of using the provided formula sheet, then copy it incorrectly",
+              "real_world_hook": "Running a full dress rehearsal before opening night",
+              "practices": "1, 5",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.2",
+              "lesson_title": "Free-Response Communication and Pacing",
+              "learning_objective": "Write complete, in-context free-response answers and pace the 90-minute free-response section",
+              "ccss_code": "AP Stats Exam",
+              "key_concepts": "About 22 minutes per free-response question; read all four questions first; for inference, name the procedure, state hypotheses with parameters defined, check conditions, show the test statistic or interval, and conclude in context with a comparison to alpha; every answer must refer to the context of the problem; use calculator output only with the name of the procedure and the values that went into it; attempt every part since parts are scored separately",
+              "prerequisites": "All exam units",
+              "key_vocabulary": "context, conditions, conclusion, pacing, calculator speak",
+              "common_misconceptions": "Students write only '1-PropZTest, p = 0.03, reject H0' with no hypotheses, conditions, or conclusion in context, and lose most of the credit for a correct calculation",
+              "real_world_hook": "Writing a lab report that a skeptical reviewer can check line by line",
+              "practices": "3, 6",
               "meta": {}
             }
           ]
@@ -8074,7 +8800,7 @@
         11,
         12
       ],
-      "display_order": 15,
+      "display_order": 16,
       "total_weeks": 16,
       "total_lessons": 20,
       "units": [
@@ -8384,7 +9110,7 @@
         11,
         12
       ],
-      "display_order": 16,
+      "display_order": 17,
       "total_weeks": 12,
       "total_lessons": 24,
       "legacy_course_id": "algebra2",
@@ -8746,7 +9472,7 @@
         11,
         12
       ],
-      "display_order": 17,
+      "display_order": 18,
       "total_weeks": 15,
       "total_lessons": 27,
       "units": [
@@ -9161,7 +9887,7 @@
         9,
         10
       ],
-      "display_order": 18,
+      "display_order": 19,
       "total_weeks": 13,
       "total_lessons": 22,
       "units": [
@@ -9497,6 +10223,356 @@
       "legacy_course_id": "algebra"
     },
     {
+      "id": "geometry-eoc",
+      "title": "Geometry End-of-Course Exam Review",
+      "grade_levels": [
+        9,
+        10,
+        11
+      ],
+      "display_order": 20,
+      "total_weeks": 12,
+      "total_lessons": 22,
+      "units": [
+        {
+          "unit_number": 1,
+          "unit_title": "Logic, reasoning, and proof",
+          "weeks": 2,
+          "lessons": [
+            {
+              "lesson_number": "1.1",
+              "lesson_title": "Conditional statements and logical reasoning",
+              "learning_objective": "Write the converse, inverse, contrapositive, and biconditional of a conditional statement, decide whether each is true, and use the laws of detachment and syllogism to draw valid conclusions",
+              "ccss_code": "G-CO.C.9 (logic for proof) / MP3",
+              "key_concepts": "A conditional 'if p, then q' has a hypothesis p and a conclusion q; converse: if q, then p; inverse: if not p, then not q; contrapositive: if not q, then not p; a conditional and its contrapositive always have the same truth value, and so do the converse and the inverse; one counterexample is enough to show a statement is false; a biconditional 'p if and only if q' is true only when the conditional and its converse are both true, and good definitions are biconditionals; law of detachment: if p implies q and p is true, then q is true; law of syllogism: if p implies q and q implies r, then p implies r; Venn diagrams for 'all', 'some', and 'no' statements; inductive reasoning finds patterns, deductive reasoning proves",
+              "prerequisites": "Angle and polygon vocabulary from earlier grades",
+              "key_vocabulary": "conditional statement, hypothesis, conclusion, converse, inverse, contrapositive, biconditional, counterexample, law of detachment, law of syllogism, deductive reasoning, inductive reasoning",
+              "common_misconceptions": "Given 'If an angle measures 30 degrees, then it is acute,' claims the converse 'If an angle is acute, then it measures 30 degrees' must also be true; given 'If it rains, the game is canceled' and 'The game was canceled,' concludes that it rained, which is not a valid use of the law of detachment",
+              "real_world_hook": "A store sign says 'If you have a receipt, then you can return the item'; deciding what that policy does and does not promise to a customer who lost the receipt",
+              "practices": "3, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.2",
+              "lesson_title": "Lines, angles, and writing proofs",
+              "learning_objective": "Prove theorems about lines and angles, including vertical angles and angles formed by parallel lines and a transversal, in two-column and paragraph form",
+              "ccss_code": "G-CO.C.9",
+              "key_concepts": "Vertical angles are congruent; a linear pair is supplementary; when parallel lines are cut by a transversal, corresponding, alternate interior, and alternate exterior angles are congruent and same-side (consecutive) interior angles are supplementary; the converses of these theorems are used to prove lines parallel; points on the perpendicular bisector of a segment are equidistant from its endpoints; a two-column proof lists statements with a reason for each (given, definition, postulate, property, or theorem) and ends with the statement to be proved; paragraph and flow proofs use the same logic; algebraic properties of equality, reflexive, symmetric, transitive, and substitution properties; segment and angle addition postulates",
+              "prerequisites": "Conditional statements and logical reasoning, solving linear equations",
+              "key_vocabulary": "transversal, corresponding angles, alternate interior angles, alternate exterior angles, same-side interior angles, vertical angles, linear pair, postulate, theorem, two-column proof, paragraph proof",
+              "common_misconceptions": "Uses 'If two parallel lines are cut by a transversal, then alternate interior angles are congruent' as the reason to prove lines are parallel instead of its converse; with parallel lines, sets same-side interior angles 3x + 10 and 5x - 30 equal to each other (x = 20) instead of supplementary (8x - 20 = 180, so x = 25 and the angles are 85 and 95 degrees)",
+              "real_world_hook": "A carpenter checks that two shelves are parallel by measuring the angle each one makes with the same vertical support",
+              "practices": "3, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "1.3",
+              "lesson_title": "Proving triangle and parallelogram theorems",
+              "learning_objective": "Prove and apply theorems about triangles (angle sum, exterior angle, isosceles, midsegment, medians) and parallelograms (sides, angles, diagonals)",
+              "ccss_code": "G-CO.C.10, G-CO.C.11",
+              "key_concepts": "Interior angles of a triangle sum to 180 degrees; an exterior angle equals the sum of the two remote interior angles; base angles of an isosceles triangle are congruent, and the converse holds; a midsegment is parallel to the third side and half its length; the medians meet at the centroid, which is 2/3 of the way from each vertex to the opposite midpoint; triangle inequality: any two sides sum to more than the third; parallelograms have congruent opposite sides, congruent opposite angles, supplementary consecutive angles, and diagonals that bisect each other; rectangles also have congruent diagonals; rhombuses also have perpendicular diagonals that bisect the angles; a square has all of these properties",
+              "prerequisites": "Lines, angles, and writing proofs",
+              "key_vocabulary": "exterior angle, remote interior angles, isosceles triangle, base angles, midsegment, median, centroid, parallelogram, rectangle, rhombus, square, diagonal",
+              "common_misconceptions": "Assumes the diagonals of every parallelogram are congruent, a property only rectangles are guaranteed; thinks the centroid cuts a median in half, so for a median of length 12 says the centroid is 6 units from the vertex instead of 8",
+              "real_world_hook": "Explaining why a scissor lift built from parallelogram linkages keeps its platform level as it rises",
+              "practices": "3, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 2,
+          "unit_title": "Congruence and transformations",
+          "weeks": 2,
+          "lessons": [
+            {
+              "lesson_number": "2.1",
+              "lesson_title": "Rigid transformations and symmetry",
+              "learning_objective": "Perform and describe translations, reflections, and rotations on and off the coordinate plane, including sequences of transformations and the symmetries that map a figure onto itself",
+              "ccss_code": "G-CO.A.2, G-CO.A.3, G-CO.A.4, G-CO.A.5",
+              "key_concepts": "Translation (x, y) to (x + a, y + b); reflections over the x-axis (x, -y), the y-axis (-x, y), the line y = x (y, x), and the line y = -x (-y, -x); rotations about the origin: 90 degrees counterclockwise (-y, x), 180 degrees (-x, -y), 270 degrees counterclockwise or 90 degrees clockwise (y, -x); rigid motions preserve distance and angle measure, while dilations do not preserve distance; reflections reverse orientation; the order of a composition can change the final image; a regular n-gon has rotational symmetry by multiples of 360/n degrees and n lines of symmetry; describing a transformation precisely (center and angle, line of reflection, or translation vector)",
+              "prerequisites": "Coordinate plane, prior work with transformations",
+              "key_vocabulary": "transformation, pre-image, image, rigid motion, translation, reflection, rotation, line of symmetry, rotational symmetry, composition, orientation",
+              "common_misconceptions": "Rotates the point (2, 5) 90 degrees counterclockwise about the origin and writes (5, -2), which is the clockwise image; the counterclockwise image is (-5, 2); assumes reflecting and then translating a figure always gives the same result as translating and then reflecting",
+              "real_world_hook": "A game designer writes the coordinate rules that make a character sprite turn a quarter turn and flip to face the other direction",
+              "practices": "5, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.2",
+              "lesson_title": "Triangle congruence and CPCTC",
+              "learning_objective": "Use rigid motions and the SSS, SAS, ASA, AAS, and HL criteria to prove triangles congruent, then use corresponding parts to prove further relationships",
+              "ccss_code": "G-CO.B.6, G-CO.B.7, G-CO.B.8, G-SRT.B.5",
+              "key_concepts": "Two figures are congruent if a sequence of rigid motions maps one onto the other; congruent triangles have all pairs of corresponding sides and angles congruent; criteria: SSS, SAS (included angle), ASA (included side), AAS, and HL for right triangles; SSA and AAA do not prove congruence; the order of letters in a congruence statement shows the correspondence; CPCTC (corresponding parts of congruent triangles are congruent) is used only after the triangles are proved congruent; watch for shared sides (reflexive property) and vertical angles hidden in a diagram",
+              "prerequisites": "Rigid transformations and symmetry, Lines, angles, and writing proofs",
+              "key_vocabulary": "congruent, corresponding parts, SSS, SAS, ASA, AAS, HL, included angle, included side, CPCTC, reflexive property",
+              "common_misconceptions": "Claims two triangles are congruent by SSA when two sides and a non-included angle match; writes 'angle B is congruent to angle E by CPCTC' as a proof step before proving the triangles congruent; writes triangle ABC congruent to triangle FED when A matches D",
+              "real_world_hook": "Explaining why the triangular trusses in a bridge hold their shape: three fixed side lengths determine one triangle (SSS)",
+              "practices": "3, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "2.3",
+              "lesson_title": "Geometric constructions",
+              "learning_objective": "Perform formal constructions with compass and straightedge and explain why each construction works",
+              "ccss_code": "G-CO.D.12, G-CO.D.13",
+              "key_concepts": "Copy a segment and copy an angle; construct the perpendicular bisector of a segment; bisect an angle; construct a perpendicular to a line through a point on or off the line; construct a line parallel to a given line through a point not on it by copying a corresponding angle; construct an equilateral triangle, a square, and a regular hexagon inscribed in a circle (step the radius around the circle six times); each construction works because of equal radii and congruent triangles; the same steps can be done with string, reflective devices, paper folding, or geometry software",
+              "prerequisites": "Triangle congruence and CPCTC",
+              "key_vocabulary": "compass, straightedge, construction, arc, perpendicular bisector, angle bisector, inscribed, regular hexagon",
+              "common_misconceptions": "When constructing a perpendicular bisector, changes the compass width between the arc from one endpoint and the arc from the other, so the intersection points do not lie on the bisector; measures with a ruler to find a midpoint instead of constructing it",
+              "real_world_hook": "Laying out a regular hexagon garden bed using only a rope and stakes, the outdoor version of a compass",
+              "practices": "5, 6",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 3,
+          "unit_title": "Similarity, right triangles, and trigonometry",
+          "weeks": 2,
+          "lessons": [
+            {
+              "lesson_number": "3.1",
+              "lesson_title": "Dilations and similarity",
+              "learning_objective": "Perform dilations with a given center and scale factor, verify their properties, and use similarity transformations to decide whether figures are similar",
+              "ccss_code": "G-SRT.A.1, G-SRT.A.2, G-SRT.A.3",
+              "key_concepts": "A dilation centered at the origin maps (x, y) to (kx, ky); about any other center C, the image is C + k(P - C); k > 1 enlarges and 0 < k < 1 reduces; a dilation maps a line not through the center to a parallel line and a line through the center to itself; lengths multiply by k and angle measures stay the same; two figures are similar if a sequence of rigid motions and dilations maps one onto the other; AA similarity follows from this definition; perimeters scale by k, areas by k^2, and volumes by k^3",
+              "prerequisites": "Rigid transformations and symmetry, proportions",
+              "key_vocabulary": "dilation, center of dilation, scale factor, enlargement, reduction, similar figures, similarity transformation, AA similarity",
+              "common_misconceptions": "Dilates (4, 6) by a scale factor of 1/2 about the center (2, 2) by halving both coordinates to get (2, 3), as if the center were the origin; the correct image is (3, 4); doubles every side of a rectangle and says the area doubles when it is multiplied by 4",
+              "real_world_hook": "Enlarging a 4 by 6 inch photo to an 8 by 12 inch print doubles each length but uses 4 times as much paper (24 to 96 square inches)",
+              "practices": "6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.2",
+              "lesson_title": "Similar triangles and proportional segments",
+              "learning_objective": "Prove triangles similar with AA, SAS, and SSS similarity, apply the triangle proportionality theorem, and use the altitude to the hypotenuse to find missing lengths",
+              "ccss_code": "G-SRT.B.4, G-SRT.B.5",
+              "key_concepts": "Similarity criteria: AA, SAS similarity (two proportional sides and the included angle), SSS similarity; write proportions with corresponding sides in the same order; triangle proportionality (side-splitter) theorem: a line parallel to one side divides the other two sides proportionally, and its converse; the altitude to the hypotenuse of a right triangle forms two triangles similar to the original and to each other; geometric mean relationships: altitude^2 = product of the two hypotenuse segments, and each leg^2 = adjacent hypotenuse segment x whole hypotenuse; similarity gives a proof of the Pythagorean theorem; indirect measurement with shadows and mirrors",
+              "prerequisites": "Dilations and similarity, Triangle congruence and CPCTC",
+              "key_vocabulary": "similar triangles, SAS similarity, SSS similarity, proportion, triangle proportionality theorem, geometric mean, altitude, indirect measurement",
+              "common_misconceptions": "In triangle ABC with segment DE parallel to BC, AD = 4, DB = 6, and DE = 5, sets up 4/6 = 5/BC (getting 7.5) instead of 4/10 = 5/BC (so BC = 12.5), because the ratio AD/DB applies to the divided sides, not to the parallel segments",
+              "real_world_hook": "A 6-foot person casts a 4-foot shadow at the same time a flagpole casts an 18-foot shadow, so the flagpole is 27 feet tall",
+              "practices": "3, 4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.3",
+              "lesson_title": "Pythagorean theorem and special right triangles",
+              "learning_objective": "Use the Pythagorean theorem and its converse and the 45-45-90 and 30-60-90 relationships to solve right triangle problems with exact and approximate answers",
+              "ccss_code": "G-SRT.B.4, G-SRT.C.8",
+              "key_concepts": "a^2 + b^2 = c^2 where c is the hypotenuse, the side opposite the right angle; converse: if c^2 = a^2 + b^2 the triangle is right, if c^2 < a^2 + b^2 it is acute, and if c^2 > a^2 + b^2 it is obtuse (c is the longest side); common Pythagorean triples 3-4-5, 5-12-13, 8-15-17, 7-24-25 and their multiples; 45-45-90: legs x and hypotenuse x sqrt2, so leg = hypotenuse / sqrt2 = (hypotenuse x sqrt2)/2; 30-60-90: short leg x, long leg x sqrt3, hypotenuse 2x; give exact answers in simplest radical form when asked",
+              "prerequisites": "Similar triangles and proportional segments, simplifying square roots",
+              "key_vocabulary": "hypotenuse, leg, Pythagorean theorem, converse, Pythagorean triple, 45-45-90 triangle, 30-60-90 triangle, simplest radical form",
+              "common_misconceptions": "In a 30-60-90 triangle with hypotenuse 10, gives the long leg as 10 sqrt3 instead of 5 sqrt3 (the short leg is 5, so the long leg is 5 sqrt3); finds the missing leg of a right triangle with leg 5 and hypotenuse 13 as sqrt(5^2 + 13^2) instead of sqrt(13^2 - 5^2) = 12",
+              "real_world_hook": "A 13-foot ladder with its base 5 feet from a wall reaches 12 feet up the wall",
+              "practices": "6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "3.4",
+              "lesson_title": "Trigonometric ratios and solving right triangles",
+              "learning_objective": "Define sine, cosine, and tangent from similar right triangles, use the complementary-angle relationship, and solve right triangles in applied problems including angles of elevation and depression",
+              "ccss_code": "G-SRT.C.6, G-SRT.C.7, G-SRT.C.8",
+              "key_concepts": "For an acute angle A of a right triangle: sin A = opposite/hypotenuse, cos A = adjacent/hypotenuse, tan A = opposite/adjacent (SOH-CAH-TOA); the ratios depend only on the angle because all right triangles with that angle are similar; sin A = cos(90 degrees - A) for complementary angles; solving for a side with the ratio that links the known and unknown sides; inverse trig functions to find an angle; the angle of depression from an observer equals the angle of elevation from the object (alternate interior angles); keep the calculator in degree mode and round only at the end",
+              "prerequisites": "Pythagorean theorem and special right triangles",
+              "key_vocabulary": "sine, cosine, tangent, opposite side, adjacent side, hypotenuse, inverse trigonometric function, complementary angles, angle of elevation, angle of depression",
+              "common_misconceptions": "Leaves the calculator in radian mode, so 20 tan 35 gives about 9.48 instead of the correct 20 tan 35 degrees, about 14.00; labels the side next to the given angle as 'opposite' after the triangle is drawn in a rotated position; thinks sin 40 degrees = cos 40 degrees instead of sin 40 degrees = cos 50 degrees",
+              "real_world_hook": "A kite flies on 100 feet of taut string at a 40 degree angle of elevation, so it is about 100 sin 40 degrees, or 64.3 feet, above the hand holding the string",
+              "practices": "4, 5, 6",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 4,
+          "unit_title": "Circles",
+          "weeks": 2,
+          "lessons": [
+            {
+              "lesson_number": "4.1",
+              "lesson_title": "Angles and arcs in circles",
+              "learning_objective": "Find measures of central, inscribed, and tangent-related angles and arcs, and use the properties of inscribed quadrilaterals and angles formed by intersecting chords, secants, and tangents",
+              "ccss_code": "G-C.A.1, G-C.A.2, G-C.A.3",
+              "key_concepts": "All circles are similar; a central angle equals its intercepted arc; an inscribed angle is half its intercepted arc; inscribed angles that intercept the same arc are congruent; an angle inscribed in a semicircle is a right angle; opposite angles of a quadrilateral inscribed in a circle are supplementary; a tangent is perpendicular to the radius at the point of tangency; an angle formed by a tangent and a chord is half the intercepted arc; two chords intersecting inside the circle form an angle equal to half the sum of the intercepted arcs; two secants, two tangents, or a secant and a tangent meeting outside the circle form an angle equal to half the difference of the intercepted arcs; arcs in a circle sum to 360 degrees",
+              "prerequisites": "Triangle and parallelogram theorems, angle relationships",
+              "key_vocabulary": "central angle, inscribed angle, intercepted arc, minor arc, major arc, semicircle, chord, secant, tangent, point of tangency, inscribed quadrilateral",
+              "common_misconceptions": "Two chords intersect inside a circle and intercept arcs of 100 and 40 degrees; answers 30 degrees (half the difference, the rule for angles outside the circle) instead of 70 degrees (half the sum); sets an inscribed angle equal to its intercepted arc instead of half of it",
+              "real_world_hook": "Every seat on the same circular arc through the two ends of a stage views the stage at the same angle, because inscribed angles intercepting the same arc are congruent",
+              "practices": "3, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.2",
+              "lesson_title": "Segment relationships in circles",
+              "learning_objective": "Find lengths of chords, secants, and tangents using intersecting-segment theorems and the relationships among radii, chords, and tangents",
+              "ccss_code": "G-C.A.2",
+              "key_concepts": "Two chords intersecting inside a circle: the products of their segments are equal (a x b = c x d); two secants from an external point: outside segment x whole secant is equal for both; a secant and a tangent from an external point: tangent^2 = outside segment x whole secant; two tangent segments from the same external point are congruent; a radius or diameter perpendicular to a chord bisects the chord; congruent chords are equidistant from the center; the radius, half a chord, and the distance from the center to the chord form a right triangle",
+              "prerequisites": "Angles and arcs in circles, Pythagorean theorem and special right triangles",
+              "key_vocabulary": "chord, secant segment, external segment, tangent segment, intersecting chords theorem, perpendicular bisector of a chord",
+              "common_misconceptions": "A secant from external point P has an outside segment of 4 and passes through the circle along a chord of 5; finds the tangent length t from P using t^2 = 4 x 5 = 20 instead of t^2 = 4 x (4 + 5) = 36, so t = 6",
+              "real_world_hook": "Finding the radius of a broken plate from a fragment: a chord of 8 inches with a 2-inch rise at its middle gives 4 x 4 = 2 x (2r - 2), so the radius is 5 inches",
+              "practices": "4, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.3",
+              "lesson_title": "Arc length and sector area",
+              "learning_objective": "Calculate arc lengths and sector areas in degrees and radians and explain radian measure as a ratio of arc length to radius",
+              "ccss_code": "G-C.B.5",
+              "key_concepts": "Arc length = (central angle / 360) x 2 pi r; sector area = (central angle / 360) x pi r^2; arc length is proportional to the radius because all circles are similar; radian measure = arc length / radius, so 360 degrees = 2 pi radians and 180 degrees = pi radians; to convert degrees to radians multiply by pi/180; in radians, arc length s = r theta and sector area = (1/2) r^2 theta; area of a circular segment = sector area minus triangle area; give answers in terms of pi or rounded as the item directs",
+              "prerequisites": "Angles and arcs in circles, circumference and area of a circle",
+              "key_vocabulary": "arc length, sector, central angle, radian, circumference, segment of a circle, in terms of pi",
+              "common_misconceptions": "For a 60 degree sector of a circle with radius 6, computes (60/360) x 2 pi (6) = 2 pi and reports it as the sector's area; that is the arc length, and the area is (60/360) x pi (6^2) = 6 pi",
+              "real_world_hook": "A 16-inch pizza cut into 8 equal slices: each slice has 2 pi, about 6.28 inches, of crust and 8 pi, about 25.1 square inches, of area",
+              "practices": "6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "4.4",
+              "lesson_title": "Equation of a circle",
+              "learning_objective": "Derive the equation of a circle from the Pythagorean theorem, write it from given information, and complete the square to find the center and radius",
+              "ccss_code": "G-GPE.A.1",
+              "key_concepts": "Standard form (x - h)^2 + (y - k)^2 = r^2 has center (h, k) and radius r, derived from the distance formula; the signs inside the parentheses are opposite the center's coordinates; writing an equation from a center and a point on the circle, or from the endpoints of a diameter (midpoint is the center); completing the square for x and for y, adding the same amounts to both sides: x^2 + y^2 - 6x + 4y - 12 = 0 becomes (x - 3)^2 + (y + 2)^2 = 25, center (3, -2) and radius 5; a point is on, inside, or outside the circle when its distance from the center equals, is less than, or is greater than r",
+              "prerequisites": "Pythagorean theorem, completing the square from Algebra 1",
+              "key_vocabulary": "standard form of a circle, center, radius, diameter, completing the square, distance formula",
+              "common_misconceptions": "For (x + 2)^2 + (y - 5)^2 = 49, gives the center as (2, -5) and the radius as 49; the center is (-2, 5) and the radius is 7; when completing the square, adds 9 and 4 to the left side only",
+              "real_world_hook": "A cell tower at (3, -2) covers a 5-mile radius on a map grid in miles; a house at (6, 3) is sqrt34, about 5.83 miles, away, so it is outside the coverage area",
+              "practices": "6, 7, 8",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 5,
+          "unit_title": "Coordinate geometry",
+          "weeks": 1,
+          "lessons": [
+            {
+              "lesson_number": "5.1",
+              "lesson_title": "Distance, midpoint, and partitioning segments",
+              "learning_objective": "Use the distance and midpoint formulas and find the point that partitions a directed segment in a given ratio",
+              "ccss_code": "G-GPE.B.6, G-GPE.B.7",
+              "key_concepts": "Distance formula d = sqrt((x2 - x1)^2 + (y2 - y1)^2) comes from the Pythagorean theorem; (1, 2) to (7, 10) is sqrt(36 + 64) = 10; midpoint is the average of the coordinates; finding a missing endpoint from a midpoint; partitioning a directed segment from A to B in the ratio a:b: the point is a/(a + b) of the way from A, found by adding that fraction of the change in x and change in y to A; for A(-2, 1), B(10, 9) and the ratio 1:3 the point is 1/4 of the way, (1, 3); the order 'from A to B' matters",
+              "prerequisites": "Pythagorean theorem, fractions, coordinate plane",
+              "key_vocabulary": "distance formula, midpoint formula, directed line segment, partition, ratio, endpoint",
+              "common_misconceptions": "Partitions the directed segment from A(-2, 1) to B(10, 9) in the ratio 1:3 by moving 1/3 of the way and getting (2, 11/3), instead of 1/(1 + 3) = 1/4 of the way to (1, 3); computes distance by subtracting the coordinates and adding them without squaring",
+              "real_world_hook": "A trail map places a water station on a straight trail so the distances from the trailhead and to the summit are in the ratio 1:3",
+              "practices": "6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "5.2",
+              "lesson_title": "Slope criteria, coordinate proofs, and polygon perimeter and area",
+              "learning_objective": "Use slope and distance to prove geometric properties of figures on the coordinate plane and compute perimeters and areas of polygons",
+              "ccss_code": "G-GPE.B.4, G-GPE.B.5, G-GPE.B.7",
+              "key_concepts": "Parallel lines have equal slopes; perpendicular lines have opposite reciprocal slopes (product -1, except vertical and horizontal); writing the equation of a line parallel or perpendicular to a given line through a point; proving a quadrilateral is a parallelogram (both pairs of opposite sides parallel, or diagonals with the same midpoint), a rectangle (a parallelogram with a right angle or congruent diagonals), a rhombus (four congruent sides or a parallelogram with perpendicular diagonals), or a square (both); proving a right triangle with perpendicular slopes or the Pythagorean converse; perimeter with the distance formula; area by base and height, decomposition, or enclosing rectangle; ending a coordinate proof with a concluding sentence that names the property shown",
+              "prerequisites": "Distance, midpoint, and partitioning segments, Proving triangle and parallelogram theorems, slope",
+              "key_vocabulary": "slope, parallel, perpendicular, opposite reciprocal, coordinate proof, parallelogram, rectangle, rhombus, square, perimeter",
+              "common_misconceptions": "Concludes that ABCD with A(0, 0), B(4, 1), C(5, 5), D(1, 4) is a square because all four sides measure sqrt17, without checking for a right angle; slopes 1/4 and 4 are reciprocals but not opposite reciprocals, so ABCD is a rhombus but not a square; thinks slopes 2 and -2 are perpendicular",
+              "real_world_hook": "A landscaper checks with coordinates that four stakes marking a garden bed form a true rectangle before ordering edging",
+              "practices": "3, 6, 7",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 6,
+          "unit_title": "Measurement and modeling",
+          "weeks": 2,
+          "lessons": [
+            {
+              "lesson_number": "6.1",
+              "lesson_title": "Area, volume, and Cavalieri's principle",
+              "learning_objective": "Use area and volume formulas for polygons, circles, prisms, cylinders, pyramids, cones, and spheres, and give informal arguments for them, including Cavalieri's principle",
+              "ccss_code": "G-GMD.A.1, G-GMD.A.3",
+              "key_concepts": "Areas of triangles, parallelograms, trapezoids, circles, and regular polygons (1/2 x apothem x perimeter); prism and cylinder V = Bh where B is the area of the base; pyramid and cone V = (1/3)Bh; sphere V = (4/3) pi r^3; informal arguments: dissecting a circle into wedges to justify its area, and a cone holding 1/3 of a cylinder with the same base and height; Cavalieri's principle: solids with equal heights and equal cross-sectional areas at every level have equal volumes, so an oblique cylinder has the same volume as a right cylinder with the same base and height; height is perpendicular to the base and is different from slant height; composite solids by adding or subtracting volumes; lateral and total surface area where your state includes them",
+              "prerequisites": "Area of basic figures, Pythagorean theorem",
+              "key_vocabulary": "area, volume, base area, height, slant height, prism, cylinder, pyramid, cone, sphere, Cavalieri's principle, oblique, composite solid",
+              "common_misconceptions": "Finds the volume of a cone with radius 3 and slant height 5 by using 5 as the height, getting 15 pi; the height is 4 (a 3-4-5 right triangle), so the volume is (1/3) pi (9)(4) = 12 pi",
+              "real_world_hook": "A straight stack of coins and the same stack pushed into a slant have the same volume, which is Cavalieri's principle in action",
+              "practices": "4, 6, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.2",
+              "lesson_title": "Cross sections and solids of revolution",
+              "learning_objective": "Identify the shapes of two-dimensional cross sections of three-dimensional solids and the solids produced by rotating two-dimensional figures about a line",
+              "ccss_code": "G-GMD.B.4",
+              "key_concepts": "A plane parallel to the base of a prism or cylinder gives a cross section congruent to the base; parallel to the base of a pyramid or cone gives a similar, smaller shape; perpendicular slices through a prism or cylinder give rectangles; a cube can have square, rectangular, triangular, pentagonal, and hexagonal cross sections; every plane section of a sphere is a circle; rotations: a rectangle about one side makes a cylinder, a right triangle about a leg makes a cone, a semicircle about its diameter makes a sphere; the side on the axis becomes the height and the perpendicular distance from the axis becomes the radius",
+              "prerequisites": "Area, volume, and Cavalieri's principle",
+              "key_vocabulary": "cross section, plane, solid of revolution, axis of rotation, cylinder, cone, sphere, prism, pyramid",
+              "common_misconceptions": "Rotates a 3 by 5 rectangle about its 5-unit side and uses 5 as the radius; the radius is 3 and the height is 5, so the volume is pi (3^2)(5) = 45 pi; claims a cube can never have a hexagonal cross section",
+              "real_world_hook": "A medical CT scan builds a 3-D picture from many parallel cross sections, and a potter shapes a vase by rotating a profile around an axis",
+              "practices": "1, 7",
+              "meta": {}
+            },
+            {
+              "lesson_number": "6.3",
+              "lesson_title": "Modeling with geometry: density and design",
+              "learning_objective": "Model real objects with geometric shapes and solve problems involving density, unit conversion, and design constraints",
+              "ccss_code": "G-MG.A.1, G-MG.A.2, G-MG.A.3",
+              "key_concepts": "Modeling objects with shapes (a tree trunk as a cylinder, a silo as a cylinder with a hemisphere on top); density = mass / volume and population density = people / area, keeping units; an aluminum cube 2 cm on a side with density 2.7 g per cubic cm has mass 8 x 2.7 = 21.6 g; converting area and volume units with the square or cube of the length factor: 1 square foot = 144 square inches, 1 cubic foot = 1,728 cubic inches, 1 cubic yard = 27 cubic feet; design problems that meet constraints or minimize cost; rounding up when buying materials; stating assumptions in a model",
+              "prerequisites": "Area, volume, and Cavalieri's principle, unit rates",
+              "key_vocabulary": "model, density, mass, population density, unit conversion, constraint, cubic yard, assumption",
+              "common_misconceptions": "Converts 2 cubic yards to cubic feet by multiplying by 3 and gets 6 cubic feet instead of multiplying by 27 to get 54 cubic feet; finds population density by dividing area by population",
+              "real_world_hook": "A 10 by 12 foot patio poured 4 inches thick needs 10 x 12 x (1/3) = 40 cubic feet, about 1.48 cubic yards, of concrete, so the order must be rounded up",
+              "practices": "4, 5, 6",
+              "meta": {}
+            }
+          ]
+        },
+        {
+          "unit_number": 7,
+          "unit_title": "Test-day skills",
+          "weeks": 1,
+          "lessons": [
+            {
+              "lesson_number": "7.1",
+              "lesson_title": "Using the reference sheet",
+              "learning_objective": "Locate and correctly apply formulas from a state Geometry reference sheet and recognize which relationships you must know without it",
+              "ccss_code": "EOC Test Skills: Reference materials",
+              "key_concepts": "Most state Geometry exams provide a reference sheet, but contents differ by state, so check your state's reference sheet and practice with that exact page; typical entries may include volume formulas, sometimes area, surface area, or trigonometry and special right triangle information, and unit conversions; matching each variable to the problem, especially B (area of the base, not a base length), h (perpendicular height), and l (slant height); relationships often not on the sheet, such as circle angle and segment theorems, the equation of a circle, and slope criteria, must be memorized",
+              "prerequisites": "Familiarity with area, volume, circle, and right triangle formulas",
+              "key_vocabulary": "reference sheet, formula, base area, height, slant height, substitute, exact answer",
+              "common_misconceptions": "Treats B in V = (1/3)Bh as a base edge length: for a square pyramid with base edge 6 and height 10 computes (1/3)(6)(10) = 20 instead of (1/3)(36)(10) = 120; assumes the circle angle theorems will be on the sheet without having checked the state's actual sheet",
+              "real_world_hook": "Before a practice test, a student marks which formulas on their state's reference sheet they used most and lists the theorems they must memorize because the sheet leaves them out",
+              "practices": "5, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "7.2",
+              "lesson_title": "Calculator checks",
+              "learning_objective": "Use a scientific or graphing calculator (or the on-screen calculator your exam provides) accurately for trigonometry, radicals, and pi, and use it to check answers",
+              "ccss_code": "EOC Test Skills: Calculator use / MP5",
+              "key_concepts": "Calculator availability and type vary by state and by test session, so confirm your state's rules; set degree mode before any trig problem; use inverse trig keys to find angles and wrap fractions in parentheses; use the pi key rather than 3.14 unless told otherwise; store or chain intermediate values instead of rounding mid-problem; check a side found with trig by using the Pythagorean theorem or another ratio; convert exact radical or pi answers to decimals to compare with answer choices",
+              "prerequisites": "Trigonometric ratios and solving right triangles, Arc length and sector area",
+              "key_vocabulary": "degree mode, radian mode, inverse tangent, pi key, rounding, exact answer, approximate answer",
+              "common_misconceptions": "Finds the angle whose tangent is 7/4 by typing tan^-1(7)/4, getting about 20.5 degrees, instead of tan^-1(7/4), about 60.3 degrees; rounds sin 35 degrees to 0.57 partway through, so 50 sin 35 degrees becomes 28.5 instead of about 28.7",
+              "real_world_hook": "Checking a hand-solved triangle with legs 8 and 15 by confirming that the calculator gives a hypotenuse of 17 and that tan^-1(8/15) plus tan^-1(15/8) is 90 degrees",
+              "practices": "5, 6",
+              "meta": {}
+            },
+            {
+              "lesson_number": "7.3",
+              "lesson_title": "Constructed responses and justification",
+              "learning_objective": "Write complete, well-justified answers to constructed-response items, including short proofs and explanations, that earn full rubric credit",
+              "ccss_code": "EOC Test Skills: Response formats / MP3",
+              "key_concepts": "Some Geometry exams, such as the New York Regents, include written-response items and proofs scored for partial credit, while others use mostly selected-response and technology-enhanced items, so check your state's format; show the equation or theorem used, each key step, and a final answer with units; when asked to justify or explain, name the theorem or property in a complete sentence; every proof step needs a valid reason, and the last statement must be what was to be proved; label diagrams you add; follow directions on rounding and exact form",
+              "prerequisites": "All prior units",
+              "key_vocabulary": "constructed response, justify, explain, rubric, partial credit, theorem, concluding statement, units",
+              "common_misconceptions": "Writes only 'x = 25' on an item that asks to justify the answer and loses the reasoning points; in a proof, gives 'given' or 'it looks like it' as the reason for a fact that was not given and must be proved",
+              "real_world_hook": "Comparing two student answers to the same item, one with a bare number and one with the theorem named, and scoring them with a sample rubric",
+              "practices": "3, 6",
+              "meta": {}
+            }
+          ]
+        }
+      ],
+      "legacy_course_id": "geometry"
+    },
+    {
       "id": "foundations",
       "title": "Foundations: Fractions, Ratios, Percent & Integers",
       "grade_levels": [
@@ -9505,7 +10581,7 @@
         8,
         9
       ],
-      "display_order": 19,
+      "display_order": 21,
       "total_weeks": 22,
       "total_lessons": 32,
       "legacy_course_id": "prealgebra",

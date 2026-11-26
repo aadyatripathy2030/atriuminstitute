@@ -6,9 +6,10 @@ const fs = require('fs');
 const path = require('path');
 const { syncCurriculum, curriculumFiles, loadFile } = require('../curriculum-import-lib');
 
-function fakePool({ failOn } = {}) {
+function fakePool({ failOn, existing = [] } = {}) {
   const hashes = new Map();
   const log = [];
+  const deletes = [];
   const client = {
     async query(sql, params = []) {
       log.push(sql.trim().split(/\s+/).slice(0, 3).join(' '));
@@ -18,11 +19,13 @@ function fakePool({ failOn } = {}) {
         return { rows: h ? [{ content_hash: h }] : [] };
       }
       if (/^insert into curriculum_sync/.test(sql.trim())) hashes.set(params[0], params[1]);
+      if (/from curriculum_lessons cl join/.test(sql)) return { rows: existing };
+      if (/^delete from (curriculum_lesson_quizzes|cached_lessons)/.test(sql.trim())) deletes.push([sql.trim().split(/\s+/)[2], ...params]);
       return { rows: [] };
     },
     release() {},
   };
-  return { hashes, log, pool: { query: client.query, connect: async () => client } };
+  return { hashes, log, deletes, pool: { query: client.query, connect: async () => client } };
 }
 
 const quiet = { log() {} };
@@ -64,4 +67,30 @@ test('a failed import rolls back and does not record the hash', async () => {
 test('the server runs the sync at startup', () => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   assert.match(src, /syncCurriculum\(db\._pool\)/);
+});
+
+test('units list in display order but keep their stable unit numbers', async () => {
+  const dbj = require('../db-jsonfile');
+  const full = await dbj.getCurriculumCourseFull('algebra1');
+  const firstTwo = full.units.slice(0, 2).map(u => [u.position, u.unit_number]);
+  assert.deepStrictEqual(firstTwo, [[1, 2], [2, 10]]);
+  const listed = (await dbj.listCurriculumCourses({ subject: 'math', withUnits: true })).find(c => c.id === 'algebra1');
+  assert.deepStrictEqual(listed.units.map(u => u.unit_number), full.units.map(u => u.unit_number));
+  for (const u of full.units) assert.ok(u.lessons.every(l => l.lesson_number.startsWith(u.unit_number + '.')));
+});
+
+test('a re-import clears cached quizzes and lessons only for edited lessons', async () => {
+  const data = loadFile(curriculumFiles().find(f => f.endsWith('math.json')));
+  const course = data.courses.find(c => c.id === 'algebra1');
+  const unit = course.units.find(u => u.unit_number === 2);
+  const fields = ['lesson_title', 'learning_objective', 'ccss_code', 'key_concepts', 'prerequisites',
+    'key_vocabulary', 'common_misconceptions', 'real_world_hook', 'practices'];
+  const row = (l, patch = {}) => ({ course_id: 'algebra1', unit_number: 2, ...Object.fromEntries(fields.map(f => [f, l[f]])), lesson_number: l.lesson_number, ...patch });
+  const existing = [row(unit.lessons[0]), row(unit.lessons[1], { key_concepts: 'old wording' })];
+  const { pool, deletes } = fakePool({ existing });
+  await syncCurriculum(pool, quiet);
+  assert.deepStrictEqual(deletes, [
+    ['curriculum_lesson_quizzes', 'algebra1', unit.lessons[1].lesson_number],
+    ['cached_lessons', 'curr:algebra1', 'curr:algebra1:u2', 1],
+  ]);
 });
