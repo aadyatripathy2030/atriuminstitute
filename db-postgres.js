@@ -1093,14 +1093,12 @@ async function listCurriculumCourses(opts) {
   if (!opts.withUnits || courses.length === 0) return courses;
   // Bulk-fetch units for the matching courses.
   const ids = courses.map(c => c.id);
-  const units = await q(
-    `select cu.course_id, cu.unit_number, cu.unit_title, cu.weeks,
+  const unitSql = order => `select cu.course_id, cu.unit_number, cu.unit_title, cu.weeks,
             (select count(*) from curriculum_lessons cl where cl.course_id = cu.course_id and cl.unit_number = cu.unit_number) as lesson_count
      from curriculum_units cu
      where cu.course_id = any($1::text[])
-     order by cu.course_id, coalesce(cu.display_order, cu.unit_number), cu.unit_number`,
-    [ids]
-  );
+     order by cu.course_id, ${order}`;
+  const units = await withUnitOrder(order => q(unitSql(order), [ids]), 'cu.');
   const byCourse = new Map();
   for (const u of units) {
     if (!byCourse.has(u.course_id)) byCourse.set(u.course_id, []);
@@ -1116,6 +1114,18 @@ async function listCurriculumCourses(opts) {
   return courses;
 }
 
+// Units sort by display_order when the column exists. If a deploy runs
+// before the column is added (42703 = undefined_column), fall back to
+// unit_number so the course pages keep working.
+async function withUnitOrder(run, alias) {
+  try {
+    return await run(`coalesce(${alias}display_order, ${alias}unit_number), ${alias}unit_number`);
+  } catch (e) {
+    if (e && e.code === '42703') return run(`${alias}unit_number`);
+    throw e;
+  }
+}
+
 // Full course detail: course row + its units (each with its lessons).
 async function getCurriculumCourseFull(courseId) {
   const courseRows = await q(
@@ -1125,12 +1135,12 @@ async function getCurriculumCourseFull(courseId) {
   );
   if (!courseRows.length) return null;
   const course = courseRows[0];
-  const units = await q(
+  const units = await withUnitOrder(order => q(
     `select unit_number, unit_title, weeks
      from curriculum_units where course_id = $1
-     order by coalesce(display_order, unit_number), unit_number`,
+     order by ${order}`,
     [courseId]
-  );
+  ), '');
   const lessons = await q(
     `select unit_number, lesson_number, lesson_title, learning_objective,
             ccss_code, key_concepts, prerequisites, key_vocabulary,

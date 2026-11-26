@@ -192,6 +192,9 @@ async function clearStaleLessonCaches(client, before, data) {
 async function syncCurriculum(pool, log = console) {
   await pool.query(`create table if not exists curriculum_sync (
     subject_id text primary key, content_hash text not null, synced_at timestamptz not null default now())`);
+  // Also in db/schema.sql, repeated here so the import and the unit
+  // queries never depend on schema.sql having applied cleanly.
+  await pool.query('alter table curriculum_units add column if not exists display_order integer');
   const results = [];
   for (const file of curriculumFiles()) {
     const raw = fs.readFileSync(file, 'utf8');
