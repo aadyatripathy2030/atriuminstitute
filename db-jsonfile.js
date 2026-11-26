@@ -1063,8 +1063,57 @@ async function deleteStudyPlan(userId) {
 // writes there directly. Local jsonfile dev returns empty data so the
 // API endpoints don't blow up.
 async function listCurriculumSubjects() { return []; }
-async function listCurriculumCourses() { return []; }
-async function getCurriculumCourseFull() { return null; }
+// Curriculum reads straight from curriculum/*.json (Postgres loads the same
+// files via curriculum-import-lib), with the same row shapes as db-postgres.
+let _curriculumCache = null;
+function _curriculum() {
+  if (_curriculumCache) return _curriculumCache;
+  const { curriculumFiles, loadFile } = require('./curriculum-import-lib');
+  _curriculumCache = [];
+  for (const f of curriculumFiles()) {
+    try {
+      const data = loadFile(f);
+      for (const c of data.courses || []) _curriculumCache.push({ ...c, subject_id: data.subject.id });
+    } catch (e) { console.warn('curriculum: skipped', f, e.message); }
+  }
+  _curriculumCache.sort((a, b) => (a.display_order || 0) - (b.display_order || 0) || a.id.localeCompare(b.id));
+  return _curriculumCache;
+}
+function _courseRow(c) {
+  return {
+    id: c.id, subject_id: c.subject_id, title: c.title, grade_levels: c.grade_levels || [],
+    display_order: c.display_order || 0, total_weeks: c.total_weeks || null,
+    total_lessons: c.total_lessons || 0, legacy_course_id: c.legacy_course_id || null,
+  };
+}
+async function listCurriculumCourses(opts) {
+  opts = opts || {};
+  return _curriculum()
+    .filter(c => !opts.subject || c.subject_id === opts.subject)
+    .filter(c => opts.grade == null || (c.grade_levels || []).includes(opts.grade))
+    .map(c => {
+      const row = _courseRow(c);
+      if (opts.withUnits) {
+        row.units = (c.units || []).map(u => ({
+          unit_number: u.unit_number, unit_title: u.unit_title, weeks: u.weeks || null,
+          lesson_count: (u.lessons || []).length,
+        }));
+      }
+      return row;
+    });
+}
+async function getCurriculumCourseFull(courseId) {
+  const c = _curriculum().find(x => x.id === courseId);
+  if (!c) return null;
+  let order = 0;
+  return {
+    ..._courseRow(c),
+    units: (c.units || []).map(u => ({
+      unit_number: u.unit_number, unit_title: u.unit_title, weeks: u.weeks || null,
+      lessons: (u.lessons || []).map(l => ({ unit_number: u.unit_number, ...l, meta: l.meta || {}, display_order: ++order })),
+    })),
+  };
+}
 
 // ---------- Cached curriculum lesson quizzes (Postgres-only feature) ----------
 async function getCurriculumQuiz() { return null; }

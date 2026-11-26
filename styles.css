@@ -7984,3 +7984,18 @@ html:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --acc
 .study-section-btn:hover, .study-q-num, .study-q-ask:hover, .how-num, .pricing-badge, .testi-avatar,
 .footer-email-btn:hover, .start-method-btn { color: var(--on-accent); }
 :where(a:not([class])) { color: var(--accent-ink); }
+
+/* Course catalog: one collapsible header row per course above its unit cards. */
+#coursesGrid > .catalog-course-head {
+  grid-column: 1 / -1; display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap;
+  width: 100%; margin: 14px 0 0; padding: 16px 20px; text-align: left; cursor: pointer;
+  font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+#coursesGrid > .catalog-course-head:first-child { margin-top: 0; }
+#coursesGrid > .catalog-course-head:hover { border-color: var(--accent); }
+#coursesGrid > .catalog-course-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.catalog-course-title { font-weight: 600; font-size: 18px; letter-spacing: -.01em; }
+.catalog-course-meta { color: var(--muted); font-size: 14px; }
+.catalog-course-chev { margin-left: auto; align-self: center; flex: none; color: currentColor; opacity: .8; transition: transform .2s ease; }
+.catalog-course-head[aria-expanded="false"] .catalog-course-chev { transform: rotate(-90deg); }
+@media (prefers-reduced-motion: reduce) { .catalog-course-chev { transition: none; } }

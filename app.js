@@ -629,7 +629,39 @@ async function renderCourses() {
     // we'll tighten this to land directly on the matching book.
     const tiles = [];
     let renderedCount = 0;
+    // Each course gets a full-width header row that collapses its unit
+    // cards; with grade-level, AP, test-prep and review courses all on one
+    // grid, an ungrouped wall of units is unreadable. The first course is
+    // open by default; the student's own choices are remembered.
+    let openState = {};
+    try { openState = JSON.parse(localStorage.getItem('atrium_catalog_open_v1') || '{}') || {}; } catch (_) { openState = {}; }
+    const saveOpen = () => { try { localStorage.setItem('atrium_catalog_open_v1', JSON.stringify(openState)); } catch (_) { /* private mode */ } };
+    curriculumCourses.forEach((cc, idx) => {
+      const isOpen = cc.id in openState ? !!openState[cc.id] : idx === 0;
+      const head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'catalog-course-head';
+      head.dataset.course = cc.id;
+      head.setAttribute('aria-expanded', String(isOpen));
+      const nUnits = (cc.units || []).length;
+      const grades = (cc.grade_levels || []);
+      const gradeLabel = grades.length ? (grades.length > 1 ? `Grades ${grades[0]}–${grades[grades.length - 1]}` : `Grade ${grades[0]}`) : '';
+      const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+      head.innerHTML = `<span class="catalog-course-title">${esc(cc.title)}</span>
+        <span class="catalog-course-meta">${esc(gradeLabel)}${nUnits ? ` · ${nUnits} units` : ''}${cc.total_lessons ? ` · ${cc.total_lessons} lessons` : ''}</span>
+        <svg class="catalog-course-chev" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+      head.addEventListener('click', () => {
+        const nowOpen = head.getAttribute('aria-expanded') !== 'true';
+        head.setAttribute('aria-expanded', String(nowOpen));
+        grid.querySelectorAll(`[data-catalog-course="${CSS.escape(cc.id)}"]`).forEach(el => el.classList.toggle('hidden', !nowOpen));
+        openState[cc.id] = nowOpen; saveOpen();
+      });
+      cc._catalogOpen = isOpen;
+      cc._catalogHead = head;
+    });
     for (const cc of curriculumCourses) {
+      if (curriculumCourses.length > 1) tiles.push(cc._catalogHead);
+      const tilesBefore = tiles.length;
       const legacy = cc.legacy_course_id && COURSES[cc.legacy_course_id] ? COURSES[cc.legacy_course_id] : null;
       if (!legacy) {
         // Curriculum row with no legacy content yet — show one placeholder.
@@ -650,6 +682,7 @@ async function renderCourses() {
           <div class="course-cta disabled">Coming soon</div>
         `;
         tiles.push(placeholder);
+        tagCatalogTiles(cc, tilesBefore);
         continue;
       }
       const courseGrades = (cc.grade_levels || []).map(g => 'Grade ' + g).join(', ');
@@ -761,6 +794,14 @@ async function renderCourses() {
         };
         tiles.push(card);
         renderedCount += 1;
+      }
+      tagCatalogTiles(cc, tilesBefore);
+    }
+    function tagCatalogTiles(cc, from) {
+      if (curriculumCourses.length < 2) return;
+      for (let i = from; i < tiles.length; i++) {
+        tiles[i].dataset.catalogCourse = cc.id;
+        if (!cc._catalogOpen) tiles[i].classList.add('hidden');
       }
     }
     for (const t of tiles) grid.appendChild(t);

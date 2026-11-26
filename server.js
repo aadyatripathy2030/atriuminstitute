@@ -1887,7 +1887,7 @@ async function handleAdminLessons(req, res) {
 
 // ---------- Curriculum quiz generation (cache + on-demand AI) ----------
 async function generateCurriculumQuiz(meta) {
-  // meta: { courseTitle, unitTitle, lessonTitle, learningObjective, keyConcepts, keyVocabulary, ccssCode }
+  // meta: { courseTitle, unitTitle, lessonTitle, learningObjective, keyConcepts, keyVocabulary, ccssCode, commonMisconceptions }
   const userMsg = `Course: ${meta.courseTitle || 'Unknown course'}
 Unit / chapter: ${meta.unitTitle || 'Unknown unit'}
 Section title: ${meta.lessonTitle || 'Unknown lesson'}
@@ -1899,8 +1899,9 @@ Learning objective: ${meta.learningObjective || '(not provided)'}
 Key concepts: ${meta.keyConcepts || '(not provided)'}
 Key vocabulary: ${meta.keyVocabulary || '(not provided)'}
 ${meta.ccssCode ? 'Standards: ' + meta.ccssCode : ''}
+${meta.commonMisconceptions ? 'Common misconceptions: ' + meta.commonMisconceptions : ''}
 
-Generate exactly 5 quiz questions covering this lesson. Output ONLY a JSON array.`;
+Generate exactly 5 quiz questions covering this lesson.${meta.commonMisconceptions ? ' Make one of them a "find the error" question: show a short worked attempt by a student that makes one of the common misconceptions above, and ask what went wrong and what the correct answer is.' : ''} Output ONLY a JSON array.`;
   const model = 'claude-sonnet-4-5-20250929';
   const system = prompts.buildSystem('gen-questions');
   // Retry transient Anthropic errors (429/529/5xx). Mirrors the
@@ -2004,6 +2005,7 @@ async function handleGetCurriculumQuiz(req, res) {
       keyConcepts: lesson.key_concepts,
       keyVocabulary: lesson.key_vocabulary,
       ccssCode: lesson.ccss_code,
+      commonMisconceptions: lesson.common_misconceptions,
     });
   } catch (e) {
     console.error('curriculum quiz gen failed:', e.message);
@@ -3716,6 +3718,13 @@ process.on('uncaughtException', (err) => {
       console.log('🗄  Auto-migration: schema.sql applied');
     } catch (e) {
       console.error('⚠️  Auto-migration failed (non-fatal):', e.message);
+    }
+    // Keep the curriculum tables in step with curriculum/*.json, so a new
+    // or edited course ships with a normal deploy. No-op when unchanged.
+    try {
+      await require('./curriculum-import-lib').syncCurriculum(db._pool);
+    } catch (e) {
+      console.error('⚠️  Curriculum sync failed (non-fatal):', e.message);
     }
   }
 })();
