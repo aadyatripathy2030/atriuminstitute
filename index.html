@@ -992,6 +992,8 @@
   <div class="admin-console-bar">
     <button class="back-btn" id="adminBack">← Back</button>
     <strong class="admin-console-title">ADMIN — everything on one page</strong>
+    <span class="admin-unlocked-until" id="adminUnlockedUntil"></span>
+    <button class="q-btn admin-lock-btn hidden" id="adminLockBtn" type="button">Lock panel</button>
     <nav class="admin-jump">
       <a href="#admin-block-overview">Overview</a>
       <a href="#admin-block-users">Users</a>
@@ -1002,8 +1004,21 @@
       <a href="#admin-block-sessions">Sessions</a>
       <a href="#admin-block-links">Links</a>
       <a href="#admin-block-lessons">Lessons</a>
+      <a href="#admin-block-security">Security</a>
     </nav>
   </div>
+
+  <section class="admin-gate hidden" id="adminGate" aria-labelledby="adminGateTitle">
+    <h2 id="adminGateTitle">Confirm it's you</h2>
+    <p>The admin panel needs a fresh code each session. We'll email a 6-digit code to the owner address.</p>
+    <button class="cta" id="adminGateSend" type="button">Email me a code</button>
+    <form id="adminGateForm" class="admin-gate-form" autocomplete="off">
+      <label for="adminGateCode">Code</label>
+      <input id="adminGateCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456">
+      <button class="cta" type="submit">Unlock</button>
+    </form>
+    <p class="admin-gate-msg" id="adminGateMsg" role="status" aria-live="polite"></p>
+  </section>
 
   <section class="admin-block" id="admin-block-overview">
     <h2 class="admin-block-title">Overview</h2>
@@ -1157,6 +1172,12 @@
       <div id="prebuildStatusLine" class="prebuild-status-line"></div>
       <div id="prebuildErrors" class="prebuild-errors"></div>
     </div>
+  </section>
+
+  <section class="admin-block" id="admin-block-security">
+    <h2 class="admin-block-title">Security</h2>
+    <p class="muted">Only the owner account can open this panel, and only after an emailed code. Every unlock, change and denied attempt is logged here, and each unlock sends an alert email.</p>
+    <div id="adminAudit"></div>
   </section>
 </div>
 

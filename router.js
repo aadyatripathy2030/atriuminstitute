@@ -370,7 +370,9 @@
         return;
       }
     }
-    setTimeout(() => sync(true), 0);
+    // On /admin, leave the address alone: admin.js opens the panel once the
+    // session check finishes, and syncing now would rewrite it to "/".
+    if (path !== '/admin') setTimeout(() => sync(true), 0);
   }
 
   window.addEventListener('popstate', () => { navigate(window.location.pathname); });

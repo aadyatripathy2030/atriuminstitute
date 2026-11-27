@@ -30,12 +30,21 @@
     try { return new Date(s).toLocaleDateString(); } catch { return s; }
   }
 
+  // Every admin request carries X-Atrium-Admin: 1 (the server rejects admin
+  // calls without it, which blocks cross-site request forgery). A 401 with
+  // stepUp means the panel needs its emailed code again.
   async function fetchJSON(url, opts) {
-    const res = await fetch(url, Object.assign({ credentials: 'same-origin' }, opts || {}));
+    opts = Object.assign({ credentials: 'same-origin' }, opts || {});
+    opts.headers = Object.assign({ 'X-Atrium-Admin': '1' }, opts.headers || {});
+    const res = await fetch(url, opts);
     let data = {};
     try { data = await res.json(); } catch { /* tolerate */ }
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    if (res.status === 401 && data.stepUp) { showGate(); throw new Error('Admin verification required.'); }
+    if (!res.ok) { const err = new Error(data.error || `Request failed (${res.status})`); err.status = res.status; throw err; }
     return data;
+  }
+  function postJSON(url, body) {
+    return fetchJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
   }
   function patchJSON(url, body) {
     return fetchJSON(url, {
@@ -270,7 +279,6 @@
         </div>
 
         <div class="admin-user-actions">
-          <button class="cta" id="admToggleAdmin">${u.is_admin ? 'Revoke admin' : 'Make admin'}</button>
           <button class="q-btn" id="admForceVerify" ${u.verified ? 'disabled' : ''}>Force-verify</button>
           <button class="q-btn" id="admSwapRole">Set role to ${u.role === 'student' ? 'parent' : 'student'}</button>
           <button class="q-btn admin-delete" id="admDeleteUser">Delete account</button>
@@ -300,13 +308,6 @@
         </details>
       </div>
     `;
-    el('admToggleAdmin').onclick = async () => {
-      try {
-        await patchJSON(`/api/admin/users/${u.id}`, { is_admin: !u.is_admin });
-        await refreshUsers();
-        closeModalSafe();
-      } catch (e) { alert(e.message); }
-    };
     el('admForceVerify').onclick = async () => {
       try {
         await patchJSON(`/api/admin/users/${u.id}`, { verified: true });
@@ -776,13 +777,25 @@
   async function openAdmin() {
     const user = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
     if (!user || !user.is_admin) {
-      alert('This page is only available to admins.');
       if (typeof window.goHome === 'function') window.goHome();
       return;
     }
     captureCurrentView();
     if (typeof window.hideAllTopLevel === 'function') window.hideAllTopLevel();
     show(el('adminPage'));
+    let status;
+    try { status = await fetchJSON('/api/admin/auth/status'); }
+    catch (e) {
+      hide(el('adminPage'));
+      if (typeof window.goHome === 'function') window.goHome();
+      return;
+    }
+    if (!status.unlocked) { showGate(status); return; }
+    hideGate(status);
+    await loadAllSections();
+  }
+
+  async function loadAllSections() {
     el('adminCards').innerHTML = '<div class="parent-empty">Loading…</div>';
     // Single page: wire the rollup range buttons once, then load every section
     // concurrently so all of it is on screen at once (no tabs). allSettled so
@@ -796,7 +809,68 @@
       loadSessions(),
       loadLinks(),
       loadLessons(),    // also inits the prebuild controls
+      loadAudit(),
     ]);
+  }
+
+  // ---- Step-up gate: an emailed code unlocks the panel for this session ----
+  function showGate(status) {
+    const gate = el('adminGate');
+    if (!gate) return;
+    document.querySelectorAll('#adminPage .admin-block, #adminPage .admin-jump, #adminLockBtn').forEach(n => n.classList.add('hidden'));
+    gate.classList.remove('hidden');
+    const msg = el('adminGateMsg');
+    if (msg) msg.textContent = status && status.lockedMinutes
+      ? `Too many wrong codes. Try again in ${status.lockedMinutes} minutes.`
+      : '';
+  }
+  function hideGate(status) {
+    const gate = el('adminGate');
+    if (gate) gate.classList.add('hidden');
+    document.querySelectorAll('#adminPage .admin-block, #adminPage .admin-jump, #adminLockBtn').forEach(n => n.classList.remove('hidden'));
+    const until = el('adminUnlockedUntil');
+    if (until && status && status.expiresAt) until.textContent = 'Unlocked until ' + new Date(status.expiresAt).toLocaleTimeString() + ' (extends while you use it)';
+  }
+  async function sendGateCode() {
+    const msg = el('adminGateMsg'), btn = el('adminGateSend');
+    btn.disabled = true;
+    try {
+      await postJSON('/api/admin/auth/send');
+      msg.textContent = 'Code sent to the owner email. It expires in 10 minutes.';
+      el('adminGateCode').focus();
+    } catch (e) { msg.textContent = e.message; }
+    finally { btn.disabled = false; }
+  }
+  async function verifyGateCode(ev) {
+    if (ev) ev.preventDefault();
+    const msg = el('adminGateMsg'), input = el('adminGateCode');
+    const code = (input.value || '').replace(/\D/g, '');
+    if (code.length !== 6) { msg.textContent = 'Enter the 6-digit code.'; return; }
+    try {
+      await postJSON('/api/admin/auth/verify', { code });
+      input.value = '';
+      const status = await fetchJSON('/api/admin/auth/status');
+      hideGate(status);
+      await loadAllSections();
+    } catch (e) { msg.textContent = e.message; input.select(); }
+  }
+  async function lockPanel() {
+    try { await postJSON('/api/admin/auth/lock'); } catch (_) { /* already locked */ }
+    showGate();
+  }
+
+  async function loadAudit() {
+    const box = el('adminAudit');
+    if (!box) return;
+    try {
+      const { entries } = await fetchJSON('/api/admin/audit');
+      box.innerHTML = entries.length ? `<div class="token-table-wrap"><table class="token-table">
+        <thead><tr><th>When</th><th>Action</th><th>Result</th><th>Account</th><th>IP</th></tr></thead>
+        <tbody>${entries.map(a => `<tr>
+          <td>${esc(fmtDate(a.at))}</td><td>${esc(a.action)}${a.detail ? `<div class="muted">${esc(a.detail)}</div>` : ''}</td>
+          <td>${a.outcome === 'ok' ? 'OK' : '<strong>Denied</strong>'}</td><td>${esc(a.email || '—')}</td><td>${esc(a.ip || '—')}</td>
+        </tr>`).join('')}</tbody></table></div>` : '<div class="parent-empty">No admin activity recorded yet.</div>';
+    } catch (e) { box.innerHTML = `<div class="parent-empty err">Could not load: ${esc(e.message)}</div>`; }
   }
 
   function wireOnce() {
@@ -804,6 +878,12 @@
     wireOnce._done = true;
     const back = el('adminBack');
     if (back) back.addEventListener('click', goBack);
+    const gateSend = el('adminGateSend');
+    if (gateSend) gateSend.addEventListener('click', sendGateCode);
+    const gateForm = el('adminGateForm');
+    if (gateForm) gateForm.addEventListener('submit', verifyGateCode);
+    const lockBtn = el('adminLockBtn');
+    if (lockBtn) lockBtn.addEventListener('click', lockPanel);
     document.querySelectorAll('.admin-tab').forEach(t => {
       t.addEventListener('click', () => switchTab(t.dataset.tab));
     });
@@ -845,10 +925,13 @@
   window.addEventListener('hashchange', checkRoute);
   window.addEventListener('popstate', checkRoute);
 
+  // Remember whether the page was loaded on /admin: the session check can
+  // take longer than the router's first sync of the address bar.
+  const startedOnAdmin = isAdminRoute();
   let retries = 0;
   const retryRoute = setInterval(() => {
     retries++;
-    if (!isAdminRoute() || retries > 20) { clearInterval(retryRoute); return; }
+    if (!startedOnAdmin || retries > 40) { clearInterval(retryRoute); return; }
     const u = (typeof window.getCurrentUser === 'function') ? window.getCurrentUser() : null;
     if (u) {
       clearInterval(retryRoute);

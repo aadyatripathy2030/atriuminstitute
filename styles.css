@@ -7999,3 +7999,16 @@ html:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --acc
 .catalog-course-chev { margin-left: auto; align-self: center; flex: none; color: currentColor; opacity: .8; transition: transform .2s ease; }
 .catalog-course-head[aria-expanded="false"] .catalog-course-chev { transform: rotate(-90deg); }
 @media (prefers-reduced-motion: reduce) { .catalog-course-chev { transition: none; } }
+
+/* Admin step-up gate and lock control. */
+.admin-gate { max-width: 440px; margin: 48px auto; padding: 28px; background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); display: grid; gap: 14px; }
+.admin-gate h2 { margin: 0; font-size: 22px; }
+.admin-gate p { margin: 0; color: var(--muted); }
+.admin-gate-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.admin-gate-form label { font-weight: 600; }
+.admin-gate-form input { flex: 1 1 120px; min-width: 0; font: inherit; font-size: 20px; letter-spacing: 4px; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--bg, #fff); color: var(--text); }
+.admin-gate-msg { min-height: 1.2em; color: var(--text) !important; }
+.admin-unlocked-until { font-size: 13px; color: var(--muted); margin-left: auto; }
+.admin-lock-btn { margin-left: 8px; }

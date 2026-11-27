@@ -67,17 +67,13 @@ function recordAiUsage(entry) {
   return p;
 }
 
-// Emails that are always granted admin on successful login. The owner account
-// is baked in so admin access survives even if the ADMIN_EMAILS env var is
-// unset in a given environment; ADMIN_EMAILS can add more, comma-separated.
-const BUILTIN_ADMIN_EMAILS = ['atriuminstitutereal@gmail.com'];
-const ADMIN_EMAILS = [
-  ...BUILTIN_ADMIN_EMAILS,
-  ...(process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).filter(Boolean),
-].map(s => s.toLowerCase());
-function _isAdminEmail(emailStr) {
-  return !!emailStr && ADMIN_EMAILS.includes(String(emailStr).trim().toLowerCase());
-}
+// The admin panel belongs to one account, hardcoded in admin-guard.js
+// (OWNER_EMAIL). There is deliberately no env var or database setting that
+// can add another admin; see admin-guard.js for every check.
+const adminGuardLib = require('./admin-guard');
+const { isOwner, isOwnerEmail } = adminGuardLib;
+// Cookies get the Secure flag in production (Render serves HTTPS only).
+const SECURE_COOKIES = !!process.env.RENDER || process.env.NODE_ENV === 'production';
 
 const PORT = process.env.PORT || 8765;
 const ROOT = __dirname;
@@ -149,11 +145,11 @@ function json(res, status, obj) {
 
 function sessionCookieHeader(token) {
   // 30 days, HttpOnly, SameSite=Lax
-  return `atrium_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*30}`;
+  return `atrium_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*30}${SECURE_COOKIES ? '; Secure' : ''}`;
 }
 
 function clearCookieHeader() {
-  return `atrium_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return `atrium_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${SECURE_COOKIES ? '; Secure' : ''}`;
 }
 
 async function currentUser(req) {
@@ -320,7 +316,7 @@ function userPublic(u) {
     country: u.country || u.state || null,
     consent_required: !!u.consent_required,
     consent_granted_at: u.consent_granted_at || null,
-    is_admin: !!u.is_admin,
+    is_admin: isOwner(u),
     school_name: u.school_name || null,
     school_district: u.school_district || null,
     is_private_school: !!u.is_private_school,
@@ -368,18 +364,20 @@ async function handleVerify(req, res) {
   if (!user) return json(res, 500, { error: 'User not found.' });
   await db.markVerified(user.id);
 
-  // Grant admin to designated owner email(s) once the login is actually
-  // confirmed (i.e. here, after the code check) — never merely on signup, so
-  // someone can't claim admin just by entering the address. The owner account
-  // is also never a parent: if it was signed up as one, drop it back to a
-  // normal learner role so it's treated as an admin, not a parent.
-  if (_isAdminEmail(user.email)) {
+  // The owner account gets the admin flag once its login is confirmed (here,
+  // after the code check), never merely on signup. Any other account that
+  // somehow carries the flag loses it. The flag is only a label: the admin
+  // API checks the owner email itself (admin-guard.js). The owner is never
+  // a parent account.
+  if (isOwnerEmail(user.email)) {
     const adminFixes = {};
     if (!user.is_admin) adminFixes.is_admin = true;
     if (user.role === 'parent') adminFixes.role = 'student';
     if (Object.keys(adminFixes).length) {
       user = await db.adminUpdateUser(user.id, adminFixes) || user;
     }
+  } else if (user.is_admin) {
+    user = await db.adminUpdateUser(user.id, { is_admin: false }) || user;
   }
 
   // Apply any first-signup metadata that the user sent on /signup. Done after
@@ -443,10 +441,14 @@ async function handleVerify(req, res) {
 
 async function handleLogout(req, res) {
   const token = getCookie(req, 'atrium_session');
-  if (token) await db.deleteSession(token);
+  if (token) {
+    const sess = await db.getSession(token);
+    if (sess) adminGuard().lockAllFor(sess.userId);
+    await db.deleteSession(token);
+  }
   res.writeHead(200, {
     'Content-Type': 'application/json',
-    'Set-Cookie': clearCookieHeader()
+    'Set-Cookie': [clearCookieHeader(), adminGuard().clearCookieHeader()]
   });
   res.end(JSON.stringify({ ok: true }));
 }
@@ -1738,7 +1740,7 @@ async function handleGetLesson(req, res) {
   // AI-generated extra section) is generated for them but not shared.
   const job = await findLessonJob(body.courseId, body.bookId, body.sectionIdx, sectionKind);
   // Only admins can replace a shared lesson; a student's "regenerate" is theirs alone.
-  const shareable = !!job && (!forceRegenerate || !!u.is_admin);
+  const shareable = !!job && (!forceRegenerate || isOwner(u));
   if (!aiAllowance(req, res, u)) return;
 
   let result;
@@ -1795,13 +1797,115 @@ async function handleClearLesson(req, res) {
   json(res, 200, { ok: true });
 }
 
-// ---------- Admin endpoints (only when users.is_admin is true) ----------
+// ---------- Admin endpoints (owner account only; see admin-guard.js) ----------
+
+let _adminGuard = null;
+function adminGuard() {
+  if (!_adminGuard) {
+    _adminGuard = adminGuardLib.createGuard({
+      secureCookies: SECURE_COOKIES,
+      pool: db.backend === 'postgres' ? db._pool : null,
+    });
+  }
+  return _adminGuard;
+}
+function adminAuditMeta(req, u, action) {
+  return { userId: u ? u.id : null, email: u ? u.email : null, ip: ipOf(req),
+    userAgent: req.headers['user-agent'] || '', action: action || `${req.method} ${req.url.split('?')[0]}` };
+}
+
+// Signed-in owner, well-formed same-site request, within rate limits. Does
+// not check the step-up unlock (the unlock endpoints themselves use this).
+// Anyone else gets a 404, so the admin API doesn't advertise itself.
+async function requireOwnerSession(req, res) {
+  const g = adminGuard();
+  const u = await currentUser(req);
+  if (!g.requestShapeOk(req)) {
+    g.audit({ ...adminAuditMeta(req, u), outcome: 'denied', detail: 'missing admin header or cross-site origin' });
+    json(res, 403, { error: 'Forbidden.' });
+    return null;
+  }
+  if (!u) { json(res, 401, { error: 'Not signed in.' }); return null; }
+  if (!isOwner(u)) {
+    g.audit({ ...adminAuditMeta(req, u), outcome: 'denied', detail: 'not the owner account' });
+    json(res, 404, { error: 'Not found.' });
+    return null;
+  }
+  if (!g.rateOk(u.id)) {
+    g.audit({ ...adminAuditMeta(req, u), outcome: 'denied', detail: 'rate limited' });
+    json(res, 429, { error: 'Too many admin requests. Wait a few minutes.' });
+    return null;
+  }
+  return u;
+}
 
 async function requireAdmin(req, res) {
-  const u = await currentUser(req);
-  if (!u) { json(res, 401, { error: 'Not signed in.' }); return null; }
-  if (!u.is_admin) { json(res, 403, { error: 'Admin access required.' }); return null; }
+  const u = await requireOwnerSession(req, res);
+  if (!u) return null;
+  const g = adminGuard();
+  const unlocked = g.checkUnlock(u.id, getCookie(req, 'atrium_session'), getCookie(req, adminGuardLib.ADMIN_COOKIE));
+  if (!unlocked) {
+    json(res, 401, { error: 'Admin verification required.', stepUp: true });
+    return null;
+  }
+  if (req.method !== 'GET') g.audit({ ...adminAuditMeta(req, u), outcome: 'ok' });
   return u;
+}
+
+async function handleAdminAuthStatus(req, res) {
+  const u = await requireOwnerSession(req, res); if (!u) return;
+  const g = adminGuard();
+  const unlocked = g.checkUnlock(u.id, getCookie(req, 'atrium_session'), getCookie(req, adminGuardLib.ADMIN_COOKIE));
+  json(res, 200, { unlocked: !!unlocked, expiresAt: unlocked ? unlocked.expiresAt : null, lockedMinutes: g.isLocked(u.id) });
+}
+
+async function handleAdminAuthSend(req, res) {
+  const u = await requireOwnerSession(req, res); if (!u) return;
+  const g = adminGuard();
+  const r = g.issueCode(u.id, getCookie(req, 'atrium_session'));
+  if (!r.ok) {
+    g.audit({ ...adminAuditMeta(req, u, 'send admin code'), outcome: 'denied', detail: r.reason });
+    return json(res, 429, { error: r.reason === 'locked'
+      ? `Too many wrong codes. Try again in ${r.retryMinutes} minutes.`
+      : `Too many codes requested. Try again in ${r.retryMinutes} minutes.` });
+  }
+  try { await email.sendAdminCode(adminGuardLib.OWNER_EMAIL, r.code); }
+  catch (e) { console.error('admin code email failed:', e.message); return json(res, 502, { error: 'Could not send the code. Try again.' }); }
+  g.audit({ ...adminAuditMeta(req, u, 'send admin code'), outcome: 'ok' });
+  json(res, 200, { ok: true });
+}
+
+async function handleAdminAuthVerify(req, res) {
+  const u = await requireOwnerSession(req, res); if (!u) return;
+  const g = adminGuard();
+  const body = await readJSON(req);
+  const meta = adminAuditMeta(req, u, 'unlock admin panel');
+  const r = g.verifyCode(u.id, getCookie(req, 'atrium_session'), body && String(body.code || '').trim(), meta.ip);
+  if (!r.ok) {
+    g.audit({ ...meta, outcome: 'denied', detail: r.reason });
+    const msg = r.reason === 'locked' ? 'Too many wrong codes. The admin panel is locked for 30 minutes.'
+      : r.reason === 'expired' ? 'That code expired. Send a new one.' : 'Wrong code.';
+    return json(res, r.reason === 'locked' ? 429 : 400, { error: msg });
+  }
+  g.audit({ ...meta, outcome: 'ok' });
+  email.sendAdminUnlockAlert(adminGuardLib.OWNER_EMAIL, { ip: meta.ip, userAgent: meta.userAgent, at: new Date().toUTCString() })
+    .catch(e => console.error('admin unlock alert failed:', e.message));
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Set-Cookie': g.cookieHeader(r.token) });
+  res.end(JSON.stringify({ ok: true }));
+}
+
+async function handleAdminAuthLock(req, res) {
+  const u = await requireOwnerSession(req, res); if (!u) return;
+  const g = adminGuard();
+  g.lock(getCookie(req, adminGuardLib.ADMIN_COOKIE));
+  g.audit({ ...adminAuditMeta(req, u, 'lock admin panel'), outcome: 'ok' });
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Set-Cookie': g.clearCookieHeader() });
+  res.end(JSON.stringify({ ok: true }));
+}
+
+async function handleAdminAudit(req, res) {
+  const u = await requireAdmin(req, res); if (!u) return;
+  json(res, 200, { entries: await adminGuard().recentAudit(200) });
 }
 
 async function handleAdminStats(req, res) {
@@ -1833,11 +1937,15 @@ async function handleAdminUpdateUser(req, res, userId) {
   const u = await requireAdmin(req, res); if (!u) return;
   const body = await readJSON(req);
   if (!body) return json(res, 400, { error: 'Bad payload.' });
-  // Don't let an admin demote themselves accidentally.
-  if (userId === u.id && body.is_admin === false) {
-    return json(res, 400, { error: "You can't revoke your own admin access from this UI. Use psql or the set-admin script." });
-  }
-  const updated = await db.adminUpdateUser(userId, body);
+  // Only these fields can be changed here. Admin access can't be granted
+  // or removed: it belongs to the owner email alone.
+  if ('is_admin' in body) return json(res, 400, { error: 'Admin access is tied to the owner account and cannot be changed.' });
+  const fields = {};
+  if (body.verified === true) fields.verified = true;
+  if (body.role === 'student' || body.role === 'parent') fields.role = body.role;
+  if (!Object.keys(fields).length) return json(res, 400, { error: 'Nothing to update.' });
+  if (userId === u.id && fields.role === 'parent') return json(res, 400, { error: "The owner account can't be a parent account." });
+  const updated = await db.adminUpdateUser(userId, fields);
   if (!updated) return json(res, 404, { error: 'Nothing to update.' });
   json(res, 200, { user: updated });
 }
@@ -3532,6 +3640,13 @@ function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const url = req.url.split('?')[0];
+    // Baseline security headers on every response.
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (SECURE_COOKIES) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    if (url.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
+    if (url.startsWith('/api/admin') || url === '/admin') res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     // Auth
     if (url === '/api/auth/signup' && req.method === 'POST') return await handleSignupOrLogin(req, res);
     if (url === '/api/auth/verify' && req.method === 'POST') return await handleVerify(req, res);
@@ -3626,7 +3741,12 @@ const server = http.createServer(async (req, res) => {
     // Behavior tracking.
     if (url === '/api/behavior/events' && req.method === 'POST') return await handleBehaviorEvents(req, res);
     if (url === '/api/behavior/summary' && req.method === 'GET') return await handleBehaviorSummary(req, res);
-    // Admin (only for users where is_admin = true).
+    // Admin (owner account only, after step-up verification; admin-guard.js).
+    if (url === '/api/admin/auth/status' && req.method === 'GET') return await handleAdminAuthStatus(req, res);
+    if (url === '/api/admin/auth/send' && req.method === 'POST') return await handleAdminAuthSend(req, res);
+    if (url === '/api/admin/auth/verify' && req.method === 'POST') return await handleAdminAuthVerify(req, res);
+    if (url === '/api/admin/auth/lock' && req.method === 'POST') return await handleAdminAuthLock(req, res);
+    if (url === '/api/admin/audit' && req.method === 'GET') return await handleAdminAudit(req, res);
     if (url === '/api/admin/stats' && req.method === 'GET') return await handleAdminStats(req, res);
     if (url === '/api/admin/users' && req.method === 'GET') return await handleAdminUsers(req, res);
     if (url === '/api/admin/activity' && req.method === 'GET') return await handleAdminActivity(req, res);

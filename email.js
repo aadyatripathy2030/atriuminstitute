@@ -149,6 +149,39 @@ function sendEmail({ to, subject, html, text, listUnsubscribeUrl }) {
   });
 }
 
+// ---------- Admin panel step-up code + unlock alert ----------
+
+function sendAdminCode(email, code) {
+  if (!RESEND_API_KEY) {
+    console.log(`🔐 ADMIN PANEL CODE for ${email}  →   ${code}   (RESEND_API_KEY not set)`);
+    return Promise.resolve({ ok: true, mode: 'console' });
+  }
+  return sendEmail({
+    to: email,
+    subject: `${SITE_NAME} admin panel code`,
+    text: `Your code to unlock the ${SITE_NAME} admin panel is ${code}. It expires in 10 minutes.\n\nIf you didn't try to open the admin panel, someone may be signed in to your account: sign out everywhere from the admin panel's Sessions list.`,
+    html: `<div style="font-family:system-ui,sans-serif;max-width:480px">
+      <p>Your code to unlock the ${SITE_NAME} admin panel:</p>
+      <p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p>
+      <p>It expires in 10 minutes.</p>
+      <p style="color:#666">If you didn't try to open the admin panel, someone may be signed in to your account. Revoke their session from the admin panel's Sessions list.</p></div>`,
+  });
+}
+
+function sendAdminUnlockAlert(email, { ip, userAgent, at }) {
+  const esc = s => String(s || 'unknown').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const lines = [`Time: ${at}`, `IP address: ${ip || 'unknown'}`, `Browser: ${userAgent || 'unknown'}`];
+  return sendEmail({
+    to: email,
+    subject: `${SITE_NAME} admin panel unlocked`,
+    text: `The ${SITE_NAME} admin panel was just unlocked.\n\n${lines.join('\n')}\n\nIf this wasn't you, sign in, open the admin panel and revoke the unknown session.`,
+    html: `<div style="font-family:system-ui,sans-serif;max-width:480px">
+      <p>The ${SITE_NAME} admin panel was just unlocked.</p>
+      <p>${lines.map(esc).join('<br>')}</p>
+      <p style="color:#666">If this wasn't you, sign in, open the admin panel and revoke the unknown session.</p></div>`,
+  });
+}
+
 // ---------- Student reminder ----------
 
 function studentReminderHtml({ name, contentType, primaryCourse, weakTopic, unsubUrl }) {
@@ -275,6 +308,8 @@ async function sendLinkApprovalRequest(toEmail, { inviterEmail, inviterRole, app
 
 module.exports = {
   sendVerificationCode,
+  sendAdminCode,
+  sendAdminUnlockAlert,
   sendStudentReminder,
   sendParentDigest,
   sendLinkApprovalRequest,
