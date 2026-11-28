@@ -266,6 +266,12 @@
             <option value="12">Grade 12</option>
           </select>
         </label>
+        <label class="auth-field">
+          <span>Country</span>
+          <select id="authCountry" required>
+            <option value="">Select country…</option>
+          </select>
+        </label>
       </div>
       <p class="auth-u13-note hidden" id="authU13Note">Under 13? No problem. After you sign up we'll give you a code for a parent or guardian to confirm your account.</p>
       <details class="auth-linkcode-wrap">
@@ -1433,7 +1439,7 @@
     <div class="consent-notice" id="consentNotice" tabindex="0">
       <h3>What we collect from your child</h3>
       <ul>
-        <li><strong>Account details:</strong> email address, age, and grade. We collected these only to ask for your consent.</li>
+        <li><strong>Account details:</strong> email address, age, grade, and country. We collected these only to ask for your consent.</li>
         <li><strong>Learning records:</strong> quiz answers and scores, lesson progress, points and badges, and an activity timeline.</li>
         <li><strong>Messages to Max</strong> (the AI tutor) and <strong>photos of homework problems</strong> your child chooses to upload to Snap &amp; Solve.</li>
         <li><strong>Usage signals:</strong> timing and click patterns inside lessons (for example, rushing through questions), used only to adapt the lessons.</li>
@@ -1532,8 +1538,8 @@
     <ul>
       <li><strong>Email address.</strong> Required to create an account. Used to send sign-in codes and, if you opt in, study reminders or parent digests.</li>
       <li><strong>Role.</strong> Whether you sign up as a student or a parent.</li>
-      <li><strong>Age and grade.</strong> Students give their age at sign-up so we can tell whether a parent has to consent first (section 3). Grade sets the starting courses.</li>
-      <li><strong>Country and school (optional).</strong> We don't ask for these at sign-up. A student 13 or older, or a parent, can add a country or school name on the profile page; a student under 13 can do so only after a parent has consented.</li>
+      <li><strong>Age, grade, and country.</strong> Students give their age at sign-up so we can tell whether a parent has to consent first (section 3). Grade sets the starting courses.</li>
+      <li><strong>School details (optional).</strong> We don't ask for a school, state, or district at sign-up. A student 13 or older, or a parent, can add them on the profile page; a student under 13 can do so only after a parent has consented.</li>
       <li><strong>Profile details (optional).</strong> Display name, subjects and courses you plan to study, a free-text study goal, timezone, and reminder preferences.</li>
       <li><strong>For parents:</strong> display name, relationship to the student, digest preferences, and, for a child under 13, the name you type when signing the consent notice.</li>
       <li><strong>Messages to Max.</strong> Sent to our AI provider to generate a reply. We don't store the text of these conversations (section 5).</li>
@@ -1554,7 +1560,7 @@
     <h2>3. Children under 13 (COPPA)</h2>
     <p>Atrium Institute is used by children, and we follow the US Children's Online Privacy Protection Act (COPPA). Here is exactly what happens:</p>
     <ol>
-      <li><strong>Age screen.</strong> Every student gives their age at sign-up. If they are under 13, we collect only their email, age, and grade, solely so we can ask a parent for consent. The account stays locked: no courses, quizzes, Max, or Snap &amp; Solve.</li>
+      <li><strong>Age screen.</strong> Every student gives their age at sign-up. If they are under 13, we collect only their email, age, grade, and country, solely so we can ask a parent for consent. The account stays locked: no courses, quizzes, Max, or Snap &amp; Solve.</li>
       <li><strong>Parent account.</strong> The child gets a code to give a parent or guardian. The parent creates their own account (verified by a code sent to their email) and enters the child's code.</li>
       <li><strong>Notice and consent.</strong> The parent is shown a direct notice listing what we collect from the child, how we use it, who we share it with, how long we keep it, and their rights. To consent, the parent confirms they are the child's parent or guardian and signs by typing their full name. We record the signer's name, the date and time, the version of the notice, and the IP address. The child's account unlocks only after this.</li>
       <li><strong>If no one consents.</strong> If a parent hasn't consented within 14 days, we automatically delete the child's account and everything collected from them.</li>
