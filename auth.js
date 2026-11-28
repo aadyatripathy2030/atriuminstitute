@@ -670,9 +670,6 @@
           const gp = parseInt(gradeEl.value, 10);
           if (Number.isInteger(gp) && gp >= 1 && gp <= 12) gradeNum = gp;
         }
-        // Country is a student-only field; parents don't provide one.
-        countryVal = (el('authCountry').value || '').trim();
-        if (!countryVal) return showError('Pick your country.');
       }
       const linkCodeRaw = (el('authLinkCode').value || '').trim();
       linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
@@ -680,27 +677,9 @@
         return showError('Link codes are 8 characters (e.g. ABCD-EFGH).');
       }
     }
-    // School fields (added 2026-05-18). Mandatory school name for all
-    // signups; state + district are mandatory for US users who aren't
-    // marking themselves as private school.
-    let schoolName = null;
-    let schoolDistrict = null;
-    let isPrivate = null;
-    let stateVal = null;
-    if (authMode === 'signup' && !under13Signup()) {
-      schoolName = (el('authSchool').value || '').trim();
-      if (!schoolName) return showError('Enter your school name.');
-      if (schoolName.length > 200) schoolName = schoolName.slice(0, 200);
-      if (countryVal === 'United States') {
-        stateVal = (el('authState').value || '').trim().toUpperCase();
-        if (!stateVal) return showError('Pick your state.');
-        isPrivate = !!(el('authPrivate') && el('authPrivate').checked);
-        if (!isPrivate) {
-          schoolDistrict = (el('authDistrict').value || '').trim();
-          if (!schoolDistrict) return showError('Enter your school district, or tick "Private school" if you don\'t have one.');
-        }
-      }
-    }
+    // Country and school are no longer asked at sign-up (Nov 27 2026);
+    // students can still add them later on their profile.
+    const schoolName = null, schoolDistrict = null, isPrivate = null, stateVal = null;
 
     const btn = el('authEmailBtn');
     btn.disabled = true;
