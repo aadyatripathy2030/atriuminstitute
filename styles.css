@@ -8000,15 +8000,132 @@ html:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --acc
 .catalog-course-head[aria-expanded="false"] .catalog-course-chev { transform: rotate(-90deg); }
 @media (prefers-reduced-motion: reduce) { .catalog-course-chev { transition: none; } }
 
-/* Admin step-up gate and lock control. */
-.admin-gate { max-width: 440px; margin: 48px auto; padding: 28px; background: var(--card); color: var(--text);
-  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); display: grid; gap: 14px; }
-.admin-gate h2 { margin: 0; font-size: 22px; }
-.admin-gate p { margin: 0; color: var(--muted); }
-.admin-gate-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.admin-gate-form label { font-weight: 600; }
-.admin-gate-form input { flex: 1 1 120px; min-width: 0; font: inherit; font-size: 20px; letter-spacing: 4px; padding: 10px 12px;
-  border: 1px solid var(--border); border-radius: 10px; background: var(--bg, #fff); color: var(--text); }
-.admin-gate-msg { min-height: 1.2em; color: var(--text) !important; }
+/* Admin lock control (the unlock gate itself is styled with the code boxes below). */
 .admin-unlocked-until { font-size: 13px; color: var(--muted); margin-left: auto; }
 .admin-lock-btn { margin-left: 8px; }
+
+/* ===================================================================
+   Six-box code entry (otp.js), Nov 27 2026: the same design as
+   ChartGauge's sign-in code page, in Atrium's blue, violet and pink.
+   One box per digit; digits pop in as typed; a look for every state:
+   typing, verifying (a wave), error (shake, red), success (green box by
+   box, then a check mark) and sent (one flash when a new code goes out).
+   Used by the sign-in card and the admin unlock.
+   =================================================================== */
+.otp-wrap { --otp-bg: #FFFFFF; --otp-bg-filled: #FFFFFF; --otp-ink: #0B1640; --otp-ring: var(--pink, #E0187B);
+  --otp-wave: #EDE6FD; --otp-shadow: inset 0 0 0 1.5px rgba(11,22,64,.16), 0 6px 16px -8px rgba(10,36,114,.35);
+  width: 100%; margin: 4px 0 6px; }
+:root[data-theme="dark"] .otp-wrap { --otp-bg: rgba(5,13,46,.82); --otp-bg-filled: rgba(5,13,46,.95); --otp-ink: #FFFFFF;
+  --otp-wave: rgba(107,47,214,.55); --otp-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px rgba(255,255,255,.14), 0 8px 22px -10px rgba(0,0,0,.65); }
+.otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 0 auto; max-width: 380px; }
+.auth-form .otp-box, .otp-box {
+  width: 100%; height: 62px; padding: 0; margin: 0; text-align: center; border: 0; outline: none; border-radius: 14px;
+  background: var(--otp-bg); color: var(--otp-ink); caret-color: var(--otp-ink);
+  font-family: var(--font); font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: 0;
+  box-shadow: var(--otp-shadow); box-sizing: border-box;
+  transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease, color .18s;
+}
+.otp-box::selection { background: transparent; }
+.otp-box.filled { background: var(--otp-bg-filled); }
+/* The box taking the next digit: lifted and lit in pink. */
+.auth-form .otp-box:focus, .otp-box:focus { transform: translateY(-3px); border: 0;
+  box-shadow: 0 0 0 2px var(--otp-ring), 0 10px 26px -6px color-mix(in srgb, var(--otp-ring) 55%, transparent); }
+.otp-box:focus-visible { outline: none; }
+.otp-box.pop { animation: otpPop .34s cubic-bezier(.19,1,.22,1); }
+@keyframes otpPop { 0% { transform: translateY(6px) scale(.8); color: transparent; text-shadow: 0 0 12px var(--otp-ring); } 100% { color: var(--otp-ink); text-shadow: none; } }
+.otp[data-state="verifying"] .otp-box { animation: otpWave 1s ease-in-out infinite; }
+.otp[data-state="verifying"] .otp-box:nth-child(2) { animation-delay: .08s; }
+.otp[data-state="verifying"] .otp-box:nth-child(3) { animation-delay: .16s; }
+.otp[data-state="verifying"] .otp-box:nth-child(4) { animation-delay: .24s; }
+.otp[data-state="verifying"] .otp-box:nth-child(5) { animation-delay: .32s; }
+.otp[data-state="verifying"] .otp-box:nth-child(6) { animation-delay: .40s; }
+@keyframes otpWave { 0%,100% { transform: none; } 40% { transform: translateY(-5px); background: var(--otp-wave); box-shadow: 0 0 0 1.5px var(--violet, #6B2FD6); } }
+.otp[data-state="error"] { animation: otpShake .45s cubic-bezier(.36,.07,.19,.97); }
+.otp[data-state="error"] .otp-box { background: #FDECEC; color: #A40E26; box-shadow: 0 0 0 2px #CF222E; }
+:root[data-theme="dark"] .otp[data-state="error"] .otp-box { background: rgba(62,10,14,.94); color: #FFB4AD; box-shadow: 0 0 0 2px #EF7268; }
+@keyframes otpShake { 10%,90% { transform: translateX(-2px); } 20%,80% { transform: translateX(4px); } 30%,50%,70% { transform: translateX(-8px); } 40%,60% { transform: translateX(8px); } }
+.otp[data-state="success"] .otp-box { animation: otpOk .55s cubic-bezier(.19,1,.22,1) both; }
+.otp[data-state="success"] .otp-box:nth-child(2) { animation-delay: .05s; }
+.otp[data-state="success"] .otp-box:nth-child(3) { animation-delay: .10s; }
+.otp[data-state="success"] .otp-box:nth-child(4) { animation-delay: .15s; }
+.otp[data-state="success"] .otp-box:nth-child(5) { animation-delay: .20s; }
+.otp[data-state="success"] .otp-box:nth-child(6) { animation-delay: .25s; }
+@keyframes otpOk { 0% { transform: none; } 50% { transform: translateY(-7px) scale(1.06); } 100% { transform: none; background: #E7F4EA; color: #0F5A26; box-shadow: 0 0 0 2px #1A7F37, 0 0 24px -6px rgba(26,127,55,.45); } }
+:root[data-theme="dark"] .otp[data-state="success"] .otp-box { animation-name: otpOkDark; }
+@keyframes otpOkDark { 0% { transform: none; } 50% { transform: translateY(-7px) scale(1.06); } 100% { transform: none; background: #123D1F; color: #B9F5C8; box-shadow: 0 0 0 2px #4CB262, 0 0 26px -4px rgba(76,178,98,.65); } }
+.otp[data-state="sent"] .otp-box { animation: otpSent .8s ease-out; }
+@keyframes otpSent { 0% { box-shadow: 0 0 0 2px var(--otp-ring), 0 0 24px color-mix(in srgb, var(--otp-ring) 45%, transparent); } 100% { box-shadow: var(--otp-shadow); } }
+/* Accepted: the boxes fold away and a check mark draws itself. */
+.otp-done { display: none; place-items: center; }
+.otp-wrap.done .otp-done { display: grid; height: 104px; animation: otpDoneIn .5s cubic-bezier(.19,1,.22,1) both; }
+.otp-wrap.done .otp { display: none; }
+.otp-done svg { overflow: visible; filter: drop-shadow(0 0 20px rgba(26,127,55,.45)); }
+.otp-ring { fill: #E7F4EA; stroke: #1A7F37; stroke-width: 3; stroke-dasharray: 277; stroke-dashoffset: 277; }
+.otp-tick { fill: none; stroke: #1A7F37; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; }
+:root[data-theme="dark"] .otp-ring { fill: rgba(18,61,31,.9); stroke: #4CB262; }
+:root[data-theme="dark"] .otp-tick { stroke: #B9F5C8; }
+.otp-wrap.done .otp-ring { animation: otpDraw .55s cubic-bezier(.65,0,.35,1) forwards; }
+.otp-wrap.done .otp-tick { animation: otpDraw .4s cubic-bezier(.65,0,.35,1) .42s forwards; }
+@keyframes otpDraw { to { stroke-dashoffset: 0; } }
+@keyframes otpDoneIn { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@media (max-width: 480px) { .otp { gap: 7px; } .auth-form .otp-box, .otp-box { height: 54px; font-size: 23px; border-radius: 12px; } }
+@media (prefers-reduced-motion: reduce) {
+  .otp-box, .otp-box.pop, .otp[data-state] .otp-box, .otp[data-state="error"], .otp-wrap.done .otp-done { animation: none !important; transform: none !important; }
+  .otp[data-state="success"] .otp-box { background: #E7F4EA; color: #0F5A26; box-shadow: 0 0 0 2px #1A7F37; }
+  :root[data-theme="dark"] .otp[data-state="success"] .otp-box { background: #123D1F; color: #B9F5C8; box-shadow: 0 0 0 2px #4CB262; }
+  .otp[data-state="verifying"] .otp-box { background: var(--otp-wave); }
+  .otp-wrap.done .otp-ring, .otp-wrap.done .otp-tick { animation: none; stroke-dashoffset: 0; }
+}
+
+/* The iridescent ground from ChartGauge's code page, in Atrium's colors:
+   behind the sign-in card while it asks for the code, and filling the
+   admin unlock panel. */
+@keyframes otpIrid {
+  0%   { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(3%,-2%,0) rotate(8deg) scale(1.06); }
+  100% { transform: translate3d(-3%,2%,0) rotate(-6deg) scale(1.03); }
+}
+.auth-gate:has(#authCodeForm:not(.hidden)) { overflow: hidden; background: #0A1A5C; }
+.auth-gate:has(#authCodeForm:not(.hidden))::before, .admin-gate::before {
+  content: ""; position: absolute; inset: -12%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(45% 40% at 18% 22%, rgba(224,24,123,.75), transparent 70%),
+    radial-gradient(42% 42% at 82% 18%, rgba(37,99,235,.75), transparent 70%),
+    radial-gradient(48% 45% at 78% 82%, rgba(255,140,200,.5), transparent 70%),
+    radial-gradient(50% 46% at 20% 80%, rgba(107,47,214,.8), transparent 70%),
+    radial-gradient(35% 32% at 50% 50%, rgba(140,180,255,.35), transparent 70%);
+  filter: blur(30px) saturate(1.15);
+  animation: otpIrid 16s ease-in-out infinite alternate;
+}
+.auth-gate:has(#authCodeForm:not(.hidden)) > .auth-card { position: relative; z-index: 1; }
+
+.admin-gate { position: relative; overflow: hidden; isolation: isolate; max-width: 520px; margin: 40px auto; padding: 48px 28px 36px;
+  border: 0; border-radius: 24px; background: #0A1A5C; color: #fff; text-align: center; display: grid; gap: 14px; justify-items: center;
+  box-shadow: 0 24px 60px -24px rgba(5,13,46,.7); }
+.admin-gate::before { z-index: -2; }
+.admin-gate::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(70% 60% at 50% 45%, rgba(5,10,40,.2), rgba(5,10,40,.55)); }
+.admin-gate h2 { margin: 0; color: #fff; font-size: clamp(28px, 4vw, 38px); letter-spacing: -.02em; outline: none; }
+.admin-gate p, .admin-gate .admin-gate-sub { margin: 0 0 10px; color: rgba(255,255,255,.88); max-width: 380px; }
+.admin-gate .otp-wrap { --otp-bg: rgba(5,13,46,.72); --otp-bg-filled: rgba(5,13,46,.9); --otp-ink: #FFFFFF; --otp-ring: #FFFFFF;
+  --otp-wave: rgba(107,47,214,.7); --otp-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.16), 0 8px 22px -10px rgba(0,0,0,.65);
+  margin: 0 0 18px; }
+#adminGate, #adminGate p, #adminGate button { font-family: var(--font); letter-spacing: normal; text-transform: none; }
+#adminGate .otp-box { background: var(--otp-bg); color: var(--otp-ink); caret-color: #fff; box-shadow: var(--otp-shadow);
+  font-family: var(--font); letter-spacing: 0; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+#adminGate .otp-box.filled { background: var(--otp-bg-filled); }
+#adminGate .otp-box:focus { box-shadow: 0 0 0 2px #fff, 0 10px 26px -6px rgba(255,255,255,.4); }
+.admin-gate .otp[data-state="error"] .otp-box { background: rgba(62,10,14,.94); color: #FFB4AD; box-shadow: 0 0 0 2px #EF7268; }
+.admin-gate .otp[data-state="success"] .otp-box { animation-name: otpOkDark; }
+.admin-gate .otp-ring { fill: rgba(18,61,31,.9); stroke: #4CB262; }
+.admin-gate .otp-tick { stroke: #B9F5C8; }
+.admin-gate-form { display: none; width: 100%; max-width: 400px; }
+.admin-gate.sent .admin-gate-form { display: block; }
+.admin-gate.sent .admin-gate-send { display: none; }
+.admin-gate-form .cta, .admin-gate-send { border: 0; width: 100%; max-width: 400px; justify-content: center; background: #fff; color: #0A1A5C; }
+.admin-gate-form .cta:hover, .admin-gate-send:hover { background: #F3F0FF; color: #0A1A5C; }
+.admin-gate .otp-links { display: flex; justify-content: center; margin-top: 16px; }
+.admin-gate .link-btn { background: none; border: 0; color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+.admin-gate .link-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+.admin-gate .admin-gate-msg { min-height: 1.2em; margin: 0; color: #fff !important; }
+@media (prefers-reduced-motion: reduce) { .auth-gate::before, .admin-gate::before { animation: none; } }

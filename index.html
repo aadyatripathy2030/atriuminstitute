@@ -1009,13 +1009,15 @@
   </div>
 
   <section class="admin-gate hidden" id="adminGate" aria-labelledby="adminGateTitle">
-    <h2 id="adminGateTitle">Confirm it's you</h2>
-    <p>The admin panel needs a fresh code each session. We'll email a 6-digit code to the owner address.</p>
-    <button class="cta" id="adminGateSend" type="button">Email me a code</button>
-    <form id="adminGateForm" class="admin-gate-form" autocomplete="off">
-      <label for="adminGateCode">Code</label>
-      <input id="adminGateCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456">
-      <button class="cta" type="submit">Unlock</button>
+    <h2 id="adminGateTitle" tabindex="-1">Confirm it's you</h2>
+    <p class="admin-gate-sub" id="adminGateSub">The admin panel needs a fresh code each session. We'll email a 6-digit code to the owner address.</p>
+    <button class="cta admin-gate-send" id="adminGateSend" type="button">Email me a code</button>
+    <form id="adminGateForm" class="admin-gate-form" autocomplete="off" novalidate>
+      <input id="adminGateCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-label="6-digit code">
+      <button class="cta" id="adminGateUnlock" type="submit">Unlock</button>
+      <div class="otp-links">
+        <button type="button" class="link-btn" id="adminGateResend">Resend code</button>
+      </div>
     </form>
     <p class="admin-gate-msg" id="adminGateMsg" role="status" aria-live="polite"></p>
   </section>
@@ -2780,6 +2782,7 @@
 <script src="/english-extras.js"></script>
 <!-- expansions.js is now lazy-loaded per course on demand (see openCourse in app.js). -->
 <script src="/ai.js"></script>
+<script src="/otp.js"></script>
 <script src="/auth.js"></script>
 <script src="/activity-labels.js"></script>
 <script src="/parent.js"></script>

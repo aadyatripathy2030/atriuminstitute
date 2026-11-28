@@ -819,6 +819,9 @@
     if (!gate) return;
     document.querySelectorAll('#adminPage .admin-block, #adminPage .admin-jump, #adminLockBtn').forEach(n => n.classList.add('hidden'));
     gate.classList.remove('hidden');
+    el('adminGateTitle').textContent = 'Confirm it\'s you';
+    gateSentFace(false);
+    if (gateOtp) gateOtp.clear();
     const msg = el('adminGateMsg');
     if (msg) msg.textContent = status && status.lockedMinutes
       ? `Too many wrong codes. Try again in ${status.lockedMinutes} minutes.`
@@ -831,28 +834,54 @@
     const until = el('adminUnlockedUntil');
     if (until && status && status.expiresAt) until.textContent = 'Unlocked until ' + new Date(status.expiresAt).toLocaleTimeString() + ' (extends while you use it)';
   }
-  async function sendGateCode() {
-    const msg = el('adminGateMsg'), btn = el('adminGateSend');
+  // The code boxes (otp.js): six digits, submit by themselves when full.
+  let gateOtp = null;
+  let gateBusy = false;
+  function gateSentFace(sent) {
+    const gate = el('adminGate');
+    if (gate) gate.classList.toggle('sent', !!sent);
+    const sub = el('adminGateSub');
+    if (sub) sub.textContent = sent
+      ? 'Sent to the owner email. Enter the 6 digits; the code expires in 10 minutes.'
+      : 'The admin panel needs a fresh code each session. We\'ll email a 6-digit code to the owner address.';
+  }
+  async function sendGateCode(again) {
+    const msg = el('adminGateMsg');
+    const btn = again === true ? el('adminGateResend') : el('adminGateSend');
     btn.disabled = true;
+    msg.textContent = '';
     try {
       await postJSON('/api/admin/auth/send');
-      msg.textContent = 'Code sent to the owner email. It expires in 10 minutes.';
-      el('adminGateCode').focus();
+      gateSentFace(true);
+      if (gateOtp) { if (again === true) gateOtp.sent(); else { gateOtp.clear(); gateOtp.focus(); } }
+      if (again === true) msg.textContent = 'New code sent.';
     } catch (e) { msg.textContent = e.message; }
     finally { btn.disabled = false; }
   }
   async function verifyGateCode(ev) {
     if (ev) ev.preventDefault();
-    const msg = el('adminGateMsg'), input = el('adminGateCode');
+    if (gateBusy) return;
+    const msg = el('adminGateMsg'), input = el('adminGateCode'), btn = el('adminGateUnlock');
     const code = (input.value || '').replace(/\D/g, '');
-    if (code.length !== 6) { msg.textContent = 'Enter the 6-digit code.'; return; }
+    if (code.length !== 6) { msg.textContent = 'Enter all 6 digits.'; if (gateOtp) gateOtp.error(); return; }
+    gateBusy = true; btn.disabled = true; btn.textContent = 'Checking…'; msg.textContent = '';
+    if (gateOtp) { gateOtp.setBusy(true); gateOtp.verifying(); }
     try {
       await postJSON('/api/admin/auth/verify', { code });
-      input.value = '';
+      btn.textContent = 'Unlocked';
+      el('adminGateTitle').textContent = 'Unlocked';
+      el('adminGateSub').textContent = 'Opening the admin panel…';
+      if (gateOtp) await gateOtp.success();
       const status = await fetchJSON('/api/admin/auth/status');
       hideGate(status);
       await loadAllSections();
-    } catch (e) { msg.textContent = e.message; input.select(); }
+    } catch (e) {
+      msg.textContent = e.message;
+      if (gateOtp) gateOtp.error();
+    } finally {
+      gateBusy = false; btn.disabled = false; btn.textContent = 'Unlock';
+      if (gateOtp) gateOtp.setBusy(false);
+    }
   }
   async function lockPanel() {
     try { await postJSON('/api/admin/auth/lock'); } catch (_) { /* already locked */ }
@@ -879,9 +908,18 @@
     const back = el('adminBack');
     if (back) back.addEventListener('click', goBack);
     const gateSend = el('adminGateSend');
-    if (gateSend) gateSend.addEventListener('click', sendGateCode);
+    if (gateSend) gateSend.addEventListener('click', () => sendGateCode(false));
+    const gateResend = el('adminGateResend');
+    if (gateResend) gateResend.addEventListener('click', () => sendGateCode(true));
     const gateForm = el('adminGateForm');
     if (gateForm) gateForm.addEventListener('submit', verifyGateCode);
+    if (window.AtriumOTP && el('adminGateCode')) {
+      gateOtp = window.AtriumOTP.mount(el('adminGateCode'), {
+        label: '6-digit admin code',
+        onComplete: () => gateForm && gateForm.requestSubmit(),
+        onEdit: () => { const m = el('adminGateMsg'); if (m) m.textContent = ''; },
+      });
+    }
     const lockBtn = el('adminLockBtn');
     if (lockBtn) lockBtn.addEventListener('click', lockPanel);
     document.querySelectorAll('.admin-tab').forEach(t => {

@@ -744,7 +744,8 @@
       hide(el('authEmailForm'));
       show(el('authCodeForm'));
       startResendCooldown();
-      setTimeout(() => el('authCode') && el('authCode').focus(), 30);
+      if (codeOtp) { codeOtp.clear(); codeOtp.focus(); }
+      else setTimeout(() => el('authCode') && el('authCode').focus(), 30);
     } catch (err) {
       // Server uses 404 + no_account: true when sign-in is attempted
       // on an unknown email. Suggest switching to "Create account".
@@ -794,18 +795,24 @@
       }
       await postJSON('/api/auth/signup', body);
       setResendStatus(`A new code has been sent to ${pendingEmail}. Check your inbox (and spam).`, 'ok');
+      if (codeOtp) codeOtp.sent();
       startResendCooldown();
     } catch (err) {
       setResendStatus(err.message || 'Could not resend the code.', 'err');
     }
   }
 
+  let codeOtp = null;
+  let codeBusy = false;
   async function handleCodeSubmit(e) {
     e.preventDefault();
     clearError();
+    if (codeBusy) return;
     const code = (el('authCode').value || '').trim();
-    if (!/^\d{6}$/.test(code)) return showError('Code must be 6 digits.');
+    if (!/^\d{6}$/.test(code)) { if (codeOtp) codeOtp.error(); return showError('Enter all 6 digits.'); }
     if (!pendingEmail) return showError('Please request a code first.');
+    codeBusy = true;
+    if (codeOtp) { codeOtp.setBusy(true); codeOtp.verifying(); }
 
     const btn = el('authCodeBtn');
     btn.disabled = true;
@@ -814,13 +821,18 @@
 
     try {
       const { user } = await postJSON('/api/auth/verify', { email: pendingEmail, code });
+      // Green box by box, then a check mark, then into the site.
+      if (codeOtp) { btn.textContent = 'Signed in'; await codeOtp.success(); codeOtp.clear(); }
       clearResendCooldown();
       setResendStatus(null);
       setNavSignedIn(user);
       enterAppAfterAuth(user);
     } catch (err) {
       showError(err.message);
+      if (codeOtp) codeOtp.error();
     } finally {
+      codeBusy = false;
+      if (codeOtp) codeOtp.setBusy(false);
       btn.disabled = false;
       btn.textContent = originalText;
     }
@@ -829,6 +841,7 @@
   function handleResendDifferentEmail() {
     pendingEmail = null;
     el('authCode').value = '';
+    if (codeOtp) codeOtp.clear();
     clearError();
     setResendStatus(null);
     clearResendCooldown();
@@ -1086,6 +1099,15 @@
     if (emailForm) emailForm.addEventListener('submit', handleEmailSubmit);
     const codeForm = el('authCodeForm');
     if (codeForm) codeForm.addEventListener('submit', handleCodeSubmit);
+    // Six boxes in place of the single code field (otp.js); a full code
+    // submits by itself.
+    if (window.AtriumOTP && el('authCode')) {
+      codeOtp = window.AtriumOTP.mount(el('authCode'), {
+        label: '6-digit sign-in code',
+        onComplete: () => codeForm && codeForm.requestSubmit(),
+        onEdit: () => clearError(),
+      });
+    }
     // Country picks drive whether state + district fields appear.
     const countrySel = el('authCountry');
     if (countrySel) countrySel.addEventListener('change', () => {
