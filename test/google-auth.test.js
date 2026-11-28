@@ -32,6 +32,9 @@ test('Google sign-in and sign-up', async (t) => {
   const child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT: String(PORT),
     DB_PATH: path.join(tmp, 'db.json'), DATABASE_URL: '', RESEND_API_KEY: '', RENDER: '', NODE_ENV: 'test',
     GOOGLE_CLIENT_ID: CLIENT_ID, GOOGLE_CLIENT_SECRET: 'secret',
+    // A placeholder so /api/claude reaches its age and consent checks (CI has
+    // no real key; those checks answer before anything is sent to Anthropic).
+    ANTHROPIC_API_KEY: 'test-placeholder-not-a-real-key',
     GOOGLE_TOKEN_URL_TEST: `http://127.0.0.1:${tokenServer.address().port}/token` } });
   child.stdout.resume(); child.stderr.resume();
   t.after(async () => {
