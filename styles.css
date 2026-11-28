@@ -8129,3 +8129,18 @@ html:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --acc
 .admin-gate .link-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
 .admin-gate .admin-gate-msg { min-height: 1.2em; margin: 0; color: #fff !important; }
 @media (prefers-reduced-motion: reduce) { .auth-gate::before, .admin-gate::before { animation: none; } }
+
+/* Continue with Google (Nov 27 2026): Google's standard light button, a
+   white pill with the four-color G, under an "or" rule. */
+.auth-google { display: grid; gap: 12px; margin-top: 4px; }
+.auth-or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--border-strong, rgba(0,0,0,.14)); }
+.auth-google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+  padding: 11px 16px; border-radius: 10px; border: 1px solid #747775; background: #FFFFFF; color: #1F1F1F;
+  font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background-color .15s ease, box-shadow .15s ease; }
+.auth-google-btn:hover { background: #F7F8F8; box-shadow: 0 1px 3px rgba(60,64,67,.3); }
+.auth-google-btn:focus-visible { outline: 2px solid var(--pink, #E0187B); outline-offset: 2px; }
+.auth-google-btn:disabled { opacity: .6; cursor: progress; }
+:root[data-theme="dark"] .auth-google-btn { background: #131314; color: #E3E3E3; border-color: #8E918F; }
+:root[data-theme="dark"] .auth-google-btn:hover { background: #1E1F20; }

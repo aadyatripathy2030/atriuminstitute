@@ -13,6 +13,7 @@
 
 const http = require('http');
 const https = require('https');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -332,36 +333,11 @@ function userPublic(u) {
   };
 }
 
-async function handleVerify(req, res) {
-  const body = await readJSON(req);
-  if (!body || !isValidEmail(body.email) || !body.code) {
-    return json(res, 400, { error: 'Email and code required.' });
-  }
-  // A 6-digit code can't survive unlimited guessing: after a few wrong
-  // tries the code is thrown away and a new one has to be requested.
-  const guessKey = String(body.email).trim().toLowerCase();
-  if (!rateLimitCheck('code-verify:ip:' + ipOf(req), CODE_VERIFIES_PER_HOUR_PER_IP)) {
-    return json(res, 429, { error: 'Too many tries. Wait a while and try again.' });
-  }
-  const result = await db.verifyCode(body.email, body.code);
-  if (!result.ok && result.reason === 'invalid') {
-    const n = (codeGuesses.get(guessKey) || 0) + 1;
-    codeGuesses.set(guessKey, n);
-    if (n >= MAX_CODE_GUESSES) {
-      codeGuesses.delete(guessKey);
-      await db.clearCodes(body.email);
-      return json(res, 400, { error: 'Too many wrong codes. Request a new code.' });
-    }
-  }
-  if (result.ok) codeGuesses.delete(guessKey);
-  if (!result.ok) {
-    const msg = result.reason === 'expired' ? 'Code expired. Request a new one.'
-              : result.reason === 'used' ? 'Code already used.'
-              : 'Invalid code.';
-    return json(res, 400, { error: msg });
-  }
-  let user = await db.findUser(body.email);
-  if (!user) return json(res, 500, { error: 'User not found.' });
+// Everything that happens once an email address has been proved, whether
+// by an emailed code or by Google: mark it verified, set or clear the owner's
+// admin label, and apply first-signup details (age, grade, link code,
+// referral). Returns the updated user.
+async function completeSignIn(user, meta) {
   await db.markVerified(user.id);
 
   // The owner account gets the admin flag once its login is confirmed (here,
@@ -383,9 +359,7 @@ async function handleVerify(req, res) {
   // Apply any first-signup metadata that the user sent on /signup. Done after
   // verification so an attacker who guesses an email can't poison a real
   // user's age / state / link.
-  const meta = pendingSignupMeta.get(user.email);
   if (meta) {
-    pendingSignupMeta.delete(user.email);
     // Data minimisation for under-13s: until a parent consents we keep only
     // what's needed to run the consent process (email, age, country, grade).
     if (typeof meta.age === 'number' && meta.age < 13) {
@@ -430,6 +404,43 @@ async function handleVerify(req, res) {
     }
   }
 
+  return user;
+}
+
+async function handleVerify(req, res) {
+  const body = await readJSON(req);
+  if (!body || !isValidEmail(body.email) || !body.code) {
+    return json(res, 400, { error: 'Email and code required.' });
+  }
+  // A 6-digit code can't survive unlimited guessing: after a few wrong
+  // tries the code is thrown away and a new one has to be requested.
+  const guessKey = String(body.email).trim().toLowerCase();
+  if (!rateLimitCheck('code-verify:ip:' + ipOf(req), CODE_VERIFIES_PER_HOUR_PER_IP)) {
+    return json(res, 429, { error: 'Too many tries. Wait a while and try again.' });
+  }
+  const result = await db.verifyCode(body.email, body.code);
+  if (!result.ok && result.reason === 'invalid') {
+    const n = (codeGuesses.get(guessKey) || 0) + 1;
+    codeGuesses.set(guessKey, n);
+    if (n >= MAX_CODE_GUESSES) {
+      codeGuesses.delete(guessKey);
+      await db.clearCodes(body.email);
+      return json(res, 400, { error: 'Too many wrong codes. Request a new code.' });
+    }
+  }
+  if (result.ok) codeGuesses.delete(guessKey);
+  if (!result.ok) {
+    const msg = result.reason === 'expired' ? 'Code expired. Request a new one.'
+              : result.reason === 'used' ? 'Code already used.'
+              : 'Invalid code.';
+    return json(res, 400, { error: msg });
+  }
+  let user = await db.findUser(body.email);
+  if (!user) return json(res, 500, { error: 'User not found.' });
+  const meta = pendingSignupMeta.get(user.email);
+  if (meta) pendingSignupMeta.delete(user.email);
+  user = await completeSignIn(user, meta);
+
   const token = await db.createSession(user.id);
   await db.logActivity(user.id, 'signin', {});
   res.writeHead(200, {
@@ -437,6 +448,160 @@ async function handleVerify(req, res) {
     'Set-Cookie': sessionCookieHeader(token)
   });
   res.end(JSON.stringify({ ok: true, user: userPublic(user) }));
+}
+
+// ---------- Sign in / sign up with Google ----------
+// The authorization-code flow by hand (no dependencies), dormant until
+// GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set. Google proving the
+// address stands in for the emailed code, so a Google sign-in ends in the
+// same completeSignIn() as a code sign-in. The admin panel still asks for
+// its own emailed code on top (admin-guard.js).
+//
+// The id_token is read without checking its signature, which is safe only
+// because this server fetched it straight from Google's token endpoint over
+// TLS using the client secret (Google's docs say verification is unneeded in
+// exactly that case). It would NOT be safe for a token passed in by a browser.
+const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
+const GOOGLE_CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+const googleEnabled = () => !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+// One fixed origin for the redirect (it must match the URI registered with
+// Google exactly). Production: https://atriuminstitute.ai unless SITE_ORIGIN.
+function siteOrigin(req) {
+  if (process.env.SITE_ORIGIN) return process.env.SITE_ORIGIN.replace(/\/+$/, '');
+  if (SECURE_COOKIES) return 'https://atriuminstitute.ai';
+  return 'http://' + (req.headers.host || 'localhost');
+}
+const googleRedirect = req => siteOrigin(req) + '/api/auth/google/callback';
+const GOOGLE_STATE_TTL_MS = 10 * 60 * 1000;
+const googleStates = new Map();   // state -> { at, mode, meta }
+function newGoogleState(entry) {
+  const now = Date.now();
+  for (const [k, v] of googleStates) if (now - v.at > GOOGLE_STATE_TTL_MS) googleStates.delete(k);
+  if (googleStates.size > 5000) googleStates.delete(googleStates.keys().next().value);
+  const v = crypto.randomBytes(24).toString('hex');
+  googleStates.set(v, { at: now, ...entry });
+  return v;
+}
+function takeGoogleState(v) {
+  const o = googleStates.get(v);
+  if (!o) return null;
+  googleStates.delete(v);                                   // single use
+  return Date.now() - o.at < GOOGLE_STATE_TTL_MS ? o : null;
+}
+function googleStateCookie(v, maxAge) {
+  return `atrium_gstate=${v}; Path=/api/auth/google; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${SECURE_COOKIES ? '; Secure' : ''}`;
+}
+function googleTokenExchange(code, redirectUri) {
+  const form = new URLSearchParams({ code, client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET,
+    redirect_uri: redirectUri, grant_type: 'authorization_code' }).toString();
+  // Tests point this at a local stand-in for Google; never in production.
+  const testUrl = !SECURE_COOKIES && process.env.NODE_ENV === 'test' && process.env.GOOGLE_TOKEN_URL_TEST;
+  const target = testUrl ? new URL(testUrl) : null;
+  const lib = target && target.protocol === 'http:' ? http : https;
+  return new Promise((resolve, reject) => {
+    const r = lib.request({ method: 'POST', hostname: target ? target.hostname : 'oauth2.googleapis.com',
+      port: target ? target.port : undefined, path: target ? target.pathname : '/token',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(form) } }, resp => {
+      let d = ''; resp.on('data', c => { d += c; });
+      resp.on('end', () => { try { resolve(JSON.parse(d)); } catch (_e) { reject(new Error('Bad token response')); } });
+    });
+    r.on('error', reject);
+    r.setTimeout(10000, () => r.destroy(new Error('Google timed out')));
+    r.end(form);
+  });
+}
+function decodeIdToken(idToken) {
+  const part = String(idToken || '').split('.')[1];
+  if (!part) throw new Error('Malformed id_token');
+  return JSON.parse(Buffer.from(part.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+}
+// Errors land on the sign-in (or sign-up) page with the reason; success on /.
+const googleBack = (res, params, extraHeaders = {}) => {
+  const e = params.google_error;
+  const page = !e ? '/' : (e === 'no_account' || e === 'age') ? '/sign-up' : '/sign-in';
+  res.writeHead(302, { Location: page + '?' + new URLSearchParams(params).toString(), ...extraHeaders });
+  res.end();
+};
+
+// GET /api/auth/google?mode=signin|signup&role=&age=&grade=&link=&ref=
+// Sign-up carries the same details as the email form; a student must give
+// an age first (the COPPA age screen), exactly as with an emailed code.
+async function handleGoogleStart(req, res) {
+  if (!googleEnabled()) return googleBack(res, { google_error: 'off' });
+  if (!rateLimitCheck('google-start:ip:' + ipOf(req), 30)) return googleBack(res, { google_error: 'rate' });
+  const q = new URLSearchParams(req.url.split('?')[1] || '');
+  const mode = q.get('mode') === 'signup' ? 'signup' : 'signin';
+  let meta = null, role = 'student';
+  if (mode === 'signup') {
+    role = isValidRole(q.get('role')) ? q.get('role') : 'student';
+    const age = parseInt(q.get('age') || '', 10);
+    if (role === 'student' && !(age >= 4 && age <= 120)) return googleBack(res, { google_error: 'age' });
+    const grade = parseInt(q.get('grade') || '', 10);
+    const link = (q.get('link') || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    meta = {
+      age: role === 'student' ? age : null,
+      gradeLevel: role === 'student' && grade >= 1 && grade <= 12 ? grade : null,
+      country: null, schoolName: null, schoolDistrict: null, isPrivateSchool: null, stateCode: null,
+      linkCode: link.length === 8 ? link : null,
+      referralCode: (q.get('ref') || '').slice(0, 32) || null,
+    };
+  }
+  const state = newGoogleState({ mode, role, meta });
+  const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: googleRedirect(req),
+    response_type: 'code',
+    scope: 'openid email',          // identity only: no name, photo or contacts
+    state,
+    prompt: 'select_account',
+  }).toString();
+  // The state also goes in this browser's cookie, so a callback link started
+  // in someone else's browser (login CSRF) is refused.
+  res.writeHead(302, { Location: url, 'Set-Cookie': googleStateCookie(state, 600) });
+  res.end();
+}
+
+async function handleGoogleCallback(req, res) {
+  const clear = { 'Set-Cookie': googleStateCookie('', 0) };
+  if (!googleEnabled()) return googleBack(res, { google_error: 'off' }, clear);
+  const q = new URLSearchParams(req.url.split('?')[1] || '');
+  if (q.get('error')) return googleBack(res, { google_error: 'canceled' }, clear);
+  const qs = q.get('state') || '';
+  const cookieState = getCookie(req, 'atrium_gstate') || '';
+  if (!qs || !cookieState || qs.length !== cookieState.length
+      || !crypto.timingSafeEqual(Buffer.from(qs), Buffer.from(cookieState))) {
+    return googleBack(res, { google_error: 'expired' }, clear);
+  }
+  const st = takeGoogleState(qs);
+  if (!st) return googleBack(res, { google_error: 'expired' }, clear);
+  const code = q.get('code');
+  if (!code) return googleBack(res, { google_error: 'failed' }, clear);
+  try {
+    const tok = await googleTokenExchange(code, googleRedirect(req));
+    if (!tok || !tok.id_token) throw new Error(tok && tok.error_description ? tok.error_description : 'No id_token');
+    const claims = decodeIdToken(tok.id_token);
+    if (claims.aud !== GOOGLE_CLIENT_ID) throw new Error('Token issued for another client');
+    if (!/^(https:\/\/)?accounts\.google\.com$/.test(String(claims.iss || ''))) throw new Error('Unexpected issuer');
+    if (!claims.exp || claims.exp * 1000 < Date.now()) throw new Error('Expired id_token');
+    const emailAddr = String(claims.email || '').trim().toLowerCase();
+    // An address Google hasn't verified proves nothing about the inbox.
+    if (!isValidEmail(emailAddr) || claims.email_verified !== true) return googleBack(res, { google_error: 'unverified' }, clear);
+
+    let user = await db.findUser(emailAddr);
+    if (!user && st.mode === 'signin') return googleBack(res, { google_error: 'no_account' }, clear);
+    let meta = null;
+    if (!user) {
+      user = await db.upsertUser(emailAddr, st.role);
+      meta = st.meta;
+    }
+    user = await completeSignIn(user, meta);
+    const token = await db.createSession(user.id);
+    await db.logActivity(user.id, 'signin', { method: 'google' });
+    return googleBack(res, { google: 'ok' }, { 'Set-Cookie': [sessionCookieHeader(token), googleStateCookie('', 0)] });
+  } catch (e) {
+    console.error('Google sign-in failed:', e.message);
+    return googleBack(res, { google_error: 'failed' }, clear);
+  }
 }
 
 async function handleLogout(req, res) {
@@ -468,7 +633,7 @@ async function handleMe(req, res) {
 // card and the upgrade modal when the kill switch is on.
 async function handleGetConfig(req, res) {
   // ip_source: which header identified this visitor (should be cf-connecting-ip in production).
-  json(res, 200, { paywall_active: stripeLib.isConfigured(), ip_source: ipSource(req), consent_notice_version: CONSENT_NOTICE_VERSION });
+  json(res, 200, { paywall_active: stripeLib.isConfigured(), ip_source: ipSource(req), consent_notice_version: CONSENT_NOTICE_VERSION, google_auth: googleEnabled() });
 }
 
 async function handleUpdateProfile(req, res) {
@@ -3651,6 +3816,8 @@ const server = http.createServer(async (req, res) => {
     if (url === '/api/auth/signup' && req.method === 'POST') return await handleSignupOrLogin(req, res);
     if (url === '/api/auth/verify' && req.method === 'POST') return await handleVerify(req, res);
     if (url === '/api/auth/logout' && req.method === 'POST') return await handleLogout(req, res);
+    if (url === '/api/auth/google' && req.method === 'GET') return await handleGoogleStart(req, res);
+    if (url === '/api/auth/google/callback' && req.method === 'GET') return await handleGoogleCallback(req, res);
     if (url === '/api/auth/me' && req.method === 'GET') return await handleMe(req, res);
     // Public, unauthenticated config so the landing page can decide
     // whether to show the pricing card without doing a /me round-trip.

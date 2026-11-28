@@ -624,6 +624,7 @@
   function setAuthMode(m) {
     if (m !== 'signin' && m !== 'signup') return;
     authMode = m;
+    clearError();
     updateModeToggleUI();
     applyModeVisibility();
   }
@@ -1071,8 +1072,72 @@
     } catch (_e) {}
   }
 
+  // ---- Sign in / sign up with Google ----
+  // The server does the whole OAuth exchange (/api/auth/google). Sign-up
+  // sends the same details as the email form; a student's age is still
+  // required first (the COPPA age screen). The button only shows when the
+  // server has Google keys.
+  const GOOGLE_ERRORS = {
+    off: "Google sign-in isn't available right now. Use your email instead.",
+    canceled: 'Google sign-in was canceled.',
+    expired: 'That Google sign-in took too long. Try again.',
+    unverified: "Google hasn't verified that email address. Use your email instead.",
+    no_account: 'No Atrium account uses that Google email yet. Create an account to sign up.',
+    age: 'Enter your age first, then continue with Google.',
+    rate: 'Too many tries. Wait a few minutes and try again.',
+    failed: "Google sign-in didn't work. Try again, or use your email.",
+  };
+  function startGoogle() {
+    clearError();
+    const p = new URLSearchParams({ mode: authMode });
+    if (authMode === 'signup') {
+      p.set('role', selectedRole);
+      if (selectedRole === 'student') {
+        const ageRaw = (el('authAge').value || '').trim();
+        const age = parseInt(ageRaw, 10);
+        if (!ageRaw || !Number.isFinite(age) || age < 4 || age > 120) {
+          showError('Enter your age first, then continue with Google.');
+          const a = el('authAge'); if (a) a.focus();
+          return;
+        }
+        p.set('age', String(age));
+        const g = el('authGrade');
+        if (g && g.value) p.set('grade', g.value);
+      }
+      const link = (el('authLinkCode') && el('authLinkCode').value || '').replace(/[^A-Za-z0-9]/g, '');
+      if (link) p.set('link', link);
+      if (typeof window.getReferralCode === 'function' && window.getReferralCode()) p.set('ref', window.getReferralCode());
+    }
+    const btn = el('authGoogleBtn');
+    if (btn) btn.disabled = true;
+    window.location.href = '/api/auth/google?' + p.toString();
+  }
+  async function setupGoogle() {
+    const btn = el('authGoogleBtn');
+    if (btn) btn.addEventListener('click', startGoogle);
+    try {
+      const r = await fetch('/api/config', { credentials: 'same-origin' });
+      const cfg = await r.json();
+      if (cfg && cfg.google_auth) show(el('authGoogleWrap'));
+    } catch (_) { /* no Google button */ }
+  }
+  // Coming back from Google: drop the marker from the address bar and, on
+  // failure, reopen the sign-in card with the reason.
+  function readGoogleReturn() {
+    let params;
+    try { params = new URLSearchParams(window.location.search); } catch (_) { return null; }
+    const err = params.get('google_error');
+    if (!err && !params.get('google')) return null;
+    params.delete('google_error'); params.delete('google');
+    const rest = params.toString();
+    try { window.history.replaceState({}, '', window.location.pathname + (rest ? '?' + rest : '') + window.location.hash); } catch (_) { /* ignore */ }
+    return err || null;
+  }
+
   async function init() {
     maybeShowAccountDeletedBanner();
+    const googleError = readGoogleReturn();
+    setupGoogle();
     // Wire static buttons.
     const emailForm = el('authEmailForm');
     if (emailForm) emailForm.addEventListener('submit', handleEmailSubmit);
@@ -1294,6 +1359,17 @@
     } else {
       setNavSignedOut();
       signalReady();
+      if (googleError) {
+        // After router.js has opened /sign-in or /sign-up (it runs on the
+        // ready event), show why Google didn't finish.
+        setTimeout(() => {
+          const gate = el('authGate');
+          if (gate && gate.classList.contains('hidden')) {
+            showAuthGate(googleError === 'no_account' || googleError === 'age' ? 'signup' : 'signin');
+          }
+          showError(GOOGLE_ERRORS[googleError] || GOOGLE_ERRORS.failed);
+        }, 80);
+      }
     }
   }
 
