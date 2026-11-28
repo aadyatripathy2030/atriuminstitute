@@ -255,12 +255,10 @@ async function handleSignupOrLogin(req, res) {
       no_account: true,
     });
   }
-  // Neutral age screen (COPPA): a new student must give an age, since that
-  // decides whether a parent has to consent before anything else happens.
-  if (mode === 'signup' && !existingBefore && role === 'student'
-      && !(typeof body.age === 'number' && body.age >= 4 && body.age <= 120)) {
-    return json(res, 400, { error: 'Enter your age.' });
-  }
+  // Neutral age screen (COPPA): a student's age is the first question of the
+  // setup survey right after the code is confirmed. Until it's answered the
+  // account can't use Max or Snap & Solve (ageMissing), and an under-13 answer
+  // locks it until a parent consents.
   const user = await db.upsertUser(body.email, role);
   const wasExisting = !!existingBefore;
 
@@ -535,11 +533,10 @@ async function handleGoogleStart(req, res) {
   if (mode === 'signup') {
     role = isValidRole(q.get('role')) ? q.get('role') : 'student';
     const age = parseInt(q.get('age') || '', 10);
-    if (role === 'student' && !(age >= 4 && age <= 120)) return googleBack(res, { google_error: 'age' });
     const grade = parseInt(q.get('grade') || '', 10);
     const link = (q.get('link') || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     meta = {
-      age: role === 'student' ? age : null,
+      age: role === 'student' && age >= 4 && age <= 120 ? age : null,
       gradeLevel: role === 'student' && grade >= 1 && grade <= 12 ? grade : null,
       country: null, schoolName: null, schoolDistrict: null, isPrivateSchool: null, stateCode: null,
       linkCode: link.length === 8 ? link : null,
@@ -641,9 +638,16 @@ async function handleUpdateProfile(req, res) {
   if (!u) return json(res, 401, { error: 'Not signed in.' });
   const body = await readJSON(req);
   if (!body) return json(res, 400, { error: 'Bad payload.' });
+  // A student's age is answered once, in the setup survey. Changing it later
+  // must not be a way around the under-13 consent lock, so it can't be edited
+  // here once set.
+  if (typeof body.age === 'number' && u.role === 'student' && u.age != null && Math.floor(body.age) !== u.age) {
+    return json(res, 400, { error: 'Your age is already set. Ask a parent or contact us to change it.' });
+  }
   const updated = await db.updateUserProfile(u.id, {
     age: typeof body.age === 'number' ? body.age : null,
     country: typeof body.country === 'string' ? body.country : (typeof body.state === 'string' ? body.state : null),
+    gradeLevel: typeof body.gradeLevel === 'number' ? body.gradeLevel : null,
   });
   json(res, 200, { user: userPublic(updated || u) });
 }
@@ -885,6 +889,7 @@ async function handlePhotoSolve(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to use PhotoAtrium.' });
   if (consentBlocked(u)) return json(res, 403, { error: 'A parent needs to give consent before you can use this.' });
+  if (ageMissing(u)) return json(res, 403, { error: AGE_FIRST, code: 'age_required' });
   if (!API_KEY) return json(res, 503, { error: 'Photo solve unavailable: server has no ANTHROPIC_API_KEY.' });
   const body = await readJSON(req);
   if (!body || typeof body.imageBase64 !== 'string') {
@@ -990,6 +995,7 @@ async function handlePhotoReSolve(req, res) {
   const u = await currentUser(req);
   if (!u) return json(res, 401, { error: 'Sign in to use PhotoAtrium.' });
   if (consentBlocked(u)) return json(res, 403, { error: 'A parent needs to give consent before you can use this.' });
+  if (ageMissing(u)) return json(res, 403, { error: AGE_FIRST, code: 'age_required' });
   if (!API_KEY) return json(res, 503, { error: 'Photo solve unavailable.' });
   const body = await readJSON(req);
   if (!body || typeof body.problemText !== 'string' || !body.problemText.trim()) {
@@ -1447,6 +1453,13 @@ const CONSENT_NOTICE_VERSION = '2026-11-25';
 function consentBlocked(u) {
   return !!(u && u.role === 'student' && u.consent_required && !u.consent_granted_at);
 }
+// A student who hasn't answered the age question yet (it's the first step of
+// the setup survey right after sign-up). Until then we can't know whether a
+// parent must consent, so the same features stay off.
+function ageMissing(u) {
+  return !!(u && u.role === 'student' && (u.age == null) && !isOwnerEmail(u.email));
+}
+const AGE_FIRST = 'Tell us your age first (it\'s the first question after sign-up).';
 
 async function handleParentConsent(req, res) {
   const u = await currentUser(req);
@@ -3560,6 +3573,9 @@ async function proxyClaude(req, res) {
   const caller = await currentUser(req);
   if (consentBlocked(caller)) {
     return json(res, 403, { error: { message: 'A parent needs to give consent before you can use Max.', code: 'consent_required' } });
+  }
+  if (ageMissing(caller)) {
+    return json(res, 403, { error: { message: AGE_FIRST, code: 'age_required' } });
   }
 
   // Crisis protocol (SB 243): a student's own message that reads as

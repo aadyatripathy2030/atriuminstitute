@@ -79,9 +79,23 @@ test('Google sign-in and sign-up', async (t) => {
   assert.strictEqual(nobody.location.pathname, '/sign-up');
   assert.ok(!nobody.session);
 
-  // A student must give an age before Google is even asked.
-  const noAge = await google({ mode: 'signup', role: 'student' }, null);
-  assert.strictEqual(noAge.location.searchParams.get('google_error'), 'age');
+  // A student can sign up without an age (it's the first setup question), but
+  // can't use Max until it's answered; an under-13 answer then locks the account.
+  const noAge = await google({ mode: 'signup', role: 'student' }, claimsFor('later@example.com'));
+  assert.strictEqual((await me(noAge.session)).age ?? null, null);
+  const ask = (session) => fetch(BASE + '/api/claude', { method: 'POST', headers: { 'content-type': 'application/json', cookie: 'atrium_session=' + session },
+    body: JSON.stringify({ intent: 'chat', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 }) });
+  const blocked = await ask(noAge.session);
+  assert.strictEqual(blocked.status, 403);
+  assert.strictEqual((await blocked.json()).error.code, 'age_required');
+  const setAge = (session, body) => fetch(BASE + '/api/me/profile', { method: 'POST', headers: { 'content-type': 'application/json', cookie: 'atrium_session=' + session }, body: JSON.stringify(body) });
+  const r1 = await (await setAge(noAge.session, { age: 11, gradeLevel: 6 })).json();
+  assert.strictEqual(r1.user.age, 11);
+  assert.strictEqual(r1.user.consent_required, true);
+  assert.strictEqual((await (await ask(noAge.session)).json()).error.code, 'consent_required');
+  // ...and the age can't then be changed to get around the lock.
+  const r2 = await setAge(noAge.session, { age: 15 });
+  assert.strictEqual(r2.status, 400);
 
   // Under 13: same consent lock as an emailed-code sign-up.
   const kid = await google({ mode: 'signup', role: 'student', age: '10' }, claimsFor('little@example.com'));

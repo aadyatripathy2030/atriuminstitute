@@ -220,8 +220,8 @@ Correct answer: ${correctAnswer}`;
     const stats = opts.sectionStats;
 
     const extraBits = [];
-    if (profile && profile.name) {
-      const bits = [`Student: ${profile.name}`];
+    if (profile && (profile.name || profile.grade || profile.age)) {
+      const bits = [profile.name ? `Student: ${profile.name}` : 'Student'];
       if (profile.age) bits.push(`age ${profile.age}`);
       if (profile.grade) bits.push(`grade ${profile.grade}`);
       if (profile.confidence) bits.push(`self-rated confidence ${profile.confidence}/5`);
@@ -459,6 +459,8 @@ Name: ${profile.name || 'unknown'}
 Age: ${profile.age || 'unknown'}
 Grade: ${profile.grade || 'unknown'}
 Current class: ${profile.currentClass || 'unknown'}
+Math class: ${profile.mathClass || 'n/a'}
+English class: ${profile.englishClass || 'n/a'}
 Self-rated confidence: ${profile.confidence || 'unknown'}/5
 Goal: ${profile.goal || 'unknown'}
 Subject focus: ${profile.subject || 'unknown'}

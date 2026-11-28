@@ -408,11 +408,9 @@
     _startHeartbeat();
     // Background-fetch any pending invites; non-blocking.
     if (user && user.role !== 'parent') renderStudentPendingInvites();
-    // Offer the post-signup survey for new students. Idempotent on the
-    // server side (survey_completed_at / survey_skipped gate the prompt).
-    if (user && user.role === 'student' && typeof window.maybeShowSurvey === 'function') {
-      setTimeout(() => window.maybeShowSurvey(user), 800);
-    }
+    // The older six-question survey (survey.js) no longer pops up on its
+    // own: new students get the short setup survey instead (app.js
+    // startOnboarding: age, grade, subject, class).
     const signInBtn = el('navSignInBtn');
     const navUser = el('navUser');
     const navEmail = el('navUserEmail');
@@ -653,25 +651,8 @@
     let countryVal = null;
     let linkCode = null;
     if (authMode === 'signup') {
-      if (selectedRole === 'student') {
-        // Age is optional. If the student types something, parse it
-        // and store; otherwise leave null. We accept any positive int
-        // here -- no upper or lower bound that could block sign-up.
-        // Age is required for students: it's the neutral age screen that
-        // decides whether a parent has to consent first (COPPA).
-        const ageRaw = (el('authAge').value || '').trim();
-        const parsed = parseInt(ageRaw, 10);
-        if (!ageRaw || !Number.isFinite(parsed) || parsed < 4 || parsed > 120) return showError('Enter your age.');
-        ageNum = parsed;
-        // Grade. Optional but recommended; defaults the home page
-        // filter so the student sees grade-appropriate topics right
-        // after signin without having to set anything.
-        const gradeEl = el('authGrade');
-        if (gradeEl && gradeEl.value) {
-          const gp = parseInt(gradeEl.value, 10);
-          if (Number.isInteger(gp) && gp >= 1 && gp <= 12) gradeNum = gp;
-        }
-      }
+      // Age and grade are asked right after sign-up, in the setup survey
+      // (app.js startOnboarding), not on this form.
       const linkCodeRaw = (el('authLinkCode').value || '').trim();
       linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
       if (linkCode && linkCode.length !== 8) {
@@ -830,6 +811,7 @@
     el('authEmail').focus();
   }
 
+  window.atriumShowConsentGate = (u) => showConsentGate(u);
   function showConsentGate(user) {
     hide(el('landing'));
     hide(el('authGate'));
@@ -934,10 +916,15 @@
     window.__atriumSignedIn = true;
     await pullProgress();
     const profile = (typeof loadProfile === 'function') ? loadProfile() : null;
-    if (!profile && typeof startOnboarding === 'function') {
+    // The setup survey right after sign-up. Age comes first and can't be
+    // skipped (the COPPA age screen); a student who already has a profile
+    // but no age on file is asked for just their age.
+    const needAge = user.role === 'student' && user.age == null && !user.is_admin;
+    const needSetup = !profile;
+    if ((needSetup || needAge) && typeof startOnboarding === 'function') {
       hide(el('authGate'));
       hide(el('landing'));
-      startOnboarding();
+      startOnboarding({ needAge, ageOnly: needAge && !needSetup, user });
       return;
     }
     showApp();
@@ -1092,18 +1079,6 @@
     const p = new URLSearchParams({ mode: authMode });
     if (authMode === 'signup') {
       p.set('role', selectedRole);
-      if (selectedRole === 'student') {
-        const ageRaw = (el('authAge').value || '').trim();
-        const age = parseInt(ageRaw, 10);
-        if (!ageRaw || !Number.isFinite(age) || age < 4 || age > 120) {
-          showError('Enter your age first, then continue with Google.');
-          const a = el('authAge'); if (a) a.focus();
-          return;
-        }
-        p.set('age', String(age));
-        const g = el('authGrade');
-        if (g && g.value) p.set('grade', g.value);
-      }
       const link = (el('authLinkCode') && el('authLinkCode').value || '').replace(/[^A-Za-z0-9]/g, '');
       if (link) p.set('link', link);
       if (typeof window.getReferralCode === 'function' && window.getReferralCode()) p.set('ref', window.getReferralCode());

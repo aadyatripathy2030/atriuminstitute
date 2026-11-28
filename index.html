@@ -248,26 +248,6 @@
         <span>Email</span>
         <input type="email" id="authEmail" placeholder="you@example.com" required autocomplete="email">
       </label>
-      <div class="auth-field-row">
-        <label class="auth-field">
-          <span>Age</span>
-          <input type="text" inputmode="numeric" id="authAge" placeholder="e.g. 14">
-        </label>
-        <label class="auth-field auth-field-grade">
-          <span>Grade</span>
-          <select id="authGrade">
-            <option value="">Pick a grade</option>
-            <option value="6">Grade 6</option>
-            <option value="7">Grade 7</option>
-            <option value="8">Grade 8</option>
-            <option value="9">Grade 9</option>
-            <option value="10">Grade 10</option>
-            <option value="11">Grade 11</option>
-            <option value="12">Grade 12</option>
-          </select>
-        </label>
-      </div>
-      <p class="auth-u13-note hidden" id="authU13Note">Under 13? No problem. After you sign up we'll give you a code for a parent or guardian to confirm your account.</p>
       <details class="auth-linkcode-wrap">
         <summary>Have a link code?</summary>
         <input type="text" id="authLinkCode" placeholder="ABCD-EFGH" maxlength="9" autocomplete="off">
@@ -1532,7 +1512,7 @@
     <ul>
       <li><strong>Email address.</strong> Required to create an account. Used to send sign-in codes and, if you opt in, study reminders or parent digests.</li>
       <li><strong>Role.</strong> Whether you sign up as a student or a parent.</li>
-      <li><strong>Age and grade.</strong> Students give their age at sign-up so we can tell whether a parent has to consent first (section 3). Grade sets the starting courses.</li>
+      <li><strong>Age and grade.</strong> Right after creating an account, before anything else, a student tells us their age so we can tell whether a parent has to consent first (section 3). Grade, and the math or English class they're in, set the starting courses.</li>
       <li><strong>Country and school details (optional).</strong> We don't ask for a country, school, state, or district at sign-up. A student 13 or older, or a parent, can add them on the profile page; a student under 13 can do so only after a parent has consented.</li>
       <li><strong>Profile details (optional).</strong> Display name, subjects and courses you plan to study, a free-text study goal, timezone, and reminder preferences.</li>
       <li><strong>For parents:</strong> display name, relationship to the student, digest preferences, and, for a child under 13, the name you type when signing the consent notice.</li>
@@ -1554,7 +1534,7 @@
     <h2>3. Children under 13 (COPPA)</h2>
     <p>Atrium Institute is used by children, and we follow the US Children's Online Privacy Protection Act (COPPA). Here is exactly what happens:</p>
     <ol>
-      <li><strong>Age screen.</strong> Every student gives their age at sign-up. If they are under 13, we collect only their email, age, and grade, solely so we can ask a parent for consent. The account stays locked: no courses, quizzes, Max, or Snap &amp; Solve.</li>
+      <li><strong>Age screen.</strong> Every student gives their age as the first step after creating an account, and can't use Max or Snap &amp; Solve until they do. If they are under 13, we collect only their email, age, and grade, solely so we can ask a parent for consent. The account stays locked: no courses, quizzes, Max, or Snap &amp; Solve.</li>
       <li><strong>Parent account.</strong> The child gets a code to give a parent or guardian. The parent creates their own account (verified by a code sent to their email) and enters the child's code.</li>
       <li><strong>Notice and consent.</strong> The parent is shown a direct notice listing what we collect from the child, how we use it, who we share it with, how long we keep it, and their rights. To consent, the parent confirms they are the child's parent or guardian and signs by typing their full name. We record the signer's name, the date and time, the version of the notice, and the IP address. The child's account unlocks only after this.</li>
       <li><strong>If no one consents.</strong> If a parent hasn't consented within 14 days, we automatically delete the child's account and everything collected from them.</li>

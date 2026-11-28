@@ -1133,14 +1133,14 @@ async function maybeRenderRecommendation() {
   if (_recShown) return;
   _recShown = true;
   const profile = loadProfile();
-  if (!profile?.name) return;
+  if (!profile || !(profile.name || profile.grade || profile.subject)) return;
   const box = document.getElementById('recBox');
   if (!box) return;
   box.innerHTML = `
     <div class="rec-card">
       <div class="rec-avatar">🧙</div>
       <div class="rec-body">
-        <div class="rec-name">Max's suggestion for you, ${escapeHtml(profile.name)}</div>
+        <div class="rec-name">Max's suggestion for you${profile.name ? ', ' + escapeHtml(profile.name) : ''}</div>
         <div class="rec-text" id="recText"><div class="typing"><span></span><span></span><span></span></div></div>
       </div>
     </div>
@@ -2360,8 +2360,8 @@ async function studyWithMax(book, section) {
   // Stream Max's lesson into the lesson body.
   const lessonBody = document.getElementById('studyLessonBody');
   const profile = loadProfile() || {};
-  const studentLine = profile.name
-    ? `Student: ${profile.name}, grade ${profile.grade || '?'}, confidence ${profile.confidence || '?'}/5, pace: ${profile.pace || '?'}.`
+  const studentLine = (profile.name || profile.grade)
+    ? `Student${profile.name ? ': ' + profile.name : ''}, grade ${profile.grade || '?'}, confidence ${profile.confidence || '?'}/5, pace: ${profile.pace || '?'}.`
     : '';
   const prompt = `${studentLine}
 
@@ -3143,7 +3143,7 @@ async function sendChat() {
   bubble.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
 
   const p = loadProfile() || {};
-  const studentBlurb = p.name ? `Student profile: name=${p.name}, age=${p.age || '?'}, grade=${p.grade || '?'}, current class=${p.currentClass || '?'}, confidence=${p.confidence || '?'}/5, goal=${p.goal || '?'}, pace=${p.pace || '?'}, hardest topics=${(p.hardest || []).join(', ') || 'none listed'}` : '';
+  const studentBlurb = (p.name || p.grade) ? `Student profile: name=${p.name || '?'}, math class=${p.mathClass || 'n/a'}, English class=${p.englishClass || 'n/a'}, age=${p.age || '?'}, grade=${p.grade || '?'}, current class=${p.currentClass || '?'}, confidence=${p.confidence || '?'}/5, goal=${p.goal || '?'}, pace=${p.pace || '?'}, hardest topics=${(p.hardest || []).join(', ') || 'none listed'}` : '';
 
   const ctxBlurb = CHAT_CONTEXT
     ? `${studentBlurb}\n\nTopic: ${CHAT_CONTEXT.topic}\nCurrent question: ${CHAT_CONTEXT.question}\nCorrect answer: ${CHAT_CONTEXT.correctAnswer}`
@@ -3191,90 +3191,70 @@ function clearChat() {
 }
 
 // ================= ONBOARDING =================
+// The setup survey right after sign-up (Nov 27 2026): age, grade, what to
+// study, and the math and/or English class the student is in. Age comes
+// first and can't be skipped: it's the COPPA age screen, and an under-13
+// answer stops here and hands over to the parent-consent screen.
+const MATH_CLASSES = ["Grade 6 Math", "Grade 7 Math", "Grade 8 Math / Pre-Algebra", "Algebra 1", "Geometry", "Algebra 2",
+  "Precalculus", "AP Precalculus", "Calculus (AP Calc AB / BC)", "Statistics / AP Stats", "Not sure"];
+const ENGLISH_CLASSES = ["Grade 6 English", "Grade 7 English", "Grade 8 English", "Grade 9 English", "Grade 10 English",
+  "Grade 11 English", "Grade 12 English", "AP Language", "AP Literature", "Not sure"];
+const studiesMath = p => /^(math|both)$/i.test(p.subject || '');
+const studiesEnglish = p => /^(english|both)$/i.test(p.subject || '');
 const ONBOARD_QUESTIONS = [
   {
-    id: 'name', kind: 'text', required: true,
-    title: "First, what should we call you?",
-    hint: "Just your first name is fine. We'll use it throughout.",
-    placeholder: "e.g. Alex"
+    id: 'age', kind: 'number', required: true, noSkip: true, min: 4, max: 120,
+    when: () => !!(ONBOARD && ONBOARD.needAge),
+    title: "How old are you?",
+    hint: "We ask everyone. If you're under 13, a parent or guardian approves your account before you start.",
+    placeholder: "e.g. 14"
+  },
+  {
+    id: 'grade', kind: 'choice', required: true,
+    title: "What grade are you in?",
+    options: ["6th", "7th", "8th", "9th", "10th", "11th", "12th", "Other"]
   },
   {
     id: 'subject', kind: 'choice', required: true,
-    title: (p) => `Nice to meet you, ${p.name}. What are you here to study?`,
+    title: "What do you want to study?",
     hint: "This sets what shows up on your course picker. You can switch anytime.",
     options: ["Math", "English", "Both"]
   },
   {
-    id: 'age', kind: 'choice',
-    title: "What's your age range?",
-    hint: "This helps us tune the tone and explanations.",
-    options: ["Under 13", "13–14", "15–16", "17–18", "19+"]
+    id: 'mathClass', kind: 'choice', required: true,
+    when: studiesMath,
+    title: "Which math class are you in right now?",
+    hint: "Pick the closest one. It sets where your courses start.",
+    options: MATH_CLASSES
   },
   {
-    id: 'grade', kind: 'choice',
-    title: "What grade are you in?",
-    options: ["6th", "7th", "8th", "9th", "10th", "11th", "12th", "College", "Other"]
-  },
-  {
-    id: 'currentClass', kind: 'choice',
-    title: (p) => {
-      const s = (p.subject || '').toLowerCase();
-      if (s === 'english') return "Which English class are you in right now?";
-      if (s === 'both') return "Which class are you in right now? (math or English, whatever fits)";
-      return "Which math class are you in right now?";
-    },
-    options: (p) => {
-      const s = (p.subject || '').toLowerCase();
-      if (s === 'english') return ["6th Grade English", "7th Grade English", "8th Grade English", "9th Grade English", "10th Grade English", "AP Literature", "AP Language", "Other"];
-      if (s === 'both') return ["Pre-Algebra", "Algebra 1", "Geometry", "Algebra 2", "Pre-Calculus", "Calculus", "6th Grade English", "7th Grade English", "8th Grade English", "Other"];
-      return ["Pre-Algebra", "Algebra 1", "Geometry", "Algebra 2", "Pre-Calculus", "Calculus", "Other"];
-    }
+    id: 'englishClass', kind: 'choice', required: true,
+    when: studiesEnglish,
+    title: "Which English class are you in right now?",
+    hint: "Pick the closest one.",
+    options: ENGLISH_CLASSES
   },
   {
     id: 'confidence', kind: 'scale',
-    title: (p) => {
-      const s = (p.subject || '').toLowerCase();
-      if (s === 'english') return "How confident do you feel in English?";
-      if (s === 'both') return "How confident do you feel overall?";
-      return "How confident do you feel in math?";
-    },
+    title: (p) => studiesMath(p) && studiesEnglish(p) ? "How confident do you feel overall?"
+      : studiesEnglish(p) ? "How confident do you feel in English?" : "How confident do you feel in math?",
     hint: "1 = shaky · 5 = solid",
     min: 1, max: 5
-  },
-  {
-    id: 'hardest', kind: 'multi',
-    title: "Which topics feel toughest right now?",
-    hint: "Pick any that apply — you can also skip.",
-    options: (p) => {
-      const s = (p.subject || '').toLowerCase();
-      const mathTopics = ["Functions", "Linear equations", "Quadratics", "Rational expressions", "Systems of equations", "Radicals", "Word problems"];
-      const engTopics = ["Grammar", "Punctuation", "Vocabulary", "Reading comprehension", "Writing essays", "Poetry & literary analysis", "Figurative language"];
-      if (s === 'english') return engTopics;
-      if (s === 'both') return [...mathTopics, ...engTopics];
-      return mathTopics;
-    }
-  },
-  {
-    id: 'goal', kind: 'choice',
-    title: "Why are you here?",
-    options: ["Homework help", "Preparing for a test", "Catching up on things I missed", "Getting ahead", "Just curious"]
-  },
-  {
-    id: 'pace', kind: 'choice',
-    title: "How do you like to learn?",
-    options: ["Quick and to the point", "Moderate pace with examples", "Slow, thorough walk-throughs"]
-  },
-  {
-    id: 'frequency', kind: 'choice',
-    title: "How often do you think you'll practice?",
-    options: ["Every day", "A few times a week", "About once a week", "Whenever I feel like it"]
   }
 ];
+// Steps that apply to these answers (skipped steps drop out of the count).
+function onboardSteps() {
+  // Before a subject is picked, count it as one class question so the
+  // "Step x of y" total doesn't jump.
+  const ans = { subject: 'Math', ...((ONBOARD && ONBOARD.answers) || {}) };
+  if (ONBOARD && ONBOARD.ageOnly) return ONBOARD_QUESTIONS.filter(q => q.id === 'age');
+  return ONBOARD_QUESTIONS.filter(q => !q.when || q.when(ans));
+}
 
 let ONBOARD = null;
 
-function startOnboarding() {
-  ONBOARD = { idx: 0, answers: {} };
+function startOnboarding(opts = {}) {
+  ONBOARD = { idx: 0, answers: {}, needAge: !!opts.needAge, ageOnly: !!opts.ageOnly };
   document.getElementById('home').classList.add('hidden');
   document.getElementById('detail').classList.add('hidden');
   document.getElementById('courses-home').classList.add('hidden');
@@ -3291,8 +3271,9 @@ function startOnboarding() {
 
 function renderOnboardStep() {
   const { idx, answers } = ONBOARD;
-  const q = ONBOARD_QUESTIONS[idx];
-  const total = ONBOARD_QUESTIONS.length;
+  const steps = onboardSteps();
+  const q = steps[idx];
+  const total = steps.length;
   const pct = (idx / total) * 100;
   const title = typeof q.title === 'function' ? q.title(answers) : q.title;
   const host = document.getElementById('onboard');
@@ -3304,20 +3285,20 @@ function renderOnboardStep() {
           <div class="logo-dot">∑</div>
           <span>Atrium Institute</span>
         </div>
-        <button class="skip-btn" onclick="skipOnboarding()">Skip for now</button>
+        ${q.noSkip ? '<span></span>' : '<button class="skip-btn" onclick="skipOnboarding()">Skip for now</button>'}
       </div>
       <div class="onboard-progress">
         <div class="onboard-progress-bar"><div style="width:${pct}%"></div></div>
         <div class="onboard-step-text">Step ${idx + 1} of ${total}</div>
       </div>
       <div class="onboard-card">
-        <div class="onboard-q-label">Getting to know you</div>
+        <div class="onboard-q-label">Quick setup</div>
         <h1 class="onboard-title">${title}</h1>
         ${q.hint ? `<p class="onboard-hint">${q.hint}</p>` : ''}
         <div id="onboardBody"></div>
       </div>
       <div class="onboard-actions">
-        ${idx > 0 ? `<button class="q-btn" id="backStep">← Back</button>` : `<span></span>`}
+        ${idx > 0 && !(steps[idx - 1].noSkip && ONBOARD.ageSaved) ? `<button class="q-btn" id="backStep">← Back</button>` : `<span></span>`}
         <button class="cta" id="nextStep">${idx === total - 1 ? 'Finish →' : 'Continue →'}</button>
       </div>
     </div>
@@ -3326,7 +3307,15 @@ function renderOnboardStep() {
   const body = document.getElementById('onboardBody');
   const current = answers[q.id];
 
-  if (q.kind === 'text') {
+  if (q.kind === 'number') {
+    body.innerHTML = `<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" class="onboard-input" id="onboardField" placeholder="${q.placeholder || ''}" value="${current || ''}" autocomplete="off" />
+      <p class="onboard-error hidden" id="onboardErr" role="alert"></p>`;
+    const input = document.getElementById('onboardField');
+    input.focus();
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commitOnboardStep(); }
+    });
+  } else if (q.kind === 'text') {
     body.innerHTML = `<input type="text" class="onboard-input" id="onboardField" placeholder="${q.placeholder || ''}" value="${current || ''}" autocomplete="given-name" />`;
     const input = document.getElementById('onboardField');
     input.focus();
@@ -3384,44 +3373,95 @@ function renderOnboardStep() {
   if (back) back.onclick = () => { ONBOARD.idx--; renderOnboardStep(); };
 }
 
-function commitOnboardStep() {
+async function commitOnboardStep() {
   const { idx, answers } = ONBOARD;
-  const q = ONBOARD_QUESTIONS[idx];
+  const steps = onboardSteps();
+  const q = steps[idx];
+  const field = document.getElementById('onboardField');
+  const errEl = document.getElementById('onboardErr');
+  const fail = (msg) => {
+    if (field) { field.classList.add('error'); field.focus(); }
+    if (errEl) { errEl.textContent = msg; errEl.classList.remove('hidden'); }
+  };
 
+  if (q.kind === 'number') {
+    const raw = field.value.trim();
+    const n = parseInt(raw, 10);
+    if (!/^\d{1,3}$/.test(raw) || n < q.min || n > q.max) return fail('Enter your age as a number.');
+    answers[q.id] = n;
+  }
   if (q.kind === 'text') {
-    const val = document.getElementById('onboardField').value.trim();
-    if (q.required && !val) {
-      document.getElementById('onboardField').classList.add('error');
-      document.getElementById('onboardField').focus();
-      return;
-    }
+    const val = field.value.trim();
+    if (q.required && !val) return fail('');
     answers[q.id] = val;
   }
-  if (q.required && !answers[q.id] && q.kind !== 'multi') {
-    alert('Pick an option to continue, or skip this onboarding.');
+  if (q.required && answers[q.id] == null && q.kind !== 'multi') {
+    const opts = document.querySelector('#onboardBody .onboard-options');
+    if (opts) { opts.classList.remove('shake'); void opts.offsetWidth; opts.classList.add('shake'); }
     return;
   }
 
-  if (idx === ONBOARD_QUESTIONS.length - 1) {
-    finishOnboarding();
-  } else {
-    ONBOARD.idx++;
-    renderOnboardStep();
+  // The age goes to the server straight away. Under 13: stop here and show
+  // the parent-consent screen; nothing else is asked or stored until then.
+  if (q.id === 'age' && !ONBOARD.ageSaved) {
+    const btn = document.getElementById('nextStep');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+    try {
+      const r = await fetch('/api/me/profile', { method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ age: answers.age }) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || 'Could not save. Try again.');
+      ONBOARD.ageSaved = true;
+      if (data.user && typeof window.setCurrentUser === 'function') window.setCurrentUser(data.user);
+      if (data.user && data.user.consent_required && !data.user.consent_granted_at) {
+        document.getElementById('onboard').classList.add('hidden');
+        if (typeof window.atriumShowConsentGate === 'function') window.atriumShowConsentGate(data.user);
+        return;
+      }
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Continue →'; }
+      return fail(e.message);
+    }
   }
+
+  const after = onboardSteps();
+  if (idx >= after.length - 1) finishOnboarding();
+  else { ONBOARD.idx++; renderOnboardStep(); }
 }
 
+const GRADE_NUM = { '6th': 6, '7th': 7, '8th': 8, '9th': 9, '10th': 10, '11th': 11, '12th': 12 };
 function finishOnboarding() {
-  const profile = { ...ONBOARD.answers, completedAt: Date.now() };
+  const a = { ...ONBOARD.answers };
+  const ageOnly = ONBOARD.ageOnly;
+  if (!ageOnly) {
+    // Tutor prompts read currentClass: the math class if there is one.
+    a.currentClass = a.mathClass || a.englishClass || null;
+    if (!studiesMath(a)) delete a.mathClass;
+    if (!studiesEnglish(a)) delete a.englishClass;
+    // Grade also lives on the account, where it sets the starting courses.
+    if (GRADE_NUM[a.grade]) {
+      fetch('/api/me/profile', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gradeLevel: GRADE_NUM[a.grade] }) })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d && d.user && typeof window.setCurrentUser === 'function') window.setCurrentUser(d.user); })
+        .catch(() => {});
+    }
+  }
+  const prev = loadProfile() || {};
+  const profile = ageOnly ? { ...prev, age: a.age } : { ...prev, ...a, setupV2: true, completedAt: Date.now() };
+  delete profile.skipped;
   saveProfile(profile);
   document.getElementById('onboard').classList.add('hidden');
   document.getElementById('askFab').classList.remove('hidden');
   if (typeof window.goHome === 'function') window.goHome();
   else goToCourses();
-  showWelcome(profile);
+  if (!ageOnly) showWelcome(profile);
 }
 
 function skipOnboarding() {
-  saveProfile({ skipped: true, completedAt: Date.now() });
+  if (ONBOARD && ONBOARD.needAge && !ONBOARD.ageSaved) return; // the age question can't be skipped
+  const prev = loadProfile() || {};
+  saveProfile({ ...prev, ...(ONBOARD ? ONBOARD.answers : {}), skipped: true, completedAt: Date.now() });
   document.getElementById('onboard').classList.add('hidden');
   document.getElementById('askFab').classList.remove('hidden');
   if (typeof window.goHome === 'function') window.goHome();
@@ -3429,10 +3469,11 @@ function skipOnboarding() {
 }
 
 function showWelcome(profile) {
-  if (!profile.name) return;
   const toast = document.createElement('div');
   toast.className = 'welcome-toast';
-  toast.innerHTML = `<span class="welcome-wave">👋</span> Welcome, <strong>${escapeHtml(profile.name)}</strong>! Let's get started.`;
+  toast.innerHTML = profile.name
+    ? `<span class="welcome-wave">👋</span> Welcome, <strong>${escapeHtml(profile.name)}</strong>! Let's get started.`
+    : `<span class="welcome-wave">👋</span> You're all set. Let's get started.`;
   document.body.appendChild(toast);
   setTimeout(() => toast.classList.add('show'), 50);
   setTimeout(() => {
@@ -3443,7 +3484,7 @@ function showWelcome(profile) {
 
 function editProfile() {
   startOnboarding();
-  // Preload existing answers
+  // Preload existing answers (age isn't asked again; it's set once).
   const p = loadProfile();
   if (p) ONBOARD.answers = { ...p };
   renderOnboardStep();
@@ -3453,8 +3494,8 @@ function renderGreeting() {
   const p = loadProfile();
   const greet = document.getElementById('greeting');
   if (!greet) return;
-  if (p && p.name && window.__atriumSignedIn) {
-    greet.innerHTML = `Hi, <strong>${escapeHtml(p.name)}</strong>`;
+  if (p && (p.name || p.grade) && window.__atriumSignedIn) {
+    greet.innerHTML = p.name ? `Hi, <strong>${escapeHtml(p.name)}</strong>` : 'Your setup';
     greet.classList.remove('hidden');
     greet.onclick = editProfile;
     greet.title = 'Click to update your profile';
