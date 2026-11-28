@@ -64,13 +64,12 @@ test('Google sign-in and sign-up', async (t) => {
   const me = async session => (await (await fetch(BASE + '/api/auth/me', { headers: { cookie: 'atrium_session=' + session } })).json()).user;
 
   // Sign-up creates the account with the form's details.
-  const up = await google({ mode: 'signup', role: 'student', age: '15', grade: '10', country: 'Canada' }, claimsFor('newkid@example.com'));
+  const up = await google({ mode: 'signup', role: 'student', age: '15', grade: '10' }, claimsFor('newkid@example.com'));
   assert.strictEqual(up.location.pathname + up.location.search, '/?google=ok');
   const u = await me(up.session);
   assert.strictEqual(u.email, 'newkid@example.com');
   assert.strictEqual(u.age, 15);
   assert.strictEqual(u.grade_level, 10);
-  assert.strictEqual(u.country, 'Canada');
 
   // Sign-in to that account works; sign-in for an unknown email does not create one.
   const again = await google({ mode: 'signin' }, claimsFor('newkid@example.com'));

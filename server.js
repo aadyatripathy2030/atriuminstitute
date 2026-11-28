@@ -541,7 +541,7 @@ async function handleGoogleStart(req, res) {
     meta = {
       age: role === 'student' ? age : null,
       gradeLevel: role === 'student' && grade >= 1 && grade <= 12 ? grade : null,
-      country: role === 'student' ? (q.get('country') || '').slice(0, 80) || null : null, schoolName: null, schoolDistrict: null, isPrivateSchool: null, stateCode: null,
+      country: null, schoolName: null, schoolDistrict: null, isPrivateSchool: null, stateCode: null,
       linkCode: link.length === 8 ? link : null,
       referralCode: (q.get('ref') || '').slice(0, 32) || null,
     };

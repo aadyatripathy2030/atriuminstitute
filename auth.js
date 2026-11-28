@@ -671,9 +671,6 @@
           const gp = parseInt(gradeEl.value, 10);
           if (Number.isInteger(gp) && gp >= 1 && gp <= 12) gradeNum = gp;
         }
-        // Country is a student-only field; parents don't provide one.
-        countryVal = (el('authCountry').value || '').trim();
-        if (!countryVal) return showError('Pick your country.');
       }
       const linkCodeRaw = (el('authLinkCode').value || '').trim();
       linkCode = linkCodeRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || null;
@@ -681,8 +678,8 @@
         return showError('Link codes are 8 characters (e.g. ABCD-EFGH).');
       }
     }
-    // School, state and district are no longer asked at sign-up (Nov 27
-    // 2026); they can still be added later on the profile page.
+    // Country, school, state and district are no longer asked at sign-up
+    // (Nov 27 2026); they can still be added later on the profile page.
     const schoolName = null, schoolDistrict = null, isPrivate = null, stateVal = null;
 
     const btn = el('authEmailBtn');
@@ -1106,9 +1103,6 @@
         p.set('age', String(age));
         const g = el('authGrade');
         if (g && g.value) p.set('grade', g.value);
-        const country = (el('authCountry') && el('authCountry').value || '').trim();
-        if (!country) { showError('Pick your country first, then continue with Google.'); return; }
-        p.set('country', country);
       }
       const link = (el('authLinkCode') && el('authLinkCode').value || '').replace(/[^A-Za-z0-9]/g, '');
       if (link) p.set('link', link);
