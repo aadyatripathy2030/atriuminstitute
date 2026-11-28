@@ -3191,7 +3191,7 @@ function clearChat() {
 }
 
 // ================= ONBOARDING =================
-// The setup survey right after sign-up (Nov 27 2026): age, grade, what to
+// The setup survey right after sign-up (Nov 27 2026): age, name, grade, what to
 // study, and the math and/or English class the student is in. Age comes
 // first and can't be skipped: it's the COPPA age screen, and an under-13
 // answer stops here and hands over to the parent-consent screen.
@@ -3210,8 +3210,16 @@ const ONBOARD_QUESTIONS = [
     placeholder: "e.g. 14"
   },
   {
+    // Asked after the age, so nothing beyond the age is collected from an
+    // under-13 student before a parent has consented.
+    id: 'name', kind: 'text', required: true, maxLength: 40,
+    title: "What should we call you?",
+    hint: "Just your first name is fine. Max will use it when helping you.",
+    placeholder: "e.g. Alex"
+  },
+  {
     id: 'grade', kind: 'choice', required: true,
-    title: "What grade are you in?",
+    title: (p) => p.name ? `Nice to meet you, ${escapeHtml(p.name)}. What grade are you in?` : "What grade are you in?",
     options: ["6th", "7th", "8th", "9th", "10th", "11th", "12th", "Other"]
   },
   {
@@ -3316,7 +3324,8 @@ function renderOnboardStep() {
       if (e.key === 'Enter') { e.preventDefault(); commitOnboardStep(); }
     });
   } else if (q.kind === 'text') {
-    body.innerHTML = `<input type="text" class="onboard-input" id="onboardField" placeholder="${q.placeholder || ''}" value="${current || ''}" autocomplete="given-name" />`;
+    body.innerHTML = `<input type="text" class="onboard-input" id="onboardField" placeholder="${q.placeholder || ''}" value="${String(current || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}" maxlength="${q.maxLength || 80}" autocomplete="given-name" />
+      <p class="onboard-error hidden" id="onboardErr" role="alert"></p>`;
     const input = document.getElementById('onboardField');
     input.focus();
     input.addEventListener('keydown', e => {
@@ -3391,8 +3400,8 @@ async function commitOnboardStep() {
     answers[q.id] = n;
   }
   if (q.kind === 'text') {
-    const val = field.value.trim();
-    if (q.required && !val) return fail('');
+    const val = field.value.trim().replace(/\s+/g, ' ').slice(0, q.maxLength || 80);
+    if (q.required && !val) return fail('Type your name, or press Skip for now.');
     answers[q.id] = val;
   }
   if (q.required && answers[q.id] == null && q.kind !== 'multi') {
