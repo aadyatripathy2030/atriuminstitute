@@ -55,7 +55,7 @@
 
     var mech = r.mechanics || [];
     if (!mech.length) {
-      el('egMechanics').innerHTML = '<p class="eg-clean">No grammar or mechanics issues flagged — nice and clean. ✨</p>';
+      el('egMechanics').innerHTML = '<p class="eg-clean">No grammar or mechanics issues flagged — nice and clean.</p>';
     } else {
       el('egMechanics').innerHTML = mech.map(function (m) {
         return '<div class="eg-mech-row">' +

@@ -16,12 +16,12 @@ const CATALOG = [
   { id: 'grape',   name: 'Grape',   type: 'theme', price: 450, swatch: '#7d5bb0' },
   { id: 'rose',    name: 'Rose',    type: 'theme', price: 600, swatch: '#c65b7c' },
   // Badges show next to the student's name.
-  { id: 'star',    name: 'Star',    type: 'badge', price: 150, emoji: '⭐' },
-  { id: 'fire',    name: 'Fire',    type: 'badge', price: 150, emoji: '🔥' },
-  { id: 'rocket',  name: 'Rocket',  type: 'badge', price: 250, emoji: '🚀' },
-  { id: 'brain',   name: 'Big Brain', type: 'badge', price: 300, emoji: '🧠' },
-  { id: 'crown',   name: 'Crown',   type: 'badge', price: 500, emoji: '👑' },
-  { id: 'diamond', name: 'Diamond', type: 'badge', price: 750, emoji: '💎' }
+  { id: 'star',    name: 'Star',    type: 'badge', price: 150, emoji: '' },
+  { id: 'fire',    name: 'Fire',    type: 'badge', price: 150, emoji: '' },
+  { id: 'rocket',  name: 'Rocket',  type: 'badge', price: 250, emoji: '' },
+  { id: 'brain',   name: 'Big Brain', type: 'badge', price: 300, emoji: '' },
+  { id: 'crown',   name: 'Crown',   type: 'badge', price: 500, emoji: '' },
+  { id: 'diamond', name: 'Diamond', type: 'badge', price: 750, emoji: '' }
 ];
 
 function findItem(id) { return CATALOG.find(function (i) { return i.id === id; }) || null; }

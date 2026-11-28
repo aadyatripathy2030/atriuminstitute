@@ -338,7 +338,7 @@
       if (profile.study_goal) profileLines.push(`Goal (own words): "${escapeHTML(profile.study_goal)}"`);
 
       const planLine = plan
-        ? `<div class="parent-summary-plan">📋 <strong>Study plan:</strong> ${escapeHTML(plan.goal_text || '')}${plan.target_date ? ` · target ${new Date(plan.target_date).toLocaleDateString()}` : ''}</div>`
+        ? `<div class="parent-summary-plan"><strong>Study plan:</strong> ${escapeHTML(plan.goal_text || '')}${plan.target_date ? ` · target ${new Date(plan.target_date).toLocaleDateString()}` : ''}</div>`
         : '';
 
       summaryEl.innerHTML = `

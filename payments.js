@@ -129,7 +129,7 @@
         .then(() => {
           const t = document.createElement('div');
           t.className = 'welcome-toast show';
-          t.innerHTML = '✨ <strong>Welcome to Atrium Pro!</strong> Max and all premium features are unlocked.';
+          t.innerHTML = '<strong>Welcome to Atrium Pro!</strong> Max and all premium features are unlocked.';
           document.body.appendChild(t);
           setTimeout(() => t.remove(), 5000);
           // Forces any code reading currentUser to repull on next interaction;

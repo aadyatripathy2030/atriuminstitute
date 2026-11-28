@@ -1403,22 +1403,22 @@ async function getUserStreaks(userId) {
 
 // ---------- Achievements ----------
 const BADGE_CATALOG = [
-  { id: 'first_quiz', title: 'First quiz', description: 'Complete your first quiz', icon: '🎯', points: 50 },
-  { id: 'first_pass', title: 'First pass', description: 'Pass your first quiz', icon: '✅', points: 50 },
-  { id: 'pass_10', title: 'Quiz Champion', description: 'Pass 10 quizzes', icon: '🏆', points: 100 },
-  { id: 'pass_50', title: 'Quiz Legend', description: 'Pass 50 quizzes', icon: '👑', points: 250 },
-  { id: 'pass_100', title: 'Centurion', description: 'Pass 100 quizzes', icon: '💯', points: 500 },
-  { id: 'perfect_5', title: 'Sharpshooter', description: '5 perfect-score quizzes', icon: '🎯', points: 100 },
-  { id: 'streak_3', title: 'Streak Starter', description: '3-day streak', icon: '🔥', points: 50 },
-  { id: 'streak_7', title: 'Streak Master', description: '7-day streak', icon: '🔥', points: 150 },
-  { id: 'streak_30', title: 'Streak Hero', description: '30-day streak', icon: '⚡', points: 500 },
-  { id: 'hint_user', title: 'Curious', description: 'Use 5 hints', icon: '💡', points: 30 },
-  { id: 'lesson_5', title: 'Learner', description: 'Start 5 lessons', icon: '📖', points: 50 },
-  { id: 'multi_subject', title: 'Renaissance', description: 'Quizzes in both Math and Language Arts', icon: '🎨', points: 75 },
-  { id: 'pod_5', title: 'Daily Solver', description: 'Solve 5 Problems of the Day', icon: '⭐', points: 100 },
-  { id: 'photo_1', title: 'First Snap', description: 'Scan and solve your first problem with PhotoAtrium', icon: '📸', points: 50 },
-  { id: 'photo_10', title: 'Photo Sleuth', description: 'Scan 10 problems with PhotoAtrium', icon: '🔍', points: 100 },
-  { id: 'photo_50', title: 'Photo Master', description: 'Scan 50 problems with PhotoAtrium', icon: '🏅', points: 250 },
+  { id: 'first_quiz', title: 'First quiz', description: 'Complete your first quiz', icon: '', points: 50 },
+  { id: 'first_pass', title: 'First pass', description: 'Pass your first quiz', icon: '', points: 50 },
+  { id: 'pass_10', title: 'Quiz Champion', description: 'Pass 10 quizzes', icon: '', points: 100 },
+  { id: 'pass_50', title: 'Quiz Legend', description: 'Pass 50 quizzes', icon: '', points: 250 },
+  { id: 'pass_100', title: 'Centurion', description: 'Pass 100 quizzes', icon: '', points: 500 },
+  { id: 'perfect_5', title: 'Sharpshooter', description: '5 perfect-score quizzes', icon: '', points: 100 },
+  { id: 'streak_3', title: 'Streak Starter', description: '3-day streak', icon: '', points: 50 },
+  { id: 'streak_7', title: 'Streak Master', description: '7-day streak', icon: '', points: 150 },
+  { id: 'streak_30', title: 'Streak Hero', description: '30-day streak', icon: '', points: 500 },
+  { id: 'hint_user', title: 'Curious', description: 'Use 5 hints', icon: '', points: 30 },
+  { id: 'lesson_5', title: 'Learner', description: 'Start 5 lessons', icon: '', points: 50 },
+  { id: 'multi_subject', title: 'Renaissance', description: 'Quizzes in both Math and Language Arts', icon: '', points: 75 },
+  { id: 'pod_5', title: 'Daily Solver', description: 'Solve 5 Problems of the Day', icon: '', points: 100 },
+  { id: 'photo_1', title: 'First Snap', description: 'Scan and solve your first problem with PhotoAtrium', icon: '', points: 50 },
+  { id: 'photo_10', title: 'Photo Sleuth', description: 'Scan 10 problems with PhotoAtrium', icon: '', points: 100 },
+  { id: 'photo_50', title: 'Photo Master', description: 'Scan 50 problems with PhotoAtrium', icon: '', points: 250 },
 ];
 
 async function _evaluateBadges(userId) {
@@ -2051,7 +2051,7 @@ async function purgeExpiredData() {
     }
   }
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  if (total) console.log('🧹 retention purge:', JSON.stringify(counts));
+  if (total) console.log('retention purge:', JSON.stringify(counts));
   return counts;
 }
 

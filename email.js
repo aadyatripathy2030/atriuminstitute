@@ -36,7 +36,7 @@ function sendVerificationCode(email, code) {
     // Dev mode — log the code so the user can grab it from server logs.
     console.log('');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`📧 VERIFICATION CODE for ${email}`);
+    console.log(`VERIFICATION CODE for ${email}`);
     console.log(`   →   ${code}`);
     console.log(`   (RESEND_API_KEY not set — code printed instead of emailed)`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -108,7 +108,7 @@ function textBody(code) {
 
 function sendEmail({ to, subject, html, text, listUnsubscribeUrl }) {
   if (!RESEND_API_KEY) {
-    console.log(`📧 [console fallback] would send "${subject}" to ${to}`);
+    console.log(`[console fallback] would send "${subject}" to ${to}`);
     return Promise.resolve({ ok: true, mode: 'console' });
   }
   const body = JSON.stringify({
@@ -153,7 +153,7 @@ function sendEmail({ to, subject, html, text, listUnsubscribeUrl }) {
 
 function sendAdminCode(email, code) {
   if (!RESEND_API_KEY) {
-    console.log(`🔐 ADMIN PANEL CODE for ${email}  →   ${code}   (RESEND_API_KEY not set)`);
+    console.log(`ADMIN PANEL CODE for ${email}  →   ${code}   (RESEND_API_KEY not set)`);
     return Promise.resolve({ ok: true, mode: 'console' });
   }
   return sendEmail({

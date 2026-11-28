@@ -5992,10 +5992,10 @@ body.nav-open .nav-hamburger-bar:nth-child(3) {
   font-size: 15px;
 }
 
-/* The step number circle for a locked step shows a 🔒 instead of the
+/* The step number circle for a locked step shows a dash instead of the
    numeral so the counter doesn't go ahead of what's been revealed. */
 .pa-step-locked::before {
-  content: '🔒' !important;
+  content: '–' !important;
   background: rgba(30, 34, 56, 0.12) !important;
   color: var(--text-muted, #4a4d63) !important;
 }
@@ -8157,3 +8157,26 @@ html:root[data-cosmetic="rose"]   { --accent: #c65b7c; --accent2: #d67e99; --acc
 .consent-codebox, .parent-codebox { background: var(--bg2, #f4f4f6); }
 :root[data-theme="dark"] .consent-codebox, :root[data-theme="dark"] .parent-codebox { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
 :root[data-theme="dark"] .consent-copy { border-color: rgba(255,255,255,.3); }
+
+/* No emojis on the site (Nov 28 2026). Slots that used to hold one are
+   hidden when empty; Max's avatars show an "M" monogram instead. */
+.nmi-ico:empty, .why-card-icon:empty, .ach-howto-icon:empty, .pa-error-icon:empty,
+.plan-icon:empty, .pa-list-empty-icon:empty, .upgrade-emoji:empty, .shop-coin-ico:empty,
+.pl-tr-emoji:empty, .pa-confirm-icon:empty, .nb-empty-emoji:empty, .footer-email-icon:empty,
+.email-emoji:empty, .stuck-icon:empty, .review-queue-icon:empty, .course-emoji:empty,
+.book-emoji:empty, .course-emoji-big:empty, .activity-icon:empty, .fab-icon:empty,
+.pa-card-thumb-fallback:empty { display: none !important; }
+.tutor-avatar, .chat-avatar, .rec-avatar, .study-avatar, .activity-summary-avatar {
+  font-family: inherit; font-weight: 700; color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent, #1e3a8a);
+}
+.tutor-avatar { font-size: 22px; }
+.tutor-avatar.big { font-size: 30px; }
+.chat-avatar, .rec-avatar, .study-avatar, .activity-summary-avatar { font-size: 15px; }
+.fab-icon svg, .pa-fab-icon svg { display: block; }
+.badge-icon { font-weight: 700; }
+.shop-badge-pill { font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 999px;
+  background: var(--accent-soft, rgba(30,58,138,.1)); color: var(--accent, #1e3a8a); }
+.pod-solution { font-size: 14px; margin-top: 8px; color: var(--text, #1e2238); }
+.pod-answer { color: var(--text, #1e2238); }

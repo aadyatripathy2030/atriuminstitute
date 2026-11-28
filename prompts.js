@@ -677,11 +677,14 @@ const KNOWN_INTENTS = Object.keys(PROMPTS);
 // Static prompt is one block with cache_control; dynamic context (if any)
 // goes in a SECOND non-cached block so the cached prefix stays stable across
 // requests in the same 5-minute window.
+// Site-wide style rule (Nov 28 2026): no emojis anywhere, including Max.
+const NO_EMOJI = '\n\nNever use emojis or emoticons in anything you write. Plain text and math only.';
+
 function buildSystem(intent, extraContext) {
   if (!Object.prototype.hasOwnProperty.call(PROMPTS, intent)) return null;
   const blocks = [{
     type: 'text',
-    text: PROMPTS[intent],
+    text: PROMPTS[intent] + NO_EMOJI,
     cache_control: CACHE_CONTROL,
   }];
   if (typeof extraContext === 'string' && extraContext.trim()) {

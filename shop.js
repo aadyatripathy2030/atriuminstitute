@@ -20,7 +20,7 @@
     if (!id) return '';
     var list = catalog || (state && state.catalog) || [];
     var it = list.filter(function (x) { return x.id === id; })[0];
-    return it && it.emoji ? it.emoji : '';
+    return it && it.name ? it.name : '';
   }
   function applyCosmetics(equipped, catalog) {
     var root = document.documentElement;
@@ -37,7 +37,7 @@
   function cache(equipped, catalog) {
     try {
       var emo = badgeEmoji(equipped && equipped.badge, catalog);
-      localStorage.setItem(CACHE, JSON.stringify({ theme: (equipped && equipped.theme) || 'classic', badgeEmoji: emo }));
+      localStorage.setItem(CACHE, JSON.stringify({ theme: (equipped && equipped.theme) || 'classic', badgeLabel: emo }));
     } catch (_) {}
   }
   function applyFromCache() {
@@ -47,7 +47,7 @@
       var root = document.documentElement;
       if (c.theme && c.theme !== 'classic') root.setAttribute('data-cosmetic', c.theme);
       var badgeEl = el('cosmeticBadge');
-      if (badgeEl && c.badgeEmoji) { badgeEl.textContent = c.badgeEmoji; show(badgeEl); }
+      if (badgeEl && c.badgeLabel) { badgeEl.textContent = c.badgeLabel; show(badgeEl); }
     } catch (_) {}
   }
 
@@ -58,11 +58,11 @@
       (item.type === 'theme' && item.id === 'classic' && state.equipped.theme === 'classic');
     var visual = item.type === 'theme'
       ? '<span class="shop-swatch" style="background:' + esc(item.swatch) + '"></span>'
-      : '<span class="shop-emoji">' + esc(item.emoji) + '</span>';
+      : '<span class="shop-emoji shop-badge-pill">' + esc(item.name) + '</span>';
     var btn;
     if (equipped) btn = '<button class="shop-btn shop-equipped" disabled>Equipped ✓</button>';
     else if (owned) btn = '<button class="shop-btn shop-equip" data-slot="' + item.type + '" data-id="' + esc(item.id) + '">Equip</button>';
-    else btn = '<button class="shop-btn shop-buy" data-id="' + esc(item.id) + '">Buy · ' + item.price + ' 🪙</button>';
+    else btn = '<button class="shop-btn shop-buy" data-id="' + esc(item.id) + '">Buy · ' + item.price + '</button>';
     return '<div class="shop-item' + (equipped ? ' is-equipped' : '') + '">' +
       visual + '<span class="shop-item-name">' + esc(item.name) + '</span>' + btn + '</div>';
   }

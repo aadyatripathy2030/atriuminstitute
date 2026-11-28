@@ -67,7 +67,7 @@
       hideSurvey();
       // Surface the points / badge feedback so the kid sees the reward.
       if (typeof window.showPointToast === 'function' && window.AtriumPoints) {
-        window.showPointToast(window.AtriumPoints.achievement, 'Survey complete', { icon: '🎉', flavor: 'milestone' });
+        window.showPointToast(window.AtriumPoints.achievement, 'Survey complete', { icon: '', flavor: 'milestone' });
       }
       if (typeof window.checkForNewBadges === 'function') {
         setTimeout(window.checkForNewBadges, 600);

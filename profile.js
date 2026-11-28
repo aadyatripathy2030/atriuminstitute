@@ -138,7 +138,7 @@
     const courseOpts = courses.map(c =>
       `<label class="profile-check">
         <input type="checkbox" name="studyPlanCourses" value="${esc(c.id)}"${studyCourses.includes(c.id) ? ' checked' : ''}>
-        ${esc(c.emoji || '')} ${esc(c.title)}
+        ${esc(c.title)}
       </label>`
     ).join('');
 

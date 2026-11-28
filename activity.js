@@ -314,7 +314,7 @@
       if (time) time.textContent = o.totalTimeMinutes != null ? (o.totalTimeMinutes >= 60 ? Math.round(o.totalTimeMinutes / 60 * 10) / 10 + 'h' : Math.round(o.totalTimeMinutes) + 'm') : '—';
       if (trend) {
         const t = insights.recentTrend || 'steady';
-        const icons = { improving: '📈', steady: '➡️', declining: '📉' };
+        const icons = { improving: '', steady: '', declining: '' };
         trend.textContent = (icons[t] || '') + ' ' + t.charAt(0).toUpperCase() + t.slice(1);
         trend.className = 'insight-stat-value trend-' + t;
       }

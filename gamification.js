@@ -46,7 +46,6 @@
   // showPointToast(amount, reason, opts?)
   //   amount: number (positive = earned, negative or 0 hidden)
   //   reason: short label like "Quiz passed" or "Hint used"
-  //   opts.icon: optional emoji to prepend
   //   opts.flavor: 'positive' (default) | 'milestone' (for badge unlocks)
   window.showPointToast = function (amount, reason, opts) {
     opts = opts || {};
@@ -54,8 +53,7 @@
     const c = _toastContainer();
     const t = document.createElement('div');
     t.className = 'point-toast' + (opts.flavor === 'milestone' ? ' is-milestone' : '');
-    const icon = opts.icon || (opts.flavor === 'milestone' ? '🏆' : '⭐');
-    t.innerHTML = `<span class="pt-icon">${esc(icon)}</span><span class="pt-amount">+${amount}</span><span class="pt-reason">${esc(reason || 'points')}</span>`;
+    t.innerHTML = `<span class="pt-amount">+${amount}</span><span class="pt-reason">${esc(reason || 'points')}</span>`;
     c.appendChild(t);
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => t.classList.add('fading'), 2400);
@@ -93,7 +91,7 @@
         return;
       }
       for (const b of newOnes) {
-        window.showPointToast(b.points || 50, `Badge unlocked: ${b.title}`, { icon: b.icon || '🏆', flavor: 'milestone' });
+        window.showPointToast(b.points || 50, `Badge unlocked: ${b.title}`, { icon: b.icon || '', flavor: 'milestone' });
       }
       _markSeen(earned.map(b => b.id));
     } catch (_) { /* silent */ }
@@ -198,7 +196,7 @@
         }
         return `
           <div class="badge ${b.earned ? 'earned' : 'locked'}">
-            <div class="badge-icon">${esc(b.icon || '🏅')}</div>
+            <div class="badge-icon" aria-hidden="true">${esc(String(b.title || '?').trim().charAt(0).toUpperCase())}</div>
             <div class="badge-title">${esc(b.title)}</div>
             <div class="badge-desc">${esc(b.description || '')}</div>
             ${progressBar}
@@ -283,12 +281,12 @@
     if (!pod) { box.innerHTML = ''; return; }
     const solvedToday = stats.solved || 0;
     const solvedByYou = my && my.correct;
-    const subjectBadge = pod.subject === 'language_arts' ? '📚 Language Arts' : '🧮 Math';
+    const subjectBadge = pod.subject === 'language_arts' ? 'Language Arts' : 'Math';
     box.innerHTML = `
       <div class="pod-card ${solvedByYou ? 'solved' : ''}">
         <div class="pod-head">
           <div>
-            <div class="pod-eyebrow">⭐ Problem of the Day</div>
+            <div class="pod-eyebrow">Problem of the Day</div>
             <div class="pod-subject">${subjectBadge} · ${esc(pod.difficulty || 'medium')}</div>
           </div>
           <div class="pod-stats">${solvedToday} solved today</div>
@@ -297,8 +295,10 @@
         ${solvedByYou ? `
           <div class="pod-result ok">✓ You solved this today. Worth 20 points.</div>
         ` : (my ? `
-          <div class="pod-result err">Not quite. Try again tomorrow.</div>
-          <div class="pod-correct"><strong>Answer:</strong> ${esc(my.user_answer || '')}</div>
+          <div class="pod-result err">Not quite. Here's the answer, and there's a new problem tomorrow.</div>
+          <div class="pod-correct"><strong>Your answer:</strong> ${esc(my.user_answer || '')}</div>
+          ${r.reveal && r.reveal.correct_answer ? `<div class="pod-correct pod-answer"><strong>Correct answer:</strong> <span class="pod-answer-text">${r.reveal.correct_answer}</span></div>` : ''}
+          ${r.reveal && r.reveal.solution ? `<div class="pod-solution"><strong>How to get it:</strong> <span class="pod-solution-text">${r.reveal.solution}</span></div>` : ''}
         ` : `
           <div class="pod-input-row">
             <input type="text" class="pod-input" id="podInput" placeholder="Your answer…">
@@ -311,8 +311,9 @@
     // Render math (LaTeX, fractions, etc.) in the question. Uses the
     // existing typesetMath helper which falls back to the in-house
     // renderer if MathJax doesn't load.
-    const qEl = box.querySelector('.pod-question');
-    if (qEl && typeof window.typesetMath === 'function') window.typesetMath(qEl);
+    if (typeof window.typesetMath === 'function') {
+      box.querySelectorAll('.pod-question, .pod-answer-text, .pod-solution-text').forEach(n => window.typesetMath(n));
+    }
     const submitBtn = el('podSubmit');
     const input = el('podInput');
     if (submitBtn && input) {
@@ -328,7 +329,7 @@
             body: JSON.stringify({ answer }),
           });
           if (res && res.correct) {
-            window.showPointToast(POINTS.pod_solved, 'Problem of the Day', { icon: '⭐' });
+            window.showPointToast(POINTS.pod_solved, 'Problem of the Day', { icon: '' });
             setTimeout(() => window.checkForNewBadges && window.checkForNewBadges(), 800);
           }
           // Re-render with the new state.

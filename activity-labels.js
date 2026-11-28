@@ -73,7 +73,7 @@
     switch (event.kind) {
       case 'signin':
         return {
-          icon: '🔓',
+          icon: '',
           title: 'Signed in to Atrium',
           detail: '',
           when,
@@ -92,7 +92,7 @@
         const dur = fmtDuration(meta.durationSeconds);
         if (dur) extras.push(dur);
         return {
-          icon: pct === 100 ? '🏆' : '✅',
+          icon: pct === 100 ? '' : '',
           title: `${phrase}: ${section}`,
           detail: `${course} → ${book}${extras.length ? ` · ${extras.join(' · ')}` : ''}`,
           when,
@@ -109,7 +109,7 @@
         const dur = fmtDuration(meta.durationSeconds);
         if (dur) extras.push(dur);
         return {
-          icon: close ? '🎯' : '🔄',
+          icon: close ? '' : '',
           title: close
             ? `Close call on the ${k}: ${section} (${meta.score}/${meta.total})`
             : `Didn't pass the ${k} yet: ${section} (${meta.score}/${meta.total})`,
@@ -121,7 +121,7 @@
       case 'lesson_started': {
         const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
         return {
-          icon: '📖',
+          icon: '',
           title: `Started a Max lesson on ${meta.sectionTitle || 'a topic'}`,
           detail: courseTitle && meta.bookId ? `${courseTitle} → ${meta.bookId}` : '',
           when,
@@ -131,7 +131,7 @@
       case 'study_started': {
         const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
         return {
-          icon: '🧠',
+          icon: '',
           title: `Opened a Study with Max session on ${meta.sectionTitle || 'a topic'}`,
           detail: courseTitle && meta.bookId ? `${courseTitle} → ${meta.bookId}` : '',
           when,
@@ -140,7 +140,7 @@
 
       case 'chat_topic_started':
         return {
-          icon: '💬',
+          icon: '',
           title: meta.topic ? `Asked Max about ${meta.topic}` : 'Opened a chat with Max',
           detail: '',
           when,
@@ -149,7 +149,7 @@
       case 'study_plan_created': {
         const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
         return {
-          icon: '🎯',
+          icon: '',
           title: 'Set a new study plan',
           detail: courseTitle ? `Focus: ${courseTitle}` : '',
           when,
@@ -162,7 +162,7 @@
                           : meta.hintLevel === 3 ? 'a full walkthrough'
                           : 'a hint';
         return {
-          icon: '💡',
+          icon: '',
           title: `Asked Max for ${levelLabel}${meta.sectionTitle ? ` on ${meta.sectionTitle}` : ''}`,
           detail: meta.questionNumber ? `Question ${meta.questionNumber}` : '',
           when,
@@ -172,7 +172,7 @@
       case 'quiz_started': {
         const courseTitle = (typeof COURSES !== 'undefined' && COURSES[meta.courseId]) ? COURSES[meta.courseId].title : (meta.courseId || '');
         return {
-          icon: '▶️',
+          icon: '▶',
           title: `Started a quiz: ${meta.sectionTitle || 'a section'}`,
           detail: courseTitle && meta.bookId ? `${courseTitle} → ${meta.bookId}` : '',
           when,
@@ -194,7 +194,7 @@
           if (verdict) title += ` — ${verdict}`;
         }
         return {
-          icon: meta.correct === true ? '✅' : meta.correct === false ? '❌' : '✍️',
+          icon: meta.correct === true ? '' : meta.correct === false ? '' : '',
           title,
           detail: '',
           when,
@@ -203,21 +203,21 @@
 
       case 'link_created':
         return {
-          icon: '🔗',
+          icon: '',
           title: 'Linked accounts',
           detail: 'A parent / student connection was created.',
           when,
         };
 
       case 'parental_consent_granted':
-        return { icon: '✅', title: 'Parental consent given', detail: 'A parent signed the consent notice.', when };
+        return { icon: '', title: 'Parental consent given', detail: 'A parent signed the consent notice.', when };
 
       case 'parental_consent_revoked':
-        return { icon: '🗑️', title: 'Parental consent withdrawn', detail: "The student's account and data were deleted.", when };
+        return { icon: '', title: 'Parental consent withdrawn', detail: "The student's account and data were deleted.", when };
 
       case 'safety_resources_shown':
         return {
-          icon: '💙',
+          icon: '',
           title: 'Max shared crisis support resources',
           detail: 'A message to Max sounded like the student might be at risk, so Max replied with crisis lines (988) and suggested talking to a trusted adult. The message itself is not stored.',
           when,
@@ -225,7 +225,7 @@
 
       case 'link_removed':
         return {
-          icon: '✂️',
+          icon: '',
           title: 'Removed an account link',
           detail: '',
           when,
@@ -233,7 +233,7 @@
 
       case 'reminder_sent':
         return {
-          icon: '📧',
+          icon: '',
           title: 'Study reminder email sent',
           detail: meta.content === 'continuation'
             ? 'Reminder type: continue where you left off'
@@ -245,7 +245,7 @@
 
       case 'digest_sent':
         return {
-          icon: '📧',
+          icon: '',
           title: 'Weekly digest email sent',
           detail: meta.studentCount
             ? `Summary covered ${meta.studentCount} student${meta.studentCount === 1 ? '' : 's'}`

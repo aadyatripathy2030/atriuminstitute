@@ -123,7 +123,7 @@
     el('plCourseProgress').style.width = pct + '%';
     el('plCourseProgressLabel').textContent = mastered + ' of ' + path.topics.length + ' topics mastered';
     el('plTopics').innerHTML = path.topics.map(function (t, i) {
-      var icon = t.status === 'mastered' ? '✓' : (t.status === 'current' ? '▶' : '🔒');
+      var icon = t.status === 'mastered' ? '✓' : (t.status === 'current' ? '▶' : '');
       var btn = t.status === 'current'
         ? '<button class="cta-primary pl-topic-btn" data-i="' + i + '" type="button">Take mastery quiz</button>'
         : (t.status === 'mastered' ? '<span class="pl-topic-done">Mastered · ' + (t.bestScore != null ? t.bestScore + '%' : '') + '</span>' : '');
@@ -166,7 +166,7 @@
       try { await savePath(); } catch (_) {}
     }
     // Render the topic result screen.
-    el('plTrEmoji').textContent = passed ? '🎉' : '💪';
+    el('plTrEmoji').textContent = passed ? '' : '';
     el('plTrTitle').textContent = passed ? 'Topic mastered!' : 'Almost there';
     el('plTrScore').textContent = s.pct + '%  (' + s.correct + '/' + s.total + ')';
     el('plTrScore').className = 'pl-tr-score ' + (passed ? 'good' : 'mid');

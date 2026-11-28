@@ -203,7 +203,7 @@
         const legacy = cc.legacy_course_id && COURSES_REF[cc.legacy_course_id] ? COURSES_REF[cc.legacy_course_id] : null;
         const accent = legacy ? legacy.accent : '#4a6fa5';
         const accent2 = legacy ? legacy.accent2 : '#9fb8d6';
-        const emoji = legacy ? legacy.emoji : '📘';
+        const emoji = legacy ? legacy.emoji : '';
         const grades = (cc.grade_levels || []).map(g => 'Grade ' + g).join(', ');
         tiles.push(`
           <div class="course-card topic-card" data-kind="unit"
@@ -212,7 +212,6 @@
                data-legacy="${esc(cc.legacy_course_id || '')}"
                style="--a1:${accent};--a2:${accent2}">
             <button class="fav-heart-btn favorited" type="button" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}" aria-label="Remove from favorites" title="Remove from favorites">♥</button>
-            <div class="course-emoji">${emoji}</div>
             <div class="course-title">${esc(unit.unit_title)}</div>
             <div class="course-subtitle">${esc(cc.title)}${grades ? ' · ' + esc(grades) : ''}</div>
             <div class="course-meta">
@@ -232,7 +231,6 @@
           <div class="course-card topic-card" data-kind="book" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}"
                style="--a1:${book.accent || course.accent};--a2:${book.accent2 || course.accent2}">
             <button class="fav-heart-btn favorited" type="button" data-course="${esc(f.course_id)}" data-book="${esc(f.book_id)}" aria-label="Remove from favorites" title="Remove from favorites">♥</button>
-            <div class="course-emoji">${book.emoji || course.emoji || '📘'}</div>
             <div class="course-title">${esc(book.title)}</div>
             <div class="course-subtitle">${esc(course.title)}</div>
             ${book.subtitle ? `<div class="course-desc">${esc(book.subtitle)}</div>` : ''}

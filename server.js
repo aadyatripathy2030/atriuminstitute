@@ -100,7 +100,7 @@ if (!API_KEY) {
     API_KEY = fs.readFileSync(path.join(home, '.anthropic_api_key'), 'utf8').trim();
   } catch (_) {}
 }
-if (!API_KEY) console.warn('⚠️  No ANTHROPIC_API_KEY found.');
+if (!API_KEY) console.warn('No ANTHROPIC_API_KEY found.');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -2798,6 +2798,11 @@ async function handleGetPOD(req, res) {
       difficulty: pick.difficulty,
     },
     my_attempt: attempt,
+    // After a wrong answer (one try a day), show the right one and how to get
+    // it. Never sent before an attempt, so it can't be read off the network.
+    reveal: (attempt && !attempt.correct)
+      ? { correct_answer: pick.correct_answer || null, solution: pick.solution || null }
+      : null,
     stats,
     personalised: true,
   });
@@ -4018,26 +4023,26 @@ process.on('uncaughtException', (err) => {
       const path = require('path');
       const sql = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf8');
       await db._pool.query(sql);
-      console.log('🗄  Auto-migration: schema.sql applied');
+      console.log('Auto-migration: schema.sql applied');
     } catch (e) {
-      console.error('⚠️  Auto-migration failed (non-fatal):', e.message);
+      console.error('Auto-migration failed (non-fatal):', e.message);
     }
     // Keep the curriculum tables in step with curriculum/*.json, so a new
     // or edited course ships with a normal deploy. No-op when unchanged.
     try {
       await require('./curriculum-import-lib').syncCurriculum(db._pool);
     } catch (e) {
-      console.error('⚠️  Curriculum sync failed (non-fatal):', e.message);
+      console.error('Curriculum sync failed (non-fatal):', e.message);
     }
   }
 })();
 
 server.listen(PORT, () => {
-  console.log(`📚 Atrium Institute running at http://localhost:${PORT}`);
-  console.log(`🗄  DB backend: ${db.backend}`);
-  console.log(API_KEY ? '✨ Max (AI tutor): enabled' : '⚠️  Max disabled (no ANTHROPIC_API_KEY)');
-  console.log(process.env.RESEND_API_KEY ? '📧 Email: Resend' : '📧 Email: console (set RESEND_API_KEY for real email)');
-  console.log(`⏱  Rate limit: ${RATE_LIMIT_PER_HOUR} req/hr per student (or IP)   💰 Daily cap: ${DAILY_REQUEST_CAP} req/day + ${DAILY_GRADE_CAP} grading`);
+  console.log(`Atrium Institute running at http://localhost:${PORT}`);
+  console.log(`DB backend: ${db.backend}`);
+  console.log(API_KEY ? 'Max (AI tutor): enabled' : 'Max disabled (no ANTHROPIC_API_KEY)');
+  console.log(process.env.RESEND_API_KEY ? 'Email: Resend' : 'Email: console (set RESEND_API_KEY for real email)');
+  console.log(`Rate limit: ${RATE_LIMIT_PER_HOUR} req/hr per student (or IP)   Daily cap: ${DAILY_REQUEST_CAP} req/day + ${DAILY_GRADE_CAP} grading`);
 });
 
 // Exposed for tests only. Requiring this file also starts the server (harmless

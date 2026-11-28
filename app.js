@@ -503,8 +503,8 @@ function logUserActivity(kind, meta) {
   // POINT_VALUES; values must stay in sync.
   if (typeof window.showPointToast === 'function' && typeof window.AtriumPoints === 'object') {
     const P = window.AtriumPoints;
-    if (kind === 'lesson_started') window.showPointToast(P.lesson_started, 'Lesson started', { icon: '📖' });
-    else if (kind === 'hint_used') window.showPointToast(P.hint_used, 'Hint used', { icon: '💡' });
+    if (kind === 'lesson_started') window.showPointToast(P.lesson_started, 'Lesson started', { icon: '' });
+    else if (kind === 'hint_used') window.showPointToast(P.hint_used, 'Hint used', { icon: '' });
   }
 }
 
@@ -559,7 +559,7 @@ async function renderCourses() {
   if (toggle) {
     toggle.innerHTML = ['math', 'english'].map(s => `
       <button class="subj-btn ${SUBJECT_FILTER === s ? 'active' : ''}" data-s="${s}">
-        ${s === 'math' ? '🧮 Math' : '📚 English'}
+        ${s === 'math' ? 'Math' : 'English'}
       </button>
     `).join('');
     toggle.querySelectorAll('.subj-btn').forEach(b => {
@@ -671,7 +671,7 @@ async function renderCourses() {
         placeholder.style.opacity = '0.6';
         const grades = (cc.grade_levels || []).map(g => 'Grade ' + g).join(', ');
         placeholder.innerHTML = `
-          <div class="course-emoji">📘</div>
+          <div class="course-emoji"></div>
           <div class="course-title">${cc.title}</div>
           <div class="course-subtitle">${grades}</div>
           <div class="course-desc">${cc.total_lessons || 0} lessons in the curriculum.</div>
@@ -748,7 +748,6 @@ async function renderCourses() {
         }
         card.innerHTML = `
           ${heartHTML}
-          <div class="course-emoji">${item.emoji}</div>
           <div class="course-title">${item.title}</div>
           <div class="course-subtitle">${item.subtitle}</div>
           ${item.desc ? `<div class="course-desc">${item.desc}</div>` : ''}
@@ -820,7 +819,6 @@ async function renderCourses() {
       card.style.setProperty('--a1', c.accent);
       card.style.setProperty('--a2', c.accent2);
       card.innerHTML = `
-        <div class="course-emoji">${c.emoji}</div>
         <div class="course-title">${c.title}</div>
         <div class="course-subtitle">${c.subtitle}</div>
         <div class="course-desc">${c.description}</div>
@@ -899,7 +897,7 @@ async function maybeRenderStudyPlan() {
   if (!plan) {
     wrap.innerHTML = `
       <div class="plan-head">
-        <span class="plan-icon">🎯</span>
+        <span class="plan-icon"></span>
         <div>
           <div class="plan-title">Set a study goal</div>
           <div class="plan-sub">Tell Max what you want to achieve and by when. He'll lay out a week-by-week plan you can actually follow.</div>
@@ -933,7 +931,7 @@ function renderStudyPlanInto(wrap, plan) {
   const targetDate = plan.target_date ? new Date(plan.target_date).toLocaleDateString() : '—';
   wrap.innerHTML = `
     <div class="plan-head">
-      <span class="plan-icon">🎯</span>
+      <span class="plan-icon"></span>
       <div class="plan-headline">
         <div class="plan-title">Your study plan${wk ? ` · Week ${wk.weekNumber || activeIdx + 1}${wk.label ? `: ${escapeHtml(wk.label)}` : ''}` : ''}</div>
         <div class="plan-sub">${escapeHtml(plan.goal_text || 'Your goal')}${plan.target_date ? ` · target ${escapeHtml(targetDate)}` : ''}</div>
@@ -1092,7 +1090,7 @@ async function maybeRenderReviewQueue() {
   wrap.className = 'review-queue';
   wrap.innerHTML = `
     <div class="review-queue-head">
-      <span class="review-queue-icon">🔁</span>
+      <span class="review-queue-icon"></span>
       <div>
         <div class="review-queue-title">From earlier — worth another look</div>
         <div class="review-queue-sub">You missed these last time. A second pass right now usually locks them in.</div>
@@ -1138,7 +1136,7 @@ async function maybeRenderRecommendation() {
   if (!box) return;
   box.innerHTML = `
     <div class="rec-card">
-      <div class="rec-avatar">🧙</div>
+      <div class="rec-avatar">M</div>
       <div class="rec-body">
         <div class="rec-name">Max's suggestion for you${profile.name ? ', ' + escapeHtml(profile.name) : ''}</div>
         <div class="rec-text" id="recText"><div class="typing"><span></span><span></span><span></span></div></div>
@@ -1183,7 +1181,6 @@ async function openCourse(courseId) {
   hdr.innerHTML = `
     <button class="back-btn" onclick="goToCourses()">← All Courses</button>
     <div class="course-header-inner" style="--a1:${COURSE.accent};--a2:${COURSE.accent2}">
-      <div class="course-emoji-big">${COURSE.emoji}</div>
       <div>
         <h1>${COURSE.title}</h1>
         <p>${COURSE.subtitle}</p>
@@ -1264,7 +1261,7 @@ async function openCurriculumUnitAsCourse(curriculumCourseId, unitNumber) {
   const legacy = course.legacy_course_id && COURSES[course.legacy_course_id] ? COURSES[course.legacy_course_id] : null;
   const accent = legacy ? legacy.accent : '#4a6fa5';
   const accent2 = legacy ? legacy.accent2 : '#9fb8d6';
-  const emoji = legacy ? legacy.emoji : '📘';
+  const emoji = legacy ? legacy.emoji : '';
   const synthId = `curr:${course.id}`;
   const bookId = `curr:${course.id}:u${unit.unit_number}`;
 
@@ -1473,7 +1470,6 @@ function renderBooks() {
     card.style.setProperty('--a2', book.accent2);
     card.innerHTML = `
       <div>
-        <div class="book-emoji">${book.emoji}</div>
         <div class="book-title">${book.title}</div>
         <div class="book-subtitle">${book.subtitle}</div>
       </div>
@@ -1494,7 +1490,7 @@ function renderBooks() {
     finalCard.className = 'book-card final-card';
     finalCard.innerHTML = `
       <div>
-        <div class="book-emoji">🏁</div>
+        <div class="book-emoji"></div>
         <div class="book-title">${COURSE.title} Final Exam</div>
         <div class="book-subtitle">A comprehensive test pulling questions from every topic in this course.</div>
       </div>
@@ -1582,7 +1578,7 @@ function openBook(bookId) {
   detail.innerHTML = `
     <button class="back-btn" onclick="backToBooks()">${backLabel}</button>
     <div class="detail-header" style="--a1:${book.accent};--a2:${book.accent2}">
-      <h1>${book.emoji} ${book.title}</h1>
+      <h1>${book.title}</h1>
       <div class="subtitle">${book.subtitle}</div>
       <div class="book-header-progress">
         <div class="book-progress-bar"><div style="width:${(() => { const s = bookStatsFor(book, scores); return s.total ? Math.round(100 * s.passed / s.total) : 0; })()}%"></div></div>
@@ -1617,15 +1613,15 @@ function openBook(bookId) {
         <div class="num">${si + 1}</div>
         <div class="title">${s.title}</div>
         ${badge}
-        <button class="learn-btn" title="Open Max's lesson · +5 points">📖 Learn <span class="pts-chip">+5</span></button>
+        <button class="learn-btn" title="Open Max's lesson · +5 points">Learn <span class="pts-chip">+5</span></button>
         <button class="start-btn" title="Pass: +50 · Attempt: +10">${score ? 'Retake' : 'Start Quiz'} <span class="pts-chip">+50</span></button>
       </div>
       <div class="section-progress-bar"><div style="width:${score ? Math.round(100 * score.correct / score.total) : 0}%"></div></div>
       <div class="practice-row">
         <span class="practice-label">Practice mode:</span>
-        ${regCount > 0 ? `<button class="practice-btn" data-type="regular">🎯 Regular only (${regCount})</button>` : ''}
-        ${wordCount > 0 ? `<button class="practice-btn" data-type="word">📝 Word problems (${wordCount})</button>` : ''}
-        <button class="study-section-link" type="button">💬 Study with Max</button>
+        ${regCount > 0 ? `<button class="practice-btn" data-type="regular">Regular only (${regCount})</button>` : ''}
+        ${wordCount > 0 ? `<button class="practice-btn" data-type="word">Word problems (${wordCount})</button>` : ''}
+        <button class="study-section-link" type="button">Study with Max</button>
       </div>
       <div class="lesson-panel hidden"></div>
     `;
@@ -1653,7 +1649,7 @@ function openBook(bookId) {
     cCard.style.setProperty('--a2', book.accent2);
     cCard.innerHTML = `
       <div class="section-row">
-        <div class="num cum-star">★</div>
+        <div class="num cum-star"></div>
         <div class="title">${ct.title || 'Cumulative Test'}
           <div class="cum-sub">${ct.questions.length} questions covering this whole topic</div>
         </div>
@@ -1928,7 +1924,7 @@ async function renderCachedLesson(panel, book, section, sIdx, forceRegenerate) {
     ${prewritten}
     <div class="lesson-ai">
       <div class="lesson-ai-head">
-        <span>✨ Max's lesson on <em>${escapeHtml(section.title)}</em></span>
+        <span>Max's lesson on <em>${escapeHtml(section.title)}</em></span>
         <button class="lesson-regen-btn" type="button" title="Regenerate this lesson with the latest version of Max">↻ Regenerate</button>
       </div>
       <div class="lesson-walker">
@@ -2305,23 +2301,23 @@ async function studyWithMax(book, section) {
   studyEl.innerHTML = `
     <button class="back-btn" onclick="backToBookFromStudy('${book.id}')">← Back to ${escapeHtml(book.title)}</button>
     <header class="study-hero">
-      <div class="study-eyebrow">📖 Study Session · ${escapeHtml(book.title)}</div>
+      <div class="study-eyebrow">Study Session · ${escapeHtml(book.title)}</div>
       <h1 class="study-title-h1">${escapeHtml(section.title)}</h1>
       <p class="study-blurb">An easy-to-follow walkthrough, worked examples, and ${studyQs.length} practice questions — no grade, no timer. Take your time.</p>
       <div class="study-cta-row">
-        <button class="cta-secondary" onclick="openChat()">💬 Ask Max anything</button>
+        <button class="cta-secondary" onclick="openChat()">Ask Max anything</button>
       </div>
     </header>
 
     <section class="study-section">
-      <h2 class="study-h2">✨ Max's lesson</h2>
+      <h2 class="study-h2">Max's lesson</h2>
       <div class="study-lesson" id="studyLessonBody">
         <div class="typing"><span></span><span></span><span></span></div>
       </div>
     </section>
 
     <section class="study-section">
-      <h2 class="study-h2">📝 ${studyQs.length} practice questions</h2>
+      <h2 class="study-h2">${studyQs.length} practice questions</h2>
       <p class="study-section-sub">Each question has the solution hidden. Try first, then reveal. Stuck? Click "Ask Max" to dig in.</p>
       <div class="study-questions">
         ${studyQs.map((q, i) => `
@@ -2334,7 +2330,7 @@ async function studyWithMax(book, section) {
                 <div class="study-q-answer"><b>Answer:</b> ${q.answer}</div>
                 ${q.solution ? `<div class="study-q-explain">${q.solution}</div>` : ''}
               </details>
-              <button class="study-q-ask" data-ask="${escapeAttr(JSON.stringify({ q: q.q, answer: q.answer, topic: section.title }))}" onclick="askMaxAboutQ(JSON.parse(this.dataset.ask))">💬 Ask Max about this</button>
+              <button class="study-q-ask" data-ask="${escapeAttr(JSON.stringify({ q: q.q, answer: q.answer, topic: section.title }))}" onclick="askMaxAboutQ(JSON.parse(this.dataset.ask))">Ask Max about this</button>
             </div>
           </div>
         `).join('')}
@@ -2567,7 +2563,7 @@ function renderQuizQuestion() {
     <div class="quiz-shell">
       <div class="quiz-top">
         <div class="quiz-meta">
-          <div class="quiz-section-name">${section.title}${section._adaptiveLevel && section._adaptiveLevel !== 'normal' ? ` <span class="adaptive-chip adaptive-${section._adaptiveLevel}">${section._adaptiveLevel === 'easier' ? '🌱 Adapted: Building up' : '🔥 Adapted: Challenge mode'}</span>` : ''}</div>
+          <div class="quiz-section-name">${section.title}${section._adaptiveLevel && section._adaptiveLevel !== 'normal' ? ` <span class="adaptive-chip adaptive-${section._adaptiveLevel}">${section._adaptiveLevel === 'easier' ? 'Adapted: Building up' : 'Adapted: Challenge mode'}</span>` : ''}</div>
           <div class="quiz-progress-text">Question ${displayNum} of ${total}</div>
         </div>
         <div class="quiz-progress-bar">
@@ -2575,7 +2571,7 @@ function renderQuizQuestion() {
         </div>
       </div>
       <div class="quiz-card">
-        <div class="q-type ${q.type}">${q.type === 'word' ? '📘 Word Problem' : '📐 Problem'}</div>
+        <div class="q-type ${q.type}">${q.type === 'word' ? 'Word Problem' : 'Problem'}</div>
         <div class="quiz-q">${q.q}</div>
         <label class="quiz-label">Your answer</label>
         <textarea class="quiz-input" id="qInput" rows="2" placeholder="Type your answer here…">${answers[idx].user || ''}</textarea>
@@ -2583,8 +2579,8 @@ function renderQuizQuestion() {
         <div id="hintBox" class="quiz-hint-box hidden"></div>
         <div class="quiz-actions" id="quizActions">
           <button class="cta submit-btn" id="submitBtn">Submit Answer</button>
-          <button class="q-btn hint-btn" id="hintBtn" title="Get a hint without revealing the answer">💡 I'm stuck</button>
-          <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Max</button>
+          <button class="q-btn hint-btn" id="hintBtn" title="Get a hint without revealing the answer">I'm stuck</button>
+          <button class="q-btn ask-inline" onclick="openChat()">Ask Max</button>
         </div>
       </div>
     </div>
@@ -2633,7 +2629,7 @@ async function requestNextHint() {
   hintBox.classList.remove('hidden');
   const labels = ['', 'Gentle nudge', 'Scaffolded hint', 'Full walkthrough'];
   hintBox.innerHTML = `
-    <div class="hint-head">💡 ${labels[level]} (level ${level} of 3)</div>
+    <div class="hint-head">${labels[level]} (level ${level} of 3)</div>
     <div class="hint-body"><div class="typing"><span></span><span></span><span></span></div></div>
   `;
   const bodyEl = hintBox.querySelector('.hint-body');
@@ -2668,8 +2664,8 @@ async function requestNextHint() {
   if (hintBtn) {
     hintBtn.disabled = false;
     hintBtn.textContent = level < 3
-      ? (level === 1 ? '💡 More specific hint' : '💡 Show me the walkthrough')
-      : '💡 Done — no more hints';
+      ? (level === 1 ? 'More specific hint' : 'Show me the walkthrough')
+      : 'Done — no more hints';
     if (level >= 3) hintBtn.disabled = true;
   }
 }
@@ -2731,11 +2727,11 @@ async function submitAnswer() {
     <div class="reveal-block ${isCorrect ? 'good' : 'bad'}">
       <div class="verdict ${isCorrect ? 'good' : 'bad'}">
         ${isCorrect ? '✓ Correct!' : '✗ Not quite.'}
-        ${usedAI ? '<span class="ai-tag">✨ AI-graded</span>' : ''}
+        ${usedAI ? '<span class="ai-tag">AI-graded</span>' : ''}
       </div>
       <div class="reveal-row"><span class="lbl">Your answer</span><span class="val">${user ? escapeHtml(user) : '<em>(blank)</em>'}</span></div>
       <div class="reveal-row"><span class="lbl">Correct answer</span><span class="val correct">${q.answer}</span></div>
-      ${aiNote ? `<div class="ai-note">💡 ${aiNote}</div>` : ''}
+      ${aiNote ? `<div class="ai-note">${aiNote}</div>` : ''}
       ${usedFallback ? `<div class="ai-note">Max couldn't grade this one, so it was checked against the answer key exactly. ${isCorrect ? '' : 'If yours means the same thing, use the button below.'}</div>` : ''}
       ${!isCorrect ? `<button class="override-btn" id="overrideBtn">I actually had it right — count it →</button>` : ''}
     </div>
@@ -2746,7 +2742,7 @@ async function submitAnswer() {
   const isLast = answers.every((a, i) => i === idx || a.correct !== null);
   actions.innerHTML = `
     <button class="cta next-btn">${isLast ? 'Finish Test →' : 'Next Question →'}</button>
-    <button class="q-btn ask-inline" onclick="openChat()">💬 Ask Max</button>
+    <button class="q-btn ask-inline" onclick="openChat()">Ask Max</button>
   `;
   actions.querySelector('.next-btn').onclick = nextQuestion;
 
@@ -2846,8 +2842,8 @@ function finishQuiz() {
     // Points feedback reflects what the server actually awarded (a section's
     // pass pays out once a day; see quiz-lib.js).
     if (!data || !data.points || typeof window.showPointToast !== 'function') return;
-    if (data.pointsReason === 'passed') window.showPointToast(data.points, 'Quiz passed', { icon: '🎯' });
-    else window.showPointToast(data.points, 'Quiz attempt', { icon: '💪' });
+    if (data.pointsReason === 'passed') window.showPointToast(data.points, 'Quiz passed', { icon: '' });
+    else window.showPointToast(data.points, 'Quiz attempt', { icon: '' });
   }).catch(() => { /* ignore — best-effort */ });
   if (typeof window._behaviorQuizSubmit === 'function') {
     window._behaviorQuizSubmit(book.id, sIdx, correct, total, passed);
@@ -2868,7 +2864,7 @@ function finishQuiz() {
       <div class="results-score">${correct} / ${total}</div>
       <div class="results-pct">${pct}% correct</div>
       <div class="results-title">${section.title}</div>
-      <div class="results-msg">${passed ? '🎉 Nice work! You passed this quiz.' : '💪 Keep pushing — let\'s look at what you missed and fix it together.'}</div>
+      <div class="results-msg">${passed ? 'Nice work! You passed this quiz.' : 'Keep pushing — let\'s look at what you missed and fix it together.'}</div>
       <div class="results-actions">
         ${missedIdx.length ? `<button class="cta help-btn" id="helpBtn">Review my mistakes (${missedIdx.length})</button>` : ''}
         <button class="q-btn" onclick="startQuiz('${book.id}', ${sIdx})">Retake Quiz</button>
@@ -2925,12 +2921,12 @@ async function checkStuckAndPrompt(book, section, sIdx) {
   const callout = document.createElement('div');
   callout.className = 'stuck-callout';
   callout.innerHTML = `
-    <div class="stuck-icon">🙋</div>
+    <div class="stuck-icon"></div>
     <div class="stuck-body">
       <div class="stuck-title">Stuck on ${escapeHtml(section.title)} — that's two in a row.</div>
       <div class="stuck-sub">Let's slow down. Want to walk through Max's lesson before another attempt? It's about 3 minutes and it'll likely save you time on the next try.</div>
       <div class="stuck-actions">
-        <button class="cta stuck-open-lesson">📖 Open the lesson</button>
+        <button class="cta stuck-open-lesson">Open the lesson</button>
         <button class="q-btn stuck-dismiss">Thanks, I'll retry</button>
       </div>
     </div>
@@ -2973,7 +2969,7 @@ function openHelpPopup(missedIdx) {
       modal.innerHTML = `
         <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
         <div class="modal-content">
-          <div class="tutor-avatar big">🧙‍♂️</div>
+          <div class="tutor-avatar big">M</div>
           <h2>You're ready for round two.</h2>
           <p class="tutor-text">You walked through every mistake. Retake the quiz and lock it in.</p>
           <div class="modal-actions">
@@ -2994,7 +2990,7 @@ function openHelpPopup(missedIdx) {
       <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
       <div class="modal-content">
         <div class="tutor-row">
-          <div class="tutor-avatar">🧙‍♂️</div>
+          <div class="tutor-avatar">M</div>
           <div>
             <div class="tutor-name">Max, your tutor</div>
             <div class="tutor-sub">Reviewing mistake ${step + 1} of ${missedIdx.length}</div>
@@ -3050,7 +3046,7 @@ function openHelpPopup(missedIdx) {
 
     step_el.innerHTML = `
       <div class="tutor-bubble ai-bubble">
-        <div class="ai-tag-row">✨ Max is thinking…</div>
+        <div class="ai-tag-row">Max is thinking…</div>
         <div class="ai-output" id="aiOutput"><div class="typing"><span></span><span></span><span></span></div></div>
       </div>
     `;
@@ -3063,14 +3059,14 @@ function openHelpPopup(missedIdx) {
         typesetMath(out);
         out.scrollIntoView({ block: 'nearest' });
       }
-      step_el.querySelector('.ai-tag-row').textContent = '✨ Personalized by Max';
+      step_el.querySelector('.ai-tag-row').textContent = 'Personalized by Max';
     } catch (e) {
       step_el.innerHTML = renderFallbackFix(q) + `<div class="ai-err">AI unavailable: ${e.message}. Showing offline guide.</div>`;
     }
 
     document.getElementById('modalActions').innerHTML = `
       <button class="cta next-help">Got it — next ✓</button>
-      <button class="q-btn" onclick="closeModal(); openChat();">💬 Ask a follow-up</button>
+      <button class="q-btn" onclick="closeModal(); openChat();">Ask a follow-up</button>
     `;
     document.querySelector('.next-help').onclick = () => { step++; renderStep(); };
     typesetMath(step_el);
@@ -3081,7 +3077,7 @@ function openHelpPopup(missedIdx) {
       <div class="tutor-bubble">
         <p><strong>Here's the walkthrough:</strong></p>
         <div class="fix-section">
-          <div class="fix-heading">📖 The walkthrough</div>
+          <div class="fix-heading">The walkthrough</div>
           <div class="walkthrough">${q.solution}</div>
         </div>
         <div class="final-line"><span class="lbl">Final answer:</span> ${q.answer}</div>
@@ -3119,7 +3115,7 @@ function appendChat(role, text) {
   const div = document.createElement('div');
   div.className = `chat-msg ${role}`;
   div.innerHTML = role === 'assistant'
-    ? `<div class="chat-avatar">🧙</div><div class="chat-bubble">${mdToHtml(text)}</div>`
+    ? `<div class="chat-avatar">M</div><div class="chat-bubble">${mdToHtml(text)}</div>`
     : `<div class="chat-bubble">${escapeHtml(text)}</div>`;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
@@ -3481,8 +3477,8 @@ function showWelcome(profile) {
   const toast = document.createElement('div');
   toast.className = 'welcome-toast';
   toast.innerHTML = profile.name
-    ? `<span class="welcome-wave">👋</span> Welcome, <strong>${escapeHtml(profile.name)}</strong>! Let's get started.`
-    : `<span class="welcome-wave">👋</span> You're all set. Let's get started.`;
+    ? `<span class="welcome-wave"></span> Welcome, <strong>${escapeHtml(profile.name)}</strong>! Let's get started.`
+    : `<span class="welcome-wave"></span> You're all set. Let's get started.`;
   document.body.appendChild(toast);
   setTimeout(() => toast.classList.add('show'), 50);
   setTimeout(() => {
@@ -3557,11 +3553,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ----- Dark mode toggle (persists to localStorage) -----
   const THEME_KEY = 'atrium_theme_v1';
+  const THEME_MOON = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  const THEME_SUN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
   const themeBtn = document.getElementById('themeToggle');
   const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
   if (savedTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    if (themeBtn) themeBtn.textContent = '☀️';
+    if (themeBtn) themeBtn.innerHTML = THEME_SUN;
   }
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
@@ -3569,11 +3567,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isDark) {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem(THEME_KEY, 'light');
-        themeBtn.textContent = '🌙';
+        themeBtn.innerHTML = THEME_MOON;
       } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem(THEME_KEY, 'dark');
-        themeBtn.textContent = '☀️';
+        themeBtn.innerHTML = THEME_SUN;
       }
     });
   }

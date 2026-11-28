@@ -369,7 +369,7 @@
       const esc = (s) => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       wrap.innerHTML = `
         <div class="student-pending-card">
-          <div class="student-pending-title">🔔 ${pending.length} link request${pending.length > 1 ? 's' : ''} waiting</div>
+          <div class="student-pending-title">${pending.length} link request${pending.length > 1 ? 's' : ''} waiting</div>
           <p class="student-pending-help">Someone typed your link code. Approve only if you recognise the email.</p>
           ${pending.map(p => `
             <div class="student-pending-row" data-id="${esc(p.id)}">
@@ -421,7 +421,7 @@
     if (signUpBtn) hide(signUpBtn);
     if (navUser) show(navUser);
     if (navEmail) {
-      const label = user.role === 'parent' ? `👪 ${user.email}` : user.email;
+      const label = user.role === 'parent' ? `${user.email}` : user.email;
       navEmail.textContent = label;
     }
     // Admin menu item: shown only to admins (server also enforces is_admin on
@@ -517,8 +517,8 @@
     wrap.innerHTML = `
       <div class="auth-role-label">I'm signing up as a…</div>
       <div class="auth-role-buttons" role="radiogroup" aria-label="Account type">
-        <button type="button" class="auth-role-btn" data-role="student" role="radio" aria-checked="true">🎓 Student</button>
-        <button type="button" class="auth-role-btn" data-role="parent" role="radio" aria-checked="false">👪 Parent</button>
+        <button type="button" class="auth-role-btn" data-role="student" role="radio" aria-checked="true">Student</button>
+        <button type="button" class="auth-role-btn" data-role="parent" role="radio" aria-checked="false">Parent</button>
       </div>
       <div class="auth-role-hint">Pick "Student" if you'll be taking quizzes. Pick "Parent" if you'll be tracking a student.</div>
     `;
@@ -698,7 +698,7 @@
       // to Sign-in mode and tell the user gently what happened.
       if (result && result.existing && authMode === 'signup') {
         setAuthMode('signin');
-        if (show2) show2.innerHTML = `📬 You already have an account. A sign-in code was sent to <strong>${email}</strong>.`;
+        if (show2) show2.innerHTML = `You already have an account. A sign-in code was sent to <strong>${email}</strong>.`;
       } else if (show2) {
         show2.textContent = `Code sent to ${email}.`;
       }

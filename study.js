@@ -69,12 +69,12 @@
     const courseOpts = Object.entries(COURSES).map(([id, c]) =>
       `<option value="${id}">${c.title}</option>`).join('');
     return `<div class="topic-picker">
-      <div class="picker-label">📖 Study a topic with this method:</div>
+      <div class="picker-label">Study a topic with this method:</div>
       <select class="picker-select course-select" data-idx="${idx}">${courseOpts}</select>
       <select class="picker-select book-select" data-idx="${idx}"></select>
       <div class="picker-actions">
-        <button class="start-method-btn" data-idx="${idx}" data-method="${methodTitle.replace(/"/g, '&quot;')}">💬 Start with Max</button>
-        <button class="open-topic-btn" data-idx="${idx}">📖 Open this topic</button>
+        <button class="start-method-btn" data-idx="${idx}" data-method="${methodTitle.replace(/"/g, '&quot;')}">Start with Max</button>
+        <button class="open-topic-btn" data-idx="${idx}">Open this topic</button>
       </div>
       <div class="picker-hint">"Open this topic" jumps to the book overview where you can pick any section to read a Max lesson on, or take its quiz.</div>
     </div>`;
@@ -86,7 +86,7 @@
     if (!courseSel || !bookSel) return;
     const course = COURSES[courseSel.value];
     bookSel.innerHTML = course.books.map(b =>
-      `<option value="${b.id}">${b.emoji || ''} ${b.title}</option>`).join('');
+      `<option value="${b.id}">${b.title}</option>`).join('');
   }
 
   function initTopicPickers() {
@@ -184,7 +184,7 @@ Which section should we focus on? Once I pick, please walk me through it using t
         </div>
         <div class="pomo-meta" id="pomoMeta">Cycle 1 of 4 · next: 5 min break</div>
         <details class="pomo-settings">
-          <summary>⚙️ Customize durations</summary>
+          <summary>Customize durations</summary>
           <div class="pomo-settings-row">
             <label>Focus<input type="number" min="1" max="180" id="pomoSetFocus" value="${s.focus}"> min</label>
             <label>Short break<input type="number" min="1" max="60" id="pomoSetShort" value="${s.short}"> min</label>
@@ -231,7 +231,7 @@ Which section should we focus on? Once I pick, please walk me through it using t
           ${m.body}
           ${m.widget ? widgetHTML(m.widget) : ''}
           ${topicPickerHTML(i, m.title)}
-          <button class="ask-max-btn" data-method="${m.title.replace(/"/g, '&quot;')}">💬 Ask Max for questions</button>
+          <button class="ask-max-btn" data-method="${m.title.replace(/"/g, '&quot;')}">Ask Max for questions</button>
         </div>
       </div>
     `).join('');

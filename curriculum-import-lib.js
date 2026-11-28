@@ -219,7 +219,7 @@ async function syncCurriculum(pool, log = console) {
          on conflict (subject_id) do update set content_hash = excluded.content_hash, synced_at = now()`,
         [subjectId, hash]);
       await client.query('commit');
-      log.log(`📘 Curriculum sync: ${subjectId} re-imported (${summarise(data).courses} courses, ${r.lessons} lessons, ${stale} edited lessons' caches cleared)`);
+      log.log(`Curriculum sync: ${subjectId} re-imported (${summarise(data).courses} courses, ${r.lessons} lessons, ${stale} edited lessons' caches cleared)`);
       results.push({ subject: subjectId, changed: true, lessons: r.lessons, stale });
     } catch (e) {
       await client.query('rollback').catch(() => {});

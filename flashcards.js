@@ -75,7 +75,7 @@
         '<button class="fc-saved-open" data-id="' + d.id + '">' +
           escapeHtml(d.topic) + ' <span class="fc-saved-count">' + d.cards.length + '</span>' +
         '</button>' +
-        '<button class="fc-saved-del" data-id="' + d.id + '" aria-label="Delete deck">🗑</button>' +
+        '<button class="fc-saved-del" data-id="' + d.id + '" aria-label="Delete deck"></button>' +
       '</div>';
     });
     wrap.innerHTML = html;

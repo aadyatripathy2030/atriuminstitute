@@ -138,7 +138,7 @@
       Atrium Institute
     </button>
     <button class="study-nav-btn hidden" id="studyFab" title="Study methods & timers">
-      <span class="fab-icon">📚</span>
+      <span class="fab-icon"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2h5"/></svg></span>
       <span class="fab-label">Study Methods</span>
     </button>
     <div class="pomo-chip hidden" id="pomoChip" title="Pomodoro timer (click to open)">
@@ -162,9 +162,9 @@
         <button class="nav-menu-item" type="button" role="menuitem" onclick="showAbout()">About us</button>
       </div>
     </div>
-    <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+    <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     <span class="a11y-wrap">
-      <button class="theme-toggle" id="a11yToggle" type="button" title="Accessibility options" aria-label="Accessibility options" aria-haspopup="true" aria-expanded="false">♿</button>
+      <button class="theme-toggle" id="a11yToggle" type="button" title="Accessibility options" aria-label="Accessibility options" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="1.6"/><path d="M5 8.5l7 1.5 7-1.5M12 10v4.5M9 21l3-6.5 3 6.5"/></svg></button>
       <div class="a11y-menu hidden" id="a11yMenu" role="menu" aria-label="Accessibility options">
         <div class="a11y-row">
           <span>Read aloud</span>
@@ -186,8 +186,8 @@
       </div>
     </span>
     <button class="greeting hidden" id="greeting" title="Update profile"></button>
-    <button type="button" class="streak-chip hidden" id="streakChip" title="Your activity streak">🔥 <span id="streakChipCount">0</span></button>
-    <button type="button" class="points-chip hidden" id="pointsChip" title="Your total points — click to see breakdown">⭐ <span id="pointsChipCount">0</span></button>
+    <button type="button" class="streak-chip hidden" id="streakChip" title="Your activity streak"><span id="streakChipCount">0</span></button>
+    <button type="button" class="points-chip hidden" id="pointsChip" title="Your total points — click to see breakdown"><span id="pointsChipCount">0</span></button>
     <span class="cosmetic-badge hidden" id="cosmeticBadge" title="Your equipped badge" aria-hidden="true"></span>
     <div class="progress-pill hidden" id="progressPill">0/0 quizzes passed · 0%</div>
     <button class="nav-link hidden" id="navSignInBtn" type="button">Sign in</button>
@@ -196,34 +196,34 @@
       <div class="nav-menu">
         <button class="nav-link" id="studyToolsBtn" type="button" aria-haspopup="menu" aria-expanded="false">Study Tools ▾</button>
         <div class="nav-menu-items hidden" id="studyToolsMenu" role="menu">
-          <button class="nav-menu-item" id="pathNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🧭</span><span class="nmi-label">Learning Path</span></button>
-          <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🃏</span><span class="nmi-label">Flashcards</span></button>
-          <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">✍️</span><span class="nmi-label">Essay Grader</span></button>
-          <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">📓</span><span class="nmi-label">Notebook</span></button>
-          <button class="nav-menu-item" id="calendarNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">📅</span><span class="nmi-label">Study Calendar</span></button>
-          <button class="nav-menu-item" id="calculatorNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🧮</span><span class="nmi-label">Calculator</span></button>
-          <button class="nav-menu-item" id="formulasNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">📐</span><span class="nmi-label">Formula Sheet</span></button>
-          <button class="nav-menu-item" id="certsNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🎓</span><span class="nmi-label">Certificates</span></button>
-          <button class="nav-menu-item" id="satNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🎯</span><span class="nmi-label">SAT / ACT Prep</span></button>
-          <button class="nav-menu-item" id="shopNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🪙</span><span class="nmi-label">Rewards Shop</span></button>
-          <button class="nav-menu-item" id="referralNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🎁</span><span class="nmi-label">Invite Friends</span></button>
-          <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()"><span class="nmi-ico" aria-hidden="true">📸</span><span class="nmi-label">Snap &amp; Solve</span></button>
+          <button class="nav-menu-item" id="pathNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Learning Path</span></button>
+          <button class="nav-menu-item" id="flashcardsNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Flashcards</span></button>
+          <button class="nav-menu-item" id="essayNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Essay Grader</span></button>
+          <button class="nav-menu-item" id="notebookNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Notebook</span></button>
+          <button class="nav-menu-item" id="calendarNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Study Calendar</span></button>
+          <button class="nav-menu-item" id="calculatorNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Calculator</span></button>
+          <button class="nav-menu-item" id="formulasNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Formula Sheet</span></button>
+          <button class="nav-menu-item" id="certsNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Certificates</span></button>
+          <button class="nav-menu-item" id="satNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">SAT / ACT Prep</span></button>
+          <button class="nav-menu-item" id="shopNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Rewards Shop</span></button>
+          <button class="nav-menu-item" id="referralNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Invite Friends</span></button>
+          <button class="nav-menu-item" type="button" role="menuitem" onclick="openPhotoAtriumList()"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Snap &amp; Solve</span></button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
-          <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🗺️</span><span class="nmi-label">Curriculum</span></button>
-          <button class="nav-menu-item" id="favoritesNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">❤️</span><span class="nmi-label">My Favorites</span></button>
+          <button class="nav-menu-item" id="curriculumNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Curriculum</span></button>
+          <button class="nav-menu-item" id="favoritesNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">My Favorites</span></button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
-          <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">📈</span><span class="nmi-label">Activity</span></button>
-          <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🏅</span><span class="nmi-label">Achievements</span></button>
-          <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🏆</span><span class="nmi-label">Leaderboard</span></button>
+          <button class="nav-menu-item" id="activityNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Activity</span></button>
+          <button class="nav-menu-item" id="achievementsNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Achievements</span></button>
+          <button class="nav-menu-item" id="leaderboardNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Leaderboard</span></button>
         </div>
       </div>
       <div class="nav-menu">
         <button class="nav-link" id="myDetailsBtn" type="button" aria-haspopup="menu" aria-expanded="false">My Details ▾</button>
         <div class="nav-menu-items hidden" id="myDetailsMenu" role="menu">
-          <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">👤</span><span class="nmi-label">Profile</span></button>
-          <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">📊</span><span class="nmi-label">AI Usage</span></button>
-          <button class="nav-menu-item" id="pricingNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">💳</span><span class="nmi-label">Pricing</span></button>
-          <button class="nav-menu-item hidden" id="adminNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true">🛡️</span><span class="nmi-label">Admin</span></button>
+          <button class="nav-menu-item" id="profileNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Profile</span></button>
+          <button class="nav-menu-item" id="tokenUsageNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">AI Usage</span></button>
+          <button class="nav-menu-item" id="pricingNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Pricing</span></button>
+          <button class="nav-menu-item hidden" id="adminNavBtn" type="button" role="menuitem"><span class="nmi-ico" aria-hidden="true"></span><span class="nmi-label">Admin</span></button>
           <div class="nav-menu-divider" aria-hidden="true"></div>
           <div class="nav-menu-footer">
             <div class="nav-menu-label">Logged in as</div>
@@ -269,7 +269,7 @@
       <button type="submit" id="authCodeBtn" class="auth-btn">Verify &amp; sign in</button>
       <div class="auth-help-row">
         <div class="auth-help-prompt">Didn't receive a code?</div>
-        <div class="auth-help-spam">📬 Check your <strong>spam</strong> or <strong>junk</strong> folder. The email comes from <code>hello@atriuminstitute.ai</code>. Some providers (especially school/district email) flag verification codes on first delivery — marking it "Not spam" once means future codes land in your inbox.</div>
+        <div class="auth-help-spam">Check your <strong>spam</strong> or <strong>junk</strong> folder. The email comes from <code>hello@atriuminstitute.ai</code>. Some providers (especially school/district email) flag verification codes on first delivery — marking it "Not spam" once means future codes land in your inbox.</div>
         <div class="auth-help-actions">
           <button type="button" id="authResendCode" class="auth-link">Send a new code</button>
           <span class="auth-help-sep" aria-hidden="true">·</span>
@@ -286,7 +286,7 @@
 <!-- Public landing page (shown when not signed in) -->
 <div id="landing" class="landing hidden">
   <section class="landing-hero">
-    <div class="landing-eyebrow">📚 Interactive math &amp; English · grades 6–12 + AP</div>
+    <div class="landing-eyebrow">Interactive math &amp; English · grades 6–12 + AP</div>
     <h1 class="landing-h1">Learn math and English<br><em>like you mean it.</em></h1>
     <p class="landing-lede">21 courses, 150+ topics, 10,000+ practice questions, and an AI tutor named Max who actually teaches. Free for every student, everywhere.</p>
     <div class="landing-cta-row" id="landingCtaSignedOut">
@@ -465,12 +465,12 @@
 
         <ul class="pricing-list">
           <li>✓ Everything in Free, plus:</li>
-          <li>🔢 <strong>All 14 math courses</strong> — Statistics, Linear Algebra, Diff Eq &amp; Real Analysis</li>
-          <li>♾️ <strong>Unlimited</strong> quizzes &amp; tests</li>
-          <li>✨ <strong>Max</strong>, the AI tutor — unlimited chat &amp; lessons</li>
-          <li>📚 Study Methods panel — Pomodoro, Active Recall, Spaced Rep</li>
-          <li>🏁 Final Exams for every course</li>
-          <li>💬 Walk-throughs after every missed quiz answer</li>
+          <li><strong>All 14 math courses</strong> — Statistics, Linear Algebra, Diff Eq &amp; Real Analysis</li>
+          <li><strong>Unlimited</strong> quizzes &amp; tests</li>
+          <li><strong>Max</strong>, the AI tutor — unlimited chat &amp; lessons</li>
+          <li>Study Methods panel — Pomodoro, Active Recall, Spaced Rep</li>
+          <li>Final Exams for every course</li>
+          <li>Walk-throughs after every missed quiz answer</li>
         </ul>
 
         <button class="cta-primary cta-full" id="pricingSubscribeBtn" onclick="startProCheckout()">Start 3-day free trial →</button>
@@ -509,7 +509,7 @@
       </details>
       <details class="faq-item">
         <summary>What if I get stuck on a problem?</summary>
-        <p>Every quiz has a "💬 Ask Max" button. After a missed answer he'll walk you through the correct approach with a worked example and a diagram if it helps.</p>
+        <p>Every quiz has a "Ask Max" button. After a missed answer he'll walk you through the correct approach with a worked example and a diagram if it helps.</p>
       </details>
       <details class="faq-item">
         <summary>How do I report a bug or ask for a feature?</summary>
@@ -554,13 +554,13 @@
      to the scanner. -->
 <div id="paDesktopWarn" class="pa-confirm-overlay hidden" aria-hidden="true">
   <div class="pa-confirm-card" role="dialog" aria-labelledby="paDesktopWarnTitle">
-    <div class="pa-confirm-icon">📱</div>
+    <div class="pa-confirm-icon"></div>
     <h2 id="paDesktopWarnTitle">Snap &amp; Solve works best on a phone</h2>
     <p>Snap &amp; Solve is designed for your phone's camera — take a picture of a math problem and get a step-by-step solution. On desktop you can still pick a photo from your files, but the experience is smoother on mobile.</p>
     <p class="pa-confirm-sub">Pick an image from your computer, or keep going with the camera.</p>
     <div class="pa-confirm-actions">
       <button type="button" class="cta-secondary" id="paDesktopCancel">Cancel</button>
-      <button type="button" class="cta-primary" id="paDesktopUpload">📁 Upload an image</button>
+      <button type="button" class="cta-primary" id="paDesktopUpload">Upload an image</button>
       <button type="button" class="cta-link" id="paDesktopContinue">Use camera anyway</button>
     </div>
     <input type="file" accept="image/*" id="paDesktopFileInput" hidden>
@@ -597,7 +597,7 @@
 <div id="photoAtriumResultPage" class="pa-result-page hidden">
   <button class="back-btn" id="paResultBack">← History</button>
   <header class="pa-result-hero">
-    <h1>📸 Snap &amp; Solve</h1>
+    <h1>Snap &amp; Solve</h1>
     <p class="pa-result-sub">Your step-by-step solution.</p>
   </header>
   <div class="pa-hw-row">
@@ -615,9 +615,9 @@
 <div id="photoAtriumListPage" class="pa-list-page hidden">
   <button class="back-btn" id="paListBack">← Back</button>
   <header class="pa-list-hero">
-    <h1>📸 Snap &amp; Solve</h1>
+    <h1>Snap &amp; Solve</h1>
     <p class="pa-list-sub">Every problem you've snapped. Tap any card to revisit the solution.</p>
-    <button id="paListScanBtn" class="cta-primary" type="button">📸 Snap a new problem</button>
+    <button id="paListScanBtn" class="cta-primary" type="button">Snap a new problem</button>
   </header>
   <div class="pa-hw-row">
     <label class="pa-hw-toggle" title="When on, the final answer is hidden so you can work it out yourself.">
@@ -631,7 +631,7 @@
 
 <!-- Floating Action Button for quick access from any signed-in page. -->
 <button type="button" id="photoAtriumFab" class="pa-fab hidden" aria-label="Snap and Solve a math problem" title="Snap a photo, get the step-by-step solution">
-  <span class="pa-fab-icon">📸</span>
+  <span class="pa-fab-icon"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
   <span class="pa-fab-label">Snap &amp; Solve</span>
 </button>
 
@@ -656,13 +656,13 @@
       <h1 id="deleteTitle">Delete your account?</h1>
       <p class="delete-lede">This is a permanent action. We have nothing in place to undo it once it runs. Read what gets removed and decide if you really want to continue.</p>
       <ul class="delete-impact-list">
-        <li>👤 Your account, email, and profile (school, district, age, country)</li>
-        <li>📈 All quiz attempts, weak-topic data, and scores</li>
-        <li>⏱️ Time-on-site history and the activity timeline</li>
-        <li>🏆 Every achievement, badge, point total, and streak</li>
-        <li>📌 Every favourite topic and study-plan</li>
-        <li>👪 Your link to any parent or student (the other side keeps their account)</li>
-        <li>💳 If you have a paid subscription, it's cancelled with Stripe immediately</li>
+        <li>Your account, email, and profile (school, district, age, country)</li>
+        <li>All quiz attempts, weak-topic data, and scores</li>
+        <li>Time-on-site history and the activity timeline</li>
+        <li>Every achievement, badge, point total, and streak</li>
+        <li>Every favourite topic and study-plan</li>
+        <li>Your link to any parent or student (the other side keeps their account)</li>
+        <li>If you have a paid subscription, it's cancelled with Stripe immediately</li>
       </ul>
       <div class="delete-actions">
         <button type="button" class="delete-secondary" id="deleteCancelBtn1">Cancel</button>
@@ -838,7 +838,7 @@
 
   <section class="activity-summary-card" id="activitySummaryCard">
     <div class="activity-summary-head">
-      <div class="activity-summary-avatar">🧙</div>
+      <div class="activity-summary-avatar">M</div>
       <div>
         <div class="activity-summary-name">Where you stand</div>
         <div class="activity-summary-sub">Max read your activity and put together a quick read.</div>
@@ -877,13 +877,13 @@
     <!-- Strengths & Weaknesses side by side -->
     <div class="insights-grid">
       <div class="insights-panel insights-strengths">
-        <h3>💪 Strengths</h3>
+        <h3>Strengths</h3>
         <div class="insights-list" id="insightStrengths">
           <div class="insights-empty">Complete some quizzes to see your strengths.</div>
         </div>
       </div>
       <div class="insights-panel insights-weaknesses">
-        <h3>🎯 Needs work</h3>
+        <h3>Needs work</h3>
         <div class="insights-list" id="insightWeaknesses">
           <div class="insights-empty">Nothing here yet — keep going!</div>
         </div>
@@ -892,7 +892,7 @@
 
     <!-- Suggestions -->
     <div class="insights-panel insights-suggestions">
-      <h3>📋 Suggested next</h3>
+      <h3>Suggested next</h3>
       <div class="insights-list" id="insightSuggestions">
         <div class="insights-empty">Take a few quizzes and Max will suggest what to focus on.</div>
       </div>
@@ -1155,42 +1155,42 @@
     <p class="ach-howto-lede">Every quiz, lesson, and daily problem moves you closer to a badge. Badges count for points on the leaderboard.</p>
     <div class="ach-howto-grid">
       <div class="ach-howto-item">
-        <div class="ach-howto-icon">🎯</div>
+        <div class="ach-howto-icon"></div>
         <div>
           <strong>Take quizzes regularly</strong>
           <div class="ach-howto-detail">Pass quizzes to unlock <em>First pass</em>, <em>Quiz Champion</em> (10), <em>Quiz Legend</em> (50), and <em>Centurion</em> (100). Perfect-score 5 quizzes for <em>Sharpshooter</em>.</div>
         </div>
       </div>
       <div class="ach-howto-item">
-        <div class="ach-howto-icon">🔥</div>
+        <div class="ach-howto-icon"></div>
         <div>
           <strong>Build a streak</strong>
           <div class="ach-howto-detail">Show up any day — taking a quiz, opening a lesson, or solving the daily problem all count. <em>Streak Starter</em> (3 days), <em>Streak Master</em> (7), <em>Streak Hero</em> (30).</div>
         </div>
       </div>
       <div class="ach-howto-item">
-        <div class="ach-howto-icon">📖</div>
+        <div class="ach-howto-icon"></div>
         <div>
           <strong>Learn deeper</strong>
-          <div class="ach-howto-detail">Click <em>📖 Learn</em> on a section to open Max's lesson walker. Five lessons unlocks <em>Learner</em>. Five hints unlocks <em>Curious</em>.</div>
+          <div class="ach-howto-detail">Click <em>Learn</em> on a section to open Max's lesson walker. Five lessons unlocks <em>Learner</em>. Five hints unlocks <em>Curious</em>.</div>
         </div>
       </div>
       <div class="ach-howto-item">
-        <div class="ach-howto-icon">⭐</div>
+        <div class="ach-howto-icon"></div>
         <div>
           <strong>Daily Problem of the Day</strong>
           <div class="ach-howto-detail">Solve five Problems of the Day to unlock <em>Daily Solver</em>. Same problem for everyone; 20 points each.</div>
         </div>
       </div>
       <div class="ach-howto-item">
-        <div class="ach-howto-icon">🎨</div>
+        <div class="ach-howto-icon"></div>
         <div>
           <strong>Mix subjects</strong>
           <div class="ach-howto-detail">Take quizzes in both Math <em>and</em> Language Arts to unlock <em>Renaissance</em>.</div>
         </div>
       </div>
       <div class="ach-howto-item">
-        <div class="ach-howto-icon">🏆</div>
+        <div class="ach-howto-icon"></div>
         <div>
           <strong>Points compound</strong>
           <div class="ach-howto-detail">Each earned badge is worth its own points — between 30 and 500. Visit the Leaderboard to see where you rank.</div>
@@ -1449,11 +1449,11 @@
 <div id="courses-home">
   <header class="hero">
     <div class="hero-badges">
-      <span class="badge">📚 21 Courses</span>
-      <span class="badge">✨ AI-Graded</span>
-      <span class="badge">🧙 AI Tutor</span>
-      <span class="badge">⭐ Daily Problem</span>
-      <span class="badge">🔥 Streaks</span>
+      <span class="badge">21 Courses</span>
+      <span class="badge">AI-Graded</span>
+      <span class="badge">AI Tutor</span>
+      <span class="badge">Daily Problem</span>
+      <span class="badge">Streaks</span>
     </div>
     <h1>A calm place to learn <em>math &amp; English</em>.</h1>
     <p>Interactive, auto-graded quizzes with a built-in AI tutor who checks your work, walks you through your mistakes, and answers any question.</p>
@@ -1462,7 +1462,7 @@
   <div id="recBox"></div>
   <div id="podBox"></div>
   <div class="section-heading">
-    <h2>📖 Your Courses</h2>
+    <h2>Your Courses</h2>
     <div class="sub">Pick a course to begin</div>
   </div>
   <div class="courses-controls">
@@ -1814,7 +1814,7 @@
 <div class="upgrade-overlay hidden" id="upgradeOverlay">
   <div class="upgrade-card">
     <button class="upgrade-close" id="upgradeClose" aria-label="Close">✕</button>
-    <div class="upgrade-emoji">✨</div>
+    <div class="upgrade-emoji"></div>
     <h2 class="upgrade-title">Upgrade to <em>Atrium Pro</em></h2>
     <p class="upgrade-sub">Max the AI tutor, full Study Methods, and Final Exams are Pro features. Start a 3-day free trial — no commitment.</p>
     <div class="pricing-toggle" role="tablist" aria-label="Billing period">
@@ -1823,10 +1823,10 @@
     </div>
     <div class="upgrade-amount" id="upgradeAmount">$30<span>/month</span></div>
     <ul class="upgrade-list">
-      <li>✨ Max — unlimited chat &amp; lessons</li>
-      <li>📚 Study Methods (Pomodoro, Spaced Rep, more)</li>
-      <li>🏁 Final Exams</li>
-      <li>💬 Walk-throughs after every missed answer</li>
+      <li>Max — unlimited chat &amp; lessons</li>
+      <li>Study Methods (Pomodoro, Spaced Rep, more)</li>
+      <li>Final Exams</li>
+      <li>Walk-throughs after every missed answer</li>
     </ul>
     <button class="cta-primary cta-full" id="upgradeSubscribeBtn">Start 3-day free trial →</button>
     <div class="upgrade-fine" id="upgradeFine">After trial: $30/month. Cancel anytime.</div>
@@ -1837,7 +1837,7 @@
 <div class="email-overlay hidden" id="emailOverlay" role="dialog" aria-modal="true" aria-labelledby="emailOverlayTitle">
   <div class="email-card">
     <button class="email-close" id="emailClose" aria-label="Close">✕</button>
-    <div class="email-emoji" aria-hidden="true">✉️</div>
+    <div class="email-emoji" aria-hidden="true"></div>
     <h2 id="emailOverlayTitle" class="email-title">Email us</h2>
     <p class="email-sub">We read every message. Usually reply within 1–2 days.</p>
     <a class="email-address" href="mailto:hello@atriuminstitute.ai" id="emailAddress">hello@atriuminstitute.ai</a>
@@ -1858,7 +1858,7 @@
 <div id="whyAtrium" class="why-page hidden">
   <button class="back-btn" onclick="goToCourses()">← Back</button>
   <header class="why-hero">
-    <div class="why-eyebrow">📚 Why families choose Atrium Institute</div>
+    <div class="why-eyebrow">Why families choose Atrium Institute</div>
     <h1>Real tutoring. <em>Without the $100-an-hour bill.</em></h1>
     <p class="why-lede">Personalised math &amp; English for grades 6 through 12. Free for every student. An AI tutor named Max walks every kid through every lesson, every quiz, every mistake. Parents see what's happening. Students build real confidence.</p>
     <div class="why-cta-row">
@@ -1869,73 +1869,73 @@
 
   <section class="why-cards">
     <div class="why-card">
-      <div class="why-card-icon">🎯</div>
+      <div class="why-card-icon"></div>
       <h3>Personalised to your student</h3>
       <p>Max adapts to the kid in front of him. A six-question onboarding survey captures learning style, study time, hobbies, and what they want to be when they grow up. Lessons and Problem of the Day examples lean on what motivates that particular student.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">📡</div>
+      <div class="why-card-icon"></div>
       <h3>Real-time activity monitoring</h3>
       <p>Every lesson started, quiz attempted, hint used, and minute on site lands on a parent dashboard the moment it happens. No 'we'll discuss it at parent-teacher night' lag. You see what's working and what's not, today.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">👪</div>
+      <div class="why-card-icon"></div>
       <h3>Parents get a 360 view</h3>
       <p>For each linked student: daily / weekly / monthly / quarterly rollups by subject, time spent, strongest topics, weak areas, recent quiz scores, and an AI-generated activity summary you can read in under a minute. Two-sided link approval keeps the wrong child from ever being attached to the wrong parent.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">💸</div>
+      <div class="why-card-icon"></div>
       <h3>No $100-an-hour tutor</h3>
       <p>A private tutor typically costs $60 to $150 per hour. Atrium is free. Max teaches the same lesson, grades the same way, and is available at 6am, 11pm, or in the middle of homework on a Sunday. The maths: one hour of tutoring a week is about $5,200 a year. Atrium is zero.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">⏱️</div>
+      <div class="why-card-icon"></div>
       <h3>Time used well</h3>
       <p>No commuting to a learning centre. No waiting for a tutor's availability. A student can run a focused 25-minute Pomodoro between dinner and homework and finish a whole section. Time-tracking shows exactly where the minutes went, by subject and by day, so wasted study habits get fixed instead of becoming permanent.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">💪</div>
+      <div class="why-card-icon"></div>
       <h3>Confidence, the real kind</h3>
       <p>Confidence comes from small wins, not pep talks. Every quiz passed, every problem of the day solved, every lesson finished gets a point reward and counts towards a badge. Streaks reward consistency. Locked badges show a progress bar so kids can see exactly how close they are. The system is designed for steady reinforcement.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">🧙</div>
+      <div class="why-card-icon"></div>
       <h3>An AI tutor that actually teaches</h3>
       <p>Max writes each lesson in five steps with worked examples, "watch out for" callouts, and a built-in "explain it back" prompt so the student has to think, not just nod along. Get a quiz answer wrong and he walks through the underlying concept, not just the right answer. He's available inside every quiz, every lesson, anywhere in the app.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">📐</div>
+      <div class="why-card-icon"></div>
       <h3>Full curriculum, one place</h3>
       <p>21 courses: math from Arithmetic through Real Analysis and Differential Equations, English Language Arts grades 6 through 12, AP Calculus, AP Statistics. 150+ topics. 10,000+ practice questions. Aligned to Common Core. One sign-in, no separate maths app vs reading app.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">🔒</div>
+      <div class="why-card-icon"></div>
       <h3>Built for minors. Privacy taken seriously.</h3>
       <p>COPPA-aware: students under 13 can't use the service until a parent links. We don't sell student data. We don't run ads at students. School and district are captured so administrators can later see usage at their level (opt-in) without ever exposing per-student data they shouldn't.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">⚡</div>
+      <div class="why-card-icon"></div>
       <h3>Daily Problem of the Day</h3>
       <p>One problem a day, picked from the curriculum bank and matched to each student's grade level and recent quiz performance — easier while they're finding their feet, harder as they level up. The pick is deterministic per student per day, so it refreshes once at local midnight. Solving it earns +20 points and contributes to the daily streak. A tiny ritual that keeps the habit going on days a student wouldn't otherwise log in.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">🏆</div>
+      <div class="why-card-icon"></div>
       <h3>Leaderboards that reward effort</h3>
       <p>Daily, weekly, and monthly leaderboards based on points earned, not raw test scores. A kid who shows up every day and grinds through three lessons can rank above one who passed one quiz on a Friday. Effort gets recognised because effort is what builds skill.</p>
     </div>
 
     <div class="why-card">
-      <div class="why-card-icon">🎓</div>
+      <div class="why-card-icon"></div>
       <h3>Self-paced, but never alone</h3>
       <p>Students set their own pace, but the system nudges them. Optional reminder emails. Study Methods coach for techniques like Pomodoro, spaced repetition, and active recall. A study plan with weekly goals and tracked time. The structure of a class without a class's rigid schedule.</p>
     </div>
@@ -2033,7 +2033,7 @@
       <p>Point your phone (or any camera-capable device) at a math problem, tap the shutter, and Atrium reads the problem and writes out a step-by-step solution in the same style as Photomath. Every solve is auto-saved to your Snap &amp; Solve history so you can come back and review it later.</p>
     </details>
     <details><summary>How do I use it?</summary>
-      <p>Tap the <strong>📸 Snap &amp; Solve</strong> floating button in the bottom-right (visible on every page once you're signed in). The scanner opens with your camera live. Frame the problem inside the corner brackets, tap the white shutter, and wait 10-20 seconds while Max reads the image and writes the solution. If your camera isn't available, tap "or pick a photo" to upload an existing image from your device.</p>
+      <p>Tap the <strong>Snap &amp; Solve</strong> floating button in the bottom-right (visible on every page once you're signed in). The scanner opens with your camera live. Frame the problem inside the corner brackets, tap the white shutter, and wait 10-20 seconds while Max reads the image and writes the solution. If your camera isn't available, tap "or pick a photo" to upload an existing image from your device.</p>
     </details>
     <details><summary>What does the solution look like?</summary>
       <p>Three sections: the recognised <strong>problem</strong> at the top (as LaTeX), the final <strong>answer</strong> in a highlighted card, and a <strong>step-by-step</strong> walkthrough with numbered steps. Each step has a "Why this step?" expander you can tap to see the reasoning. When a problem has more than one reasonable solution method, both methods appear as separate expandable sections so you can compare approaches.</p>
@@ -2045,10 +2045,10 @@
       <p>Printed and handwritten math problems across arithmetic, pre-algebra, algebra, geometry, trigonometry, pre-calculus, calculus, statistics, linear algebra, and differential equations. It also handles word problems if the entire problem fits in the frame. Best results: good lighting, no glare, the whole problem visible.</p>
     </details>
     <details><summary>Where do my scans go?</summary>
-      <p>Every solve auto-saves to your Snap &amp; Solve history. Open it from <strong>My Details → Snap &amp; Solve 📸</strong>. Tap any card to revisit the full step-by-step. We keep a small thumbnail (~200px wide) of the original image alongside the solution; the full-resolution image is sent to Anthropic for the OCR + solve and is then discarded from our end.</p>
+      <p>Every solve auto-saves to your Snap &amp; Solve history. Open it from <strong>My Details → Snap &amp; Solve</strong>. Tap any card to revisit the full step-by-step. We keep a small thumbnail (~200px wide) of the original image alongside the solution; the full-resolution image is sent to Anthropic for the OCR + solve and is then discarded from our end.</p>
     </details>
     <details><summary>Can I delete a scan?</summary>
-      <p>Yes. Open the solve and tap the 🗑 Delete button at the bottom. That removes the row, the thumbnail, and the solution from our database. Single-tap confirm; we don't use the four-step flow here because the blast radius is one card.</p>
+      <p>Yes. Open the solve and tap the Delete button at the bottom. That removes the row, the thumbnail, and the solution from our database. Single-tap confirm; we don't use the four-step flow here because the blast radius is one card.</p>
     </details>
     <details><summary>Does it cost anything?</summary>
       <p>Free today. Each solve uses Anthropic vision tokens (the image plus the solution), which is the kind of feature most likely to land on the future premium tier — see <em>How much does it cost?</em> for the broader pricing direction.</p>
@@ -2199,7 +2199,7 @@
 
 <!-- Floating Ask button -->
 <button class="ask-fab" id="askFab" title="Ask Max">
-  <span class="fab-icon">🧙</span>
+  <span class="fab-icon"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg></span>
   <span class="fab-label">Ask Max</span>
 </button>
 
@@ -2207,7 +2207,7 @@
 <aside class="study-panel" id="studyPanel">
   <header class="study-header">
     <div class="study-title">
-      <div class="study-avatar">📚</div>
+      <div class="study-avatar">M</div>
       <div>
         <div class="study-name">Study Methods</div>
         <div class="study-sub">Proven techniques + built-in timers</div>
@@ -2222,7 +2222,7 @@
 <aside class="chat-panel" id="chat">
   <header class="chat-header">
     <div class="chat-title">
-      <div class="chat-avatar big">🧙</div>
+      <div class="chat-avatar big">M</div>
       <div>
         <div class="chat-name">Max</div>
         <div class="chat-sub">AI tutor · not a person</div>
@@ -2252,7 +2252,7 @@
   <div class="lesson-modal-dialog">
     <button class="lesson-modal-close" type="button" aria-label="Close lesson">×</button>
     <div class="lesson-modal-head">
-      <div class="lesson-modal-eyebrow">✨ Max's lesson</div>
+      <div class="lesson-modal-eyebrow">Max's lesson</div>
       <div class="lesson-modal-title">Lesson</div>
     </div>
     <div class="lesson-modal-body">
@@ -2276,7 +2276,7 @@
       <p class="footer-tagline">A calm place to learn math &amp; English. Free for any student, anywhere.</p>
       <div class="footer-social" aria-label="Social media">
         <button type="button" class="footer-email-btn" id="footerEmailBtn" aria-label="Email us">
-          <span class="footer-email-icon" aria-hidden="true">✉️</span>
+          <span class="footer-email-icon" aria-hidden="true"></span>
           <span class="footer-email-text">Email us</span>
         </button>
       </div>
@@ -2304,7 +2304,7 @@
   </div>
   <div class="footer-bottom">
     <div class="footer-copy">© 2026 Atrium Institute · A calm place to learn.</div>
-    <div class="footer-secure">🔒 HTTPS · No ads · No tracking pixels</div>
+    <div class="footer-secure">HTTPS · No ads · No tracking pixels</div>
   </div>
 </footer>
 
@@ -2314,7 +2314,7 @@
     <button class="fc-close" id="plClose" type="button" aria-label="Close">✕</button>
 
     <div id="plIntro">
-      <h2 class="fc-title" id="plTitle">Learning Path 🧭</h2>
+      <h2 class="fc-title" id="plTitle">Learning Path</h2>
       <p class="fc-sub">Take a short placement test and we'll build a course tailored to exactly your level. Master a topic (score 97.5%+) to unlock the next one and its quiz.</p>
       <div class="sat-field"><label>Subject</label>
         <div class="sat-seg" id="plSubject">
@@ -2370,7 +2370,7 @@
 <div class="fc-overlay hidden" id="refOverlay" role="dialog" aria-modal="true" aria-labelledby="refTitle">
   <div class="fc-card-panel">
     <button class="fc-close" id="refClose" type="button" aria-label="Close">✕</button>
-    <h2 class="fc-title" id="refTitle">Invite Friends 🎁</h2>
+    <h2 class="fc-title" id="refTitle">Invite Friends</h2>
     <p class="fc-sub">Share your link and <strong>you both get a free month of Pro</strong> — your friend's first month is on us, and you earn a free month for every friend who subscribes.</p>
 
     <div class="ref-linkbox">
@@ -2401,14 +2401,14 @@
   <div class="fc-card-panel">
     <button class="fc-close" id="shopClose" type="button" aria-label="Close">✕</button>
     <div class="shop-head">
-      <h2 class="fc-title" id="shopTitle">Rewards Shop 🪙</h2>
-      <div class="shop-coins" title="Coins to spend"><span id="shopCoins">—</span> <span class="shop-coin-ico">🪙</span></div>
+      <h2 class="fc-title" id="shopTitle">Rewards Shop</h2>
+      <div class="shop-coins" title="Coins to spend"><span id="shopCoins">—</span> <span class="shop-coin-ico"></span></div>
     </div>
     <p class="fc-sub">Coins are the points you've earned minus what you've spent here. Unlock themes and badges — your points and streak stay untouched.</p>
     <div class="fc-error hidden" id="shopError"></div>
-    <div class="shop-section-h">🎨 Themes</div>
+    <div class="shop-section-h">Themes</div>
     <div class="shop-grid" id="shopThemes"></div>
-    <div class="shop-section-h">🏅 Badges</div>
+    <div class="shop-section-h">Badges</div>
     <div class="shop-grid" id="shopBadges"></div>
   </div>
 </div>
@@ -2420,7 +2420,7 @@
 
     <!-- Setup -->
     <div id="satSetup">
-      <h2 class="fc-title" id="satTitle">SAT / ACT Prep 🎯</h2>
+      <h2 class="fc-title" id="satTitle">SAT / ACT Prep</h2>
       <p class="fc-sub">Timed, authentic-style practice with instant scoring and explanations.</p>
       <div class="sat-field"><label>Test</label>
         <div class="sat-seg" id="satTest">
@@ -2476,7 +2476,7 @@
 
     <!-- List view -->
     <div id="certListView">
-      <h2 class="fc-title" id="certTitle">Certificates 🎓</h2>
+      <h2 class="fc-title" id="certTitle">Certificates</h2>
       <p class="fc-sub">Complete every quiz and test in a course to earn its certificate.</p>
       <div class="cert-list" id="certList"></div>
     </div>
@@ -2510,7 +2510,7 @@
 <div class="fc-overlay hidden" id="calcOverlay" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
   <div class="fc-card-panel calc-panel">
     <button class="fc-close" id="calcClose" type="button" aria-label="Close">✕</button>
-    <h2 class="fc-title" id="calcTitle">Calculator 🧮</h2>
+    <h2 class="fc-title" id="calcTitle">Calculator</h2>
     <div class="calc-display">
       <div class="calc-expr" id="calcExpr">0</div>
       <div class="calc-res" id="calcResult">0</div>
@@ -2565,7 +2565,7 @@
 <div class="fc-overlay hidden" id="fmOverlay" role="dialog" aria-modal="true" aria-labelledby="fmTitle">
   <div class="fc-card-panel">
     <button class="fc-close" id="fmClose" type="button" aria-label="Close">✕</button>
-    <h2 class="fc-title" id="fmTitle">Formula Sheet 📐</h2>
+    <h2 class="fc-title" id="fmTitle">Formula Sheet</h2>
     <input type="text" id="fmSearch" class="fc-input" placeholder="Search formulas — e.g. quadratic, area, derivative" style="width:100%;margin-bottom:16px" />
     <div class="fm-list" id="fmList"></div>
     <div class="fm-empty hidden" id="fmEmpty">No formulas match that search.</div>
@@ -2576,7 +2576,7 @@
 <div class="fc-overlay hidden" id="calOverlay" role="dialog" aria-modal="true" aria-labelledby="calTitle">
   <div class="fc-card-panel">
     <button class="fc-close" id="calClose" type="button" aria-label="Close">✕</button>
-    <h2 class="fc-title" id="calTitle">Study Calendar 📅</h2>
+    <h2 class="fc-title" id="calTitle">Study Calendar</h2>
     <p class="fc-sub">Every day you study lights up. Keep the streak alive.</p>
 
     <div class="cal-stats" id="calStats">
@@ -2611,7 +2611,7 @@
     <button class="fc-close" id="nbClose" type="button" aria-label="Close">✕</button>
     <div class="nb-sidebar">
       <div class="nb-side-head">
-        <h2 class="fc-title" id="nbTitle">Notebook 📓</h2>
+        <h2 class="fc-title" id="nbTitle">Notebook</h2>
         <button class="nb-new" id="nbNew" type="button">＋ New</button>
       </div>
       <div class="nb-list" id="nbList"></div>
@@ -2621,11 +2621,11 @@
       <textarea id="nbNoteBody" class="nb-body" placeholder="Start writing…"></textarea>
       <div class="nb-editor-foot">
         <span class="nb-saved" id="nbSaved"></span>
-        <button class="nb-del" id="nbDelete" type="button">🗑 Delete</button>
+        <button class="nb-del" id="nbDelete" type="button">Delete</button>
       </div>
     </div>
     <div class="nb-empty" id="nbEmpty">
-      <div class="nb-empty-emoji">📝</div>
+      <div class="nb-empty-emoji"></div>
       <p>No notes yet. Create one to start writing.</p>
       <button class="cta-primary" id="nbEmptyNew" type="button">＋ New note</button>
     </div>
@@ -2636,7 +2636,7 @@
 <div class="fc-overlay hidden" id="egOverlay" role="dialog" aria-modal="true" aria-labelledby="egTitle">
   <div class="fc-card-panel">
     <button class="fc-close" id="egClose" type="button" aria-label="Close">✕</button>
-    <h2 class="fc-title" id="egTitle">Essay Grader ✍️</h2>
+    <h2 class="fc-title" id="egTitle">Essay Grader</h2>
 
     <!-- Input -->
     <div class="eg-input" id="egInput">
@@ -2677,7 +2677,7 @@
 <div class="fc-overlay hidden" id="fcOverlay" role="dialog" aria-modal="true" aria-labelledby="fcTitle">
   <div class="fc-card-panel">
     <button class="fc-close" id="fcClose" type="button" aria-label="Close">✕</button>
-    <h2 class="fc-title" id="fcTitle">Flashcards 🃏</h2>
+    <h2 class="fc-title" id="fcTitle">Flashcards</h2>
 
     <!-- Generator -->
     <div class="fc-gen" id="fcGen">
@@ -2714,7 +2714,7 @@
         <button class="cta-secondary" id="fcNext" type="button">Next →</button>
       </div>
       <div class="fc-actions">
-        <button class="fc-link" id="fcSaveDeck" type="button">★ Save deck</button>
+        <button class="fc-link" id="fcSaveDeck" type="button">Save deck</button>
         <button class="fc-link" id="fcNewDeck" type="button">＋ New deck</button>
       </div>
     </div>

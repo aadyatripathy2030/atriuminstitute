@@ -49,12 +49,12 @@
 
     var html = '';
     if (!done.length) {
-      html += '<p class="cert-empty">No certificates yet — finish all the quizzes and tests in a course and it\'ll appear here. Keep going! 💪</p>';
+      html += '<p class="cert-empty">No certificates yet — finish all the quizzes and tests in a course and it\'ll appear here. Keep going!</p>';
     } else {
       html += '<div class="cert-group-h">Earned</div>';
       done.forEach(function (c) {
         html += '<div class="cert-item cert-done">' +
-          '<span class="cert-item-info"><span class="cert-item-title">🎓 ' + esc(c.title) + '</span>' +
+          '<span class="cert-item-info"><span class="cert-item-title">' + esc(c.title) + '</span>' +
           '<span class="cert-item-sub">' + esc(c.subject === 'english' ? 'English' : 'Math') + ' · 100% complete</span></span>' +
           '<button class="cta-primary cert-get" data-id="' + esc(c.id) + '" data-title="' + esc(c.title) + '">View certificate</button>' +
         '</div>';

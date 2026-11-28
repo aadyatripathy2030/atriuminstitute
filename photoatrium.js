@@ -5,7 +5,7 @@
 //   - photoAtriumResultPage   (problem + answer + collapsible steps)
 //   - photoAtriumListPage     (history grid)
 //
-// The floating FAB (📸) opens the scanner. Live camera uses getUserMedia;
+// The floating FAB () opens the scanner. Live camera uses getUserMedia;
 // the file-input fallback uses capture="environment" so phones open the
 // camera app directly.
 
@@ -193,9 +193,9 @@
       if (!items.length) {
         grid.innerHTML = `
           <div class="pa-list-empty">
-            <div class="pa-list-empty-icon">📸</div>
+            <div class="pa-list-empty-icon"></div>
             <h3>No solves yet</h3>
-            <p>Tap the 📸 Snap &amp; Solve button to take a photo of your first math problem. Every solve is saved here automatically.</p>
+            <p>Tap the Snap &amp; Solve button to take a photo of your first math problem. Every solve is saved here automatically.</p>
             <button class="cta-primary" onclick="openPhotoScanner()">Snap a problem</button>
           </div>
         `;
@@ -205,7 +205,7 @@
         <button class="pa-card" data-id="${esc(item.id)}">
           <div class="pa-card-thumb">${item.thumbnail_data
             ? `<img src="${esc(item.thumbnail_data)}" alt="Scanned problem">`
-            : `<div class="pa-card-thumb-fallback">📝</div>`}</div>
+            : `<div class="pa-card-thumb-fallback"></div>`}</div>
           <div class="pa-card-body">
             <div class="pa-card-problem">${renderLatexInline(item.detected_problem)}</div>
             <div class="pa-card-meta">
@@ -291,7 +291,7 @@
         const msg = data.message || data.error || 'Could not solve this image.';
         wrap.innerHTML = `
           <div class="pa-error">
-            <div class="pa-error-icon">😕</div>
+            <div class="pa-error-icon"></div>
             <h3>Couldn't read that one</h3>
             <p>${esc(msg)}</p>
             <div class="pa-error-actions">
@@ -306,13 +306,13 @@
       renderResult(data.parsed, { id: data.id, created_at: data.created_at, thumbnail_data: thumbImg });
       // Reward toast
       if (typeof window.showPointToast === 'function') {
-        window.showPointToast(10, 'Snap & Solve', { icon: '📸' });
+        window.showPointToast(10, 'Snap & Solve', { icon: '' });
       }
       if (typeof window.checkForNewBadges === 'function') {
         setTimeout(window.checkForNewBadges, 600);
       }
     } catch (e) {
-      wrap.innerHTML = `<div class="pa-error"><div class="pa-error-icon">⚠️</div><h3>Network error</h3><p>${esc(e.message)}</p><button class="cta-secondary" onclick="openPhotoScanner()">Try again</button></div>`;
+      wrap.innerHTML = `<div class="pa-error"><div class="pa-error-icon"></div><h3>Network error</h3><p>${esc(e.message)}</p><button class="cta-secondary" onclick="openPhotoScanner()">Try again</button></div>`;
     }
   }
 
@@ -385,8 +385,8 @@
               // Homework mode: hidden behind a per-step reveal button.
               const isFirst = si === 0;
               const lockLabel = isFirst
-                ? `🎯 Got an idea for Step 1? Tap to reveal`
-                : `🔒 Step ${si + 1} (reveal Step ${si} first)`;
+                ? `Got an idea for Step 1? Tap to reveal`
+                : `Step ${si + 1} (reveal Step ${si} first)`;
               return `
                 <li class="pa-step pa-step-locked" data-step="${si}" data-total="${total}">
                   <button type="button" class="pa-reveal-btn pa-step-reveal" data-step-idx="${si}" ${isFirst ? '' : 'disabled'}>
@@ -428,7 +428,7 @@
 
       ${(hw && parsed.hint) ? `
         <section class="pa-hint-block">
-          <div class="pa-block-label">💡 Hint</div>
+          <div class="pa-block-label">Hint</div>
           <div class="pa-hint-body">${esc(parsed.hint)}</div>
           <div class="pa-hint-foot">Give the problem a real attempt before tapping any step below. Working it out is what builds the skill.</div>
         </section>
@@ -437,7 +437,7 @@
       <section class="pa-answer-block${hw && parsed.answer ? ' pa-answer-hidden' : ''}">
         <div class="pa-block-label">Answer</div>
         ${(hw && parsed.answer && String(parsed.answer).trim())
-          ? `<button type="button" class="pa-reveal-btn pa-reveal-answer" data-reveal="answer" disabled>🔒 Answer locked — reveal every step first</button>
+          ? `<button type="button" class="pa-reveal-btn pa-reveal-answer" data-reveal="answer" disabled>Answer locked — reveal every step first</button>
              <div class="pa-answer-eq pa-hidden">${renderLatexBlock(parsed.answer)}</div>`
           : `<div class="pa-answer-eq">${renderLatexBlock(parsed.answer || '(no final answer)')}</div>`
         }
@@ -453,9 +453,9 @@
       ${parsed.note ? `<section class="pa-note"><strong>Note:</strong> ${esc(parsed.note)}</section>` : ''}
 
       <div class="pa-result-actions">
-        <button class="cta-secondary" id="paAnotherBtn" type="button">📸 Snap another</button>
-        <button class="cta-link" id="paHistoryBtn" type="button">📜 See history</button>
-        <button class="pa-delete-btn" id="paDeleteBtn" type="button">🗑 Delete</button>
+        <button class="cta-secondary" id="paAnotherBtn" type="button">Snap another</button>
+        <button class="cta-link" id="paHistoryBtn" type="button">See history</button>
+        <button class="pa-delete-btn" id="paDeleteBtn" type="button">Delete</button>
       </div>
     `;
 
@@ -480,7 +480,7 @@
       const ans = wrap.querySelector('.pa-reveal-answer');
       if (ans) {
         ans.disabled = false;
-        ans.textContent = '🎯 Tap to reveal the final answer.';
+        ans.textContent = 'Tap to reveal the final answer.';
       }
     }
 
@@ -575,13 +575,13 @@
         if (nextBtn) {
           const nextIdx = parseInt(nextLi.dataset.step, 10);
           nextBtn.disabled = false;
-          nextBtn.textContent = `🎯 Ready for Step ${nextIdx + 1}? Tap to reveal`;
+          nextBtn.textContent = `Ready for Step ${nextIdx + 1}? Tap to reveal`;
         }
       } else {
         const ans = document.querySelector('.pa-reveal-answer');
         if (ans) {
           ans.disabled = false;
-          ans.textContent = '🎯 You worked through every step. Tap to reveal the final answer.';
+          ans.textContent = 'You worked through every step. Tap to reveal the final answer.';
         }
       }
       return;

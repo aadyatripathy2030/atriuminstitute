@@ -3,7 +3,7 @@
 
 (function() {
   if (typeof COURSES === "undefined") { console.error("english-extras.js: COURSES not loaded"); return; }
-  const EMOJIS = ["📖","✍️","📝","🎭","📜","🔤","💬","📚","🪶","📰","🎨","📕","📗","📘","📙"];
+  const EMOJIS = ["","","","","","","","","","","","","","",""];
   const ACCENTS = [["#ff6b9d","#feca57"],["#48dbfb","#ff9ff3"],["#1dd1a1","#feca57"],["#5f27cd","#48dbfb"],["#ff9f43","#ee5253"],["#0abde3","#54a0ff"],["#10ac84","#feca57"],["#222f3e","#ff6b6b"],["#ee5a6f","#f1c40f"],["#9b59b6","#3498db"]];
   function addBooks(courseId, topics) {
     const c = COURSES[courseId]; if (!c) return;

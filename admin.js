@@ -680,9 +680,9 @@
     const fill = el('prebuildBarFill');
     if (fill) fill.style.width = pct + '%';
     let statusIcon;
-    if (state.running && state.cancelled) statusIcon = '⏹ Cancelling… (waiting for in-flight calls)';
-    else if (state.running) statusIcon = '⏳ Running…';
-    else if (state.cancelled) statusIcon = '⏹ Cancelled';
+    if (state.running && state.cancelled) statusIcon = 'Cancelling… (waiting for in-flight calls)';
+    else if (state.running) statusIcon = 'Running…';
+    else if (state.cancelled) statusIcon = 'Cancelled';
     else statusIcon = '✓ Done';
     const lineParts = [
       statusIcon,
@@ -743,13 +743,13 @@
       cancelBtn.textContent = 'Cancelling…';
     }
     if (statusLine) {
-      statusLine.textContent = '⏹ Cancelling… (waiting for in-flight calls to finish)';
+      statusLine.textContent = 'Cancelling… (waiting for in-flight calls to finish)';
     }
     try {
       await fetchJSON('/api/admin/prebuild-lessons/cancel', { method: 'POST' });
       refreshPrebuildStatus();
     } catch (e) {
-      if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.textContent = '⏹ Cancel prebuild'; }
+      if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.textContent = 'Cancel prebuild'; }
       alert(e.message);
     }
   }

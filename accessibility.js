@@ -99,7 +99,7 @@
       }
       return '';
     }
-    function setSpeakLabel() { if (speakBtn) speakBtn.textContent = speaking ? '⏹ Stop' : '▶ Read aloud'; }
+    function setSpeakLabel() { if (speakBtn) speakBtn.textContent = speaking ? 'Stop' : '▶ Read aloud'; }
     function stopSpeech() { if (synth) synth.cancel(); speaking = false; setSpeakLabel(); }
 
     if (!synth) { if (speakBtn) { speakBtn.disabled = true; speakBtn.textContent = 'Not supported'; } }
